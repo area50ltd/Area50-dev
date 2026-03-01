@@ -37,6 +37,11 @@ export interface Company {
   whatsapp_phone_id: string | null
   whatsapp_token: string | null
   slack_webhook_url: string | null
+  voice_language: string | null
+  voice_accent: string | null
+  voice_gender: string | null
+  voice_tone: string | null
+  elevenlabs_voice_id: string | null
   is_active: boolean | null
   created_at: Date | null
   updated_at: Date | null
@@ -95,6 +100,7 @@ export interface Agent {
   active_chats: number | null
   total_resolved: number | null
   avg_response_time: number | null
+  specializations: string[] | null
   created_at: Date | null
 }
 
@@ -107,6 +113,9 @@ export interface RoutingRule {
   timezone: string | null
   after_hours_mode: string | null
   max_ai_attempts: number | null
+  keywords_escalate: string[] | null
+  after_hours_agent_available: boolean | null
+  after_hours_message: string | null
 }
 
 export interface KnowledgeDocument {

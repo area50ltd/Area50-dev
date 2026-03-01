@@ -1,6 +1,8 @@
 'use client'
 
+import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Phone, PhoneOff } from 'lucide-react'
 import { toast } from 'sonner'
 import { WidgetHeader } from './WidgetHeader'
 import { MessageBubble } from './MessageBubble'
@@ -20,6 +22,33 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
   } = useWidget()
 
   const widgetColor = company.widget_color ?? '#1B2A4A'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vapiRef = useRef<any>(null)
+  const [isCallActive, setIsCallActive] = useState(false)
+
+  const handleVoiceCall = async () => {
+    if (!company.vapi_assistant_id) {
+      toast.error('Voice assistant not configured yet')
+      return
+    }
+    if (isCallActive) {
+      vapiRef.current?.stop()
+      setIsCallActive(false)
+      return
+    }
+    try {
+      const { default: Vapi } = await import('@vapi-ai/web')
+      const key = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY
+      if (!key) { toast.error('Voice not configured'); return }
+      vapiRef.current = new Vapi(key)
+      vapiRef.current.on('call-end', () => setIsCallActive(false))
+      vapiRef.current.on('error', () => { toast.error('Call error'); setIsCallActive(false) })
+      await vapiRef.current.start(company.vapi_assistant_id)
+      setIsCallActive(true)
+    } catch {
+      toast.error('Failed to start voice call')
+    }
+  }
 
   const handleSend = async (content: string) => {
     // Optimistically add the message
@@ -139,6 +168,32 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
                   </div>
                 )}
               </div>
+
+              {/* Voice call button — shown only if assistant is configured */}
+              {company.vapi_assistant_id && (
+                <div className="px-4 pt-2 pb-1 bg-white border-t border-neutral-50 flex items-center gap-2">
+                  <button
+                    onClick={handleVoiceCall}
+                    className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-all ${
+                      isCallActive
+                        ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                        : 'bg-[#FDE7F3] text-[#E91E8C] hover:bg-[#fbcfe8]'
+                    }`}
+                  >
+                    {isCallActive ? (
+                      <><PhoneOff size={12} /> End Call</>
+                    ) : (
+                      <><Phone size={12} /> Call Support</>
+                    )}
+                  </button>
+                  {isCallActive && (
+                    <span className="flex items-center gap-1 text-xs text-green-600 animate-pulse">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      Connected
+                    </span>
+                  )}
+                </div>
+              )}
 
               <WidgetInput onSend={handleSend} isSending={isSending} />
             </>

@@ -1,15 +1,12 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 
-const r2 = new S3Client({
-  region: 'auto',
-  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
-  },
-})
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+const BUCKET = 'area50-files'
 
 export async function uploadFile(
   companyId: string,
@@ -20,40 +17,33 @@ export async function uploadFile(
   const documentId = randomUUID()
   const key = `${companyId}/${documentId}/${filename}`
 
-  await r2.send(
-    new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Key: key,
-      Body: file,
-      ContentType: contentType,
-    })
-  )
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(key, file, { contentType, upsert: false })
+
+  if (error) throw new Error(`Storage upload failed: ${error.message}`)
+
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(key)
 
   return {
     key,
     documentId,
-    url: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL}/${key}`,
+    url: data.publicUrl,
   }
 }
 
 export async function getSignedDownloadUrl(key: string) {
-  return getSignedUrl(
-    r2,
-    new GetObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Key: key,
-    }),
-    { expiresIn: 3600 }
-  )
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(key, 3600)
+
+  if (error) throw new Error(`Failed to create signed URL: ${error.message}`)
+  return data.signedUrl
 }
 
 export async function deleteFile(key: string) {
-  await r2.send(
-    new DeleteObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Key: key,
-    })
-  )
+  const { error } = await supabase.storage.from(BUCKET).remove([key])
+  if (error) throw new Error(`Failed to delete file: ${error.message}`)
 }
 
 export const ALLOWED_FILE_TYPES: Record<string, string> = {

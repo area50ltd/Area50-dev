@@ -6,7 +6,12 @@
       "Bash(npx tsc --noEmit)",
       "Bash(node -e \"console.log\\(require\\(''./node_modules/@clerk/nextjs/package.json''\\).version\\)\")",
       "Bash(/c/softwares/Area50/Area50app/middleware.ts:*)",
-      "Bash(npm install svix)"
+      "Bash(npm install svix)",
+      "Bash(ls \"c:\\\\softwares\\\\Area50\\\\Area50app\\\\app\\\\\\(auth\\)\\\\login\"\")",
+      "Bash(npx drizzle-kit push)",
+      "Bash(npm install drizzle-kit@latest)",
+      "Bash(npm install @vapi-ai/web)",
+      "Bash(npm uninstall @aws-sdk/client-s3 @aws-sdk/s3-request-presigner)"
     ]
   }
 }

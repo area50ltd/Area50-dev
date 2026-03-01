@@ -42,7 +42,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   if (clerkConfigured) {
     return (
-      <ClerkProvider>
+      <ClerkProvider
+        signInUrl="/login"
+        signInFallbackRedirectUrl="/dashboard"
+        signUpFallbackRedirectUrl="/onboarding"
+      >
         <AppShell>{children}</AppShell>
       </ClerkProvider>
     )

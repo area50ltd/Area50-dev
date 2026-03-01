@@ -8,6 +8,7 @@ import {
   timestamp,
   time,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
 export const companies = pgTable('companies', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -26,6 +27,11 @@ export const companies = pgTable('companies', {
   whatsapp_phone_id: varchar('whatsapp_phone_id', { length: 255 }),
   whatsapp_token: text('whatsapp_token'),
   slack_webhook_url: text('slack_webhook_url'),
+  voice_language: varchar('voice_language', { length: 10 }).default('en'),
+  voice_accent: varchar('voice_accent', { length: 50 }).default('english'),
+  voice_gender: varchar('voice_gender', { length: 10 }).default('female'),
+  voice_tone: varchar('voice_tone', { length: 20 }).default('professional'),
+  elevenlabs_voice_id: varchar('elevenlabs_voice_id', { length: 100 }),
   is_active: boolean('is_active').default(true),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
@@ -84,6 +90,7 @@ export const agents = pgTable('agents', {
   active_chats: integer('active_chats').default(0),
   total_resolved: integer('total_resolved').default(0),
   avg_response_time: integer('avg_response_time').default(0),
+  specializations: text('specializations').array().default(sql`'{}'::text[]`),
   created_at: timestamp('created_at').defaultNow(),
 })
 
@@ -96,6 +103,9 @@ export const routing_rules = pgTable('routing_rules', {
   timezone: varchar('timezone', { length: 50 }).default('Africa/Lagos'),
   after_hours_mode: varchar('after_hours_mode', { length: 50 }).default('ai_only'),
   max_ai_attempts: integer('max_ai_attempts').default(3),
+  keywords_escalate: text('keywords_escalate').array().default(sql`'{}'::text[]`),
+  after_hours_agent_available: boolean('after_hours_agent_available').default(false),
+  after_hours_message: text('after_hours_message'),
 })
 
 export const knowledge_documents = pgTable('knowledge_documents', {

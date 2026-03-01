@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { TopBar } from '@/components/dashboard/TopBar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { type LucideIcon, Search, CheckCircle2, Zap, MessageSquare, Github, Settings2, ExternalLink } from 'lucide-react'
+import { type LucideIcon, Search, CheckCircle2, Zap, MessageSquare, Github, Settings2, ExternalLink, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 
@@ -166,6 +166,14 @@ export default function IntegrationsPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All Apps')
   const [tab, setTab] = useState<'marketplace' | 'connected'>('marketplace')
+  const [phoneNumber, setPhoneNumber] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetch('/api/company')
+      .then((r) => r.json())
+      .then((data) => setPhoneNumber(data?.vapi_phone_number ?? null))
+      .catch(() => null)
+  }, [])
 
   const connectedCount = INTEGRATIONS.filter((i) => i.connected).length
 
@@ -221,6 +229,27 @@ export default function IntegrationsPage() {
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 w-56 text-sm"
             />
+          </div>
+        </div>
+
+        {/* Phone Number Section */}
+        <div className="mb-6 bg-white rounded-xl border border-neutral-100 shadow-sm p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-[#FDE7F3] flex items-center justify-center shrink-0">
+              <Phone size={22} className="text-[#E91E8C]" />
+            </div>
+            <div>
+              <h3 className="font-medium text-sm text-[#1B2A4A]">Voice Phone Number</h3>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Inbound calls to this number are handled by your Vapi AI voice assistant (WF7).
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-xs text-neutral-400 mb-1">Provisioned number</p>
+            <p className="font-mono text-sm font-semibold text-[#1B2A4A]">
+              {phoneNumber ?? <span className="text-neutral-400 font-normal text-xs">Not provisioned</span>}
+            </p>
           </div>
         </div>
 

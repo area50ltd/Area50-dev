@@ -432,8 +432,14 @@ function Step5({ onNext, onBack }: { onNext: () => void; onBack: () => void }) {
 
 // ─── Step 6: Done ─────────────────────────────────────────────────────────────
 
-function Step6({ companyName }: { companyName: string }) {
-  const router = useRouter()
+function Step6({ companyName, onComplete }: { companyName: string; onComplete: () => Promise<void> }) {
+  const [loading, setLoading] = useState(false)
+
+  async function handleGo() {
+    setLoading(true)
+    await onComplete().catch(() => setLoading(false))
+  }
+
   return (
     <StepContainer>
       <div className="text-center py-6">
@@ -455,10 +461,11 @@ function Step6({ companyName }: { companyName: string }) {
 
         <Button
           size="xl"
-          onClick={() => router.push('/dashboard')}
+          onClick={handleGo}
+          disabled={loading}
           className="rounded-full shadow-xl shadow-[#E91E8C]/25"
         >
-          Go to Dashboard <ArrowRight size={18} />
+          {loading ? 'Setting up...' : 'Go to Dashboard'} {!loading && <ArrowRight size={18} />}
         </Button>
       </div>
     </StepContainer>
@@ -468,6 +475,7 @@ function Step6({ companyName }: { companyName: string }) {
 // ─── Main Onboarding Page ─────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [data, setData] = useState({
     companyName: '',
@@ -480,6 +488,27 @@ export default function OnboardingPage() {
 
   const next = () => setCurrentStep((s) => Math.min(s + 1, 6))
   const back = () => setCurrentStep((s) => Math.max(s - 1, 1))
+
+  async function handleComplete() {
+    const res = await fetch('/api/onboarding', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        companyName: data.companyName,
+        supportEmail: data.supportEmail,
+        plan: data.plan,
+        aiPersonality: data.aiPersonality,
+        widgetColor: data.widgetColor,
+        welcomeMessage: data.welcomeMessage,
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      toast.error(err.error ?? 'Setup failed. Please try again.')
+      throw new Error('Onboarding failed')
+    }
+    router.push('/dashboard')
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-6">
@@ -532,7 +561,7 @@ export default function OnboardingPage() {
               <Step5 key="step5" onNext={next} onBack={back} />
             )}
             {currentStep === 6 && (
-              <Step6 key="step6" companyName={data.companyName || 'there'} />
+              <Step6 key="step6" companyName={data.companyName || 'there'} onComplete={handleComplete} />
             )}
           </AnimatePresence>
         </div>
