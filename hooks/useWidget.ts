@@ -4,11 +4,20 @@ import type { Message } from '@/lib/types'
 
 type WidgetView = 'chat' | 'handoff' | 'ticket' | 'notifications'
 
+/** Generate a UUID v4 compatible string without crypto.randomUUID dependency */
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
+
 interface WidgetState {
   isOpen: boolean
   view: WidgetView
   sessionId: string
-  ticketId: string | null
+  ticketId: string
   messages: Message[]
   isSending: boolean
   queuePosition: number | null
@@ -26,7 +35,8 @@ export const useWidget = create<WidgetState>((set) => ({
   isOpen: false,
   view: 'chat',
   sessionId: generateSessionId(),
-  ticketId: null,
+  // Generate a UUID on widget init — n8n uses this to create/find the ticket
+  ticketId: generateUUID(),
   messages: [],
   isSending: false,
   queuePosition: null,
@@ -45,7 +55,7 @@ export const useWidget = create<WidgetState>((set) => ({
         },
       ],
     })),
-  setTicketId: (id) => set({ ticketId: id }),
+  setTicketId: (ticketId) => set({ ticketId }),
   setSending: (isSending) => set({ isSending }),
   setQueuePosition: (queuePosition) => set({ queuePosition }),
 }))

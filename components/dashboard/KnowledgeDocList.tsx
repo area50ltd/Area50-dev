@@ -1,6 +1,9 @@
 'use client'
 
+import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { File, FileText, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, Clock, Trash2, ExternalLink } from 'lucide-react'
+import { toast } from 'sonner'
 import { formatDate, formatFileSize } from '@/lib/utils'
 import { Skeleton } from '@/components/shared/LoadingSkeleton'
 import type { KnowledgeDocument } from '@/lib/types'
@@ -23,7 +26,39 @@ interface KnowledgeDocListProps {
   isLoading: boolean
 }
 
+function useDeleteDocument() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/knowledge/${id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? 'Delete failed')
+      }
+      return res.json()
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['knowledge'] }),
+  })
+}
+
 export function KnowledgeDocList({ docs, isLoading }: KnowledgeDocListProps) {
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { mutate: deleteDoc } = useDeleteDocument()
+
+  const handleDelete = (doc: KnowledgeDocument) => {
+    setDeletingId(doc.id)
+    deleteDoc(doc.id, {
+      onSuccess: () => {
+        toast.success(`"${doc.filename}" deleted`)
+        setDeletingId(null)
+      },
+      onError: (err) => {
+        toast.error(`Failed to delete: ${err.message}`)
+        setDeletingId(null)
+      },
+    })
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -65,6 +100,7 @@ export function KnowledgeDocList({ docs, isLoading }: KnowledgeDocListProps) {
         <tbody className="divide-y divide-neutral-50">
           {docs.map((doc) => {
             const status = statusConfig[doc.embedding_status ?? 'pending']
+            const isDeleting = deletingId === doc.id
             return (
               <tr key={doc.id} className="hover:bg-neutral-50/60 transition-colors group">
                 <td className="px-5 py-3.5">
@@ -95,8 +131,12 @@ export function KnowledgeDocList({ docs, isLoading }: KnowledgeDocListProps) {
                         <ExternalLink size={13} />
                       </a>
                     )}
-                    <button className="p-1.5 hover:bg-red-50 rounded-lg text-neutral-400 hover:text-red-500">
-                      <Trash2 size={13} />
+                    <button
+                      onClick={() => handleDelete(doc)}
+                      disabled={isDeleting}
+                      className="p-1.5 hover:bg-red-50 rounded-lg text-neutral-400 hover:text-red-500 disabled:opacity-40"
+                    >
+                      {isDeleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                     </button>
                   </div>
                 </td>

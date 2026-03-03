@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import type { Ticket, Message } from '@/lib/types'
+import type { Ticket, Message, User } from '@/lib/types'
 
 interface TicketDetail {
   ticket: Ticket
   messages: Message[]
+  customer: User | null
+  ticketCount: number
 }
 
 async function fetchTicket(id: string): Promise<TicketDetail> {
@@ -18,6 +20,6 @@ export function useTicket(id: string) {
     queryFn: () => fetchTicket(id),
     enabled: !!id,
     staleTime: 15_000,
-    refetchInterval: 30_000, // Poll every 30s for new messages
+    refetchInterval: 30_000, // fallback polling when realtime is unavailable
   })
 }

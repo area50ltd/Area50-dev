@@ -10,7 +10,7 @@ interface EmbedCodeBlockProps {
   appUrl?: string
 }
 
-export function EmbedCodeBlock({ companyId, appUrl = 'https://app.yourdomain.com' }: EmbedCodeBlockProps) {
+export function EmbedCodeBlock({ companyId, appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.yourdomain.com' }: EmbedCodeBlockProps) {
   const [copied, setCopied] = useState(false)
 
   const code = `<!-- Area50 Support Widget -->

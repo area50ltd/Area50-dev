@@ -5,9 +5,281 @@ import { TopBar } from '@/components/dashboard/TopBar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { type LucideIcon, Search, CheckCircle2, Zap, MessageSquare, Github, Settings2, ExternalLink, Phone } from 'lucide-react'
+import {
+  type LucideIcon,
+  Search,
+  CheckCircle2,
+  Zap,
+  MessageSquare,
+  Github,
+  Settings2,
+  Phone,
+  Mic,
+  Globe,
+  Loader2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
+
+// ---------------------------------------------------------------------------
+// Vapi Voice Configuration
+// ---------------------------------------------------------------------------
+
+const VOICE_LANGUAGES = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'French' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'pt', label: 'Portuguese' },
+  { value: 'ar', label: 'Arabic' },
+  { value: 'hi', label: 'Hindi' },
+  { value: 'yo', label: 'Yoruba' },
+  { value: 'ig', label: 'Igbo' },
+  { value: 'ha', label: 'Hausa' },
+]
+
+const VOICE_ACCENTS = [
+  { value: 'american', label: 'American' },
+  { value: 'british', label: 'British' },
+  { value: 'australian', label: 'Australian' },
+  { value: 'nigerian', label: 'Nigerian' },
+  { value: 'indian', label: 'Indian' },
+  { value: 'french', label: 'French' },
+  { value: 'spanish', label: 'Spanish' },
+]
+
+const VOICE_GENDERS = [
+  { value: 'female', label: 'Female' },
+  { value: 'male', label: 'Male' },
+]
+
+const VOICE_TONES = [
+  { value: 'professional', label: 'Professional' },
+  { value: 'friendly', label: 'Friendly' },
+  { value: 'formal', label: 'Formal' },
+  { value: 'casual', label: 'Casual' },
+  { value: 'empathetic', label: 'Empathetic' },
+]
+
+interface VapiConfig {
+  vapi_assistant_id: string
+  vapi_phone_number: string
+  voice_language: string
+  voice_accent: string
+  voice_gender: string
+  voice_tone: string
+  elevenlabs_voice_id: string
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  options: { value: string; label: string }[]
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium text-neutral-600">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2 bg-white text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
+function VapiConfigCard() {
+  const [config, setConfig] = useState<VapiConfig>({
+    vapi_assistant_id: '',
+    vapi_phone_number: '',
+    voice_language: 'en',
+    voice_accent: 'american',
+    voice_gender: 'female',
+    voice_tone: 'professional',
+    elevenlabs_voice_id: '',
+  })
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/company')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data) return
+        setConfig({
+          vapi_assistant_id: data.vapi_assistant_id ?? '',
+          vapi_phone_number: data.vapi_phone_number ?? '',
+          voice_language: data.voice_language ?? 'en',
+          voice_accent: data.voice_accent ?? 'american',
+          voice_gender: data.voice_gender ?? 'female',
+          voice_tone: data.voice_tone ?? 'professional',
+          elevenlabs_voice_id: data.elevenlabs_voice_id ?? '',
+        })
+      })
+      .catch(() => null)
+      .finally(() => setLoading(false))
+  }, [])
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/company', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          voice_language: config.voice_language,
+          voice_accent: config.voice_accent,
+          voice_gender: config.voice_gender,
+          voice_tone: config.voice_tone,
+          elevenlabs_voice_id: config.elevenlabs_voice_id || null,
+          vapi_assistant_id: config.vapi_assistant_id || null,
+          vapi_phone_number: config.vapi_phone_number || null,
+        }),
+      })
+      if (!res.ok) throw new Error('Failed to save')
+      toast.success('Voice settings saved')
+    } catch {
+      toast.error('Failed to save voice settings')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const set = (key: keyof VapiConfig) => (val: string) =>
+    setConfig((prev) => ({ ...prev, [key]: val }))
+
+  return (
+    <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 mb-6">
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-10 h-10 rounded-xl bg-[#FDE7F3] flex items-center justify-center shrink-0">
+          <Phone size={18} className="text-[#E91E8C]" />
+        </div>
+        <div>
+          <h2 className="font-heading font-bold text-sm text-[#1B2A4A]">Voice & Call Settings</h2>
+          <p className="text-xs text-neutral-500">Configure your Vapi AI voice assistant for inbound and outbound calls</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 size={20} className="animate-spin text-neutral-400" />
+        </div>
+      ) : (
+        <>
+          {/* Vapi Credentials */}
+          <div className="mb-5">
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+              <Globe size={11} />
+              Vapi Configuration
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-neutral-600">Vapi Assistant ID</label>
+                <Input
+                  placeholder="e.g. asst_xxxxxxxxxxxxxxxx"
+                  value={config.vapi_assistant_id}
+                  onChange={(e) => set('vapi_assistant_id')(e.target.value)}
+                  className="text-sm"
+                />
+                <p className="text-[11px] text-neutral-400">From your Vapi dashboard → Assistants</p>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-neutral-600">Provisioned Phone Number</label>
+                <Input
+                  placeholder="e.g. +1 415 555 0100"
+                  value={config.vapi_phone_number}
+                  onChange={(e) => set('vapi_phone_number')(e.target.value)}
+                  className="text-sm"
+                />
+                <p className="text-[11px] text-neutral-400">Inbound calls to this number go to your AI assistant</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Voice Personality */}
+          <div className="mb-5">
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+              <Mic size={11} />
+              Voice Personality
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <SelectField
+                label="Language"
+                value={config.voice_language}
+                onChange={set('voice_language')}
+                options={VOICE_LANGUAGES}
+              />
+              <SelectField
+                label="Accent"
+                value={config.voice_accent}
+                onChange={set('voice_accent')}
+                options={VOICE_ACCENTS}
+              />
+              <SelectField
+                label="Gender"
+                value={config.voice_gender}
+                onChange={set('voice_gender')}
+                options={VOICE_GENDERS}
+              />
+              <SelectField
+                label="Tone"
+                value={config.voice_tone}
+                onChange={set('voice_tone')}
+                options={VOICE_TONES}
+              />
+            </div>
+          </div>
+
+          {/* ElevenLabs */}
+          <div className="mb-5">
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3">
+              ElevenLabs Voice (Optional)
+            </p>
+            <div className="space-y-1.5 max-w-md">
+              <label className="text-xs font-medium text-neutral-600">ElevenLabs Voice ID</label>
+              <Input
+                placeholder="e.g. EXAVITQu4vr4xnSDxMaL"
+                value={config.elevenlabs_voice_id}
+                onChange={(e) => set('elevenlabs_voice_id')(e.target.value)}
+                className="text-sm font-mono"
+              />
+              <p className="text-[11px] text-neutral-400">
+                Leave blank to use Vapi&apos;s default voice. Override with a specific ElevenLabs voice for your brand.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-3 border-t border-neutral-100">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="rounded-lg text-xs gap-2 bg-[#1B2A4A] hover:bg-[#243460]"
+              size="sm"
+            >
+              {saving && <Loader2 size={12} className="animate-spin" />}
+              {saving ? 'Saving…' : 'Save Voice Settings'}
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Third-Party Integrations
+// ---------------------------------------------------------------------------
 
 const CATEGORIES = ['All Apps', 'Messaging', 'CRM', 'Productivity', 'Custom Webhooks']
 
@@ -20,34 +292,33 @@ interface Integration {
   iconBg: string
   iconColor: string
   connected: boolean
-  comingSoon?: boolean
 }
 
 const INTEGRATIONS: Integration[] = [
   {
     id: 'slack',
     name: 'Slack',
-    description: 'Seamlessly interact with agents directly in your team channels. Get instant ticket notifications and updates.',
+    description: 'Get instant ticket notifications and updates directly in your team channels.',
     category: 'Messaging',
     icon: MessageSquare,
     iconBg: 'bg-purple-100',
     iconColor: 'text-purple-600',
-    connected: true,
+    connected: false,
   },
   {
     id: 'github',
     name: 'GitHub',
-    description: 'Trigger agent actions on pull requests, issues, and commits. Link support tickets to code changes.',
+    description: 'Link support tickets to pull requests, issues, and commits.',
     category: 'Productivity',
     icon: Github,
     iconBg: 'bg-gray-100',
     iconColor: 'text-gray-800',
-    connected: true,
+    connected: false,
   },
   {
     id: 'whatsapp',
     name: 'WhatsApp Business',
-    description: 'Deploy AI agents to over 2 billion users. Handle customer queries directly in WhatsApp.',
+    description: 'Deploy AI agents to over 2 billion users. Handle queries directly in WhatsApp.',
     category: 'Messaging',
     icon: MessageSquare,
     iconBg: 'bg-green-100',
@@ -57,7 +328,7 @@ const INTEGRATIONS: Integration[] = [
   {
     id: 'salesforce',
     name: 'Salesforce',
-    description: 'Two-way sync for leads, contacts, and opportunities. Never miss a customer interaction.',
+    description: 'Two-way sync for leads, contacts, and opportunities.',
     category: 'CRM',
     icon: Zap,
     iconBg: 'bg-blue-100',
@@ -77,7 +348,7 @@ const INTEGRATIONS: Integration[] = [
   {
     id: 'zapier',
     name: 'Zapier',
-    description: 'Unlock 5,000+ apps. Create complex multi-step workflows triggered by ticket events.',
+    description: 'Unlock 5,000+ apps with multi-step workflows triggered by ticket events.',
     category: 'Productivity',
     icon: Zap,
     iconBg: 'bg-yellow-100',
@@ -162,23 +433,20 @@ function IntegrationCard({ integration }: { integration: Integration }) {
   )
 }
 
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
 export default function IntegrationsPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All Apps')
   const [tab, setTab] = useState<'marketplace' | 'connected'>('marketplace')
-  const [phoneNumber, setPhoneNumber] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetch('/api/company')
-      .then((r) => r.json())
-      .then((data) => setPhoneNumber(data?.vapi_phone_number ?? null))
-      .catch(() => null)
-  }, [])
 
   const connectedCount = INTEGRATIONS.filter((i) => i.connected).length
 
   const filtered = INTEGRATIONS.filter((i) => {
-    const matchSearch = i.name.toLowerCase().includes(search.toLowerCase()) ||
+    const matchSearch =
+      i.name.toLowerCase().includes(search.toLowerCase()) ||
       i.description.toLowerCase().includes(search.toLowerCase())
     const matchCategory = category === 'All Apps' || i.category === category
     const matchTab = tab === 'marketplace' || i.connected
@@ -190,35 +458,38 @@ export default function IntegrationsPage() {
       <TopBar title="Integrations" />
 
       <main className="flex-1 p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setTab('marketplace')}
+        {/* Vapi Voice Config — always visible at top */}
+        <VapiConfigCard />
+
+        {/* Third-party integrations */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setTab('marketplace')}
+              className={cn(
+                'text-sm font-medium px-4 py-2 rounded-lg transition-all',
+                tab === 'marketplace' ? 'bg-[#1B2A4A] text-white' : 'text-neutral-600 hover:bg-neutral-100'
+              )}
+            >
+              App Marketplace
+            </button>
+            <button
+              onClick={() => setTab('connected')}
+              className={cn(
+                'text-sm font-medium px-4 py-2 rounded-lg transition-all flex items-center gap-1.5',
+                tab === 'connected' ? 'bg-[#1B2A4A] text-white' : 'text-neutral-600 hover:bg-neutral-100'
+              )}
+            >
+              Connected
+              <span
                 className={cn(
-                  'text-sm font-medium px-4 py-2 rounded-lg transition-all',
-                  tab === 'marketplace' ? 'bg-[#1B2A4A] text-white' : 'text-neutral-600 hover:bg-neutral-100'
-                )}
-              >
-                Marketplace
-              </button>
-              <button
-                onClick={() => setTab('connected')}
-                className={cn(
-                  'text-sm font-medium px-4 py-2 rounded-lg transition-all flex items-center gap-1.5',
-                  tab === 'connected' ? 'bg-[#1B2A4A] text-white' : 'text-neutral-600 hover:bg-neutral-100'
-                )}
-              >
-                Connected
-                <span className={cn(
                   'text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center',
                   tab === 'connected' ? 'bg-white text-[#1B2A4A]' : 'bg-[#E91E8C] text-white'
-                )}>
-                  {connectedCount}
-                </span>
-              </button>
-            </div>
+                )}
+              >
+                {connectedCount}
+              </span>
+            </button>
           </div>
 
           <div className="relative">
@@ -229,27 +500,6 @@ export default function IntegrationsPage() {
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 w-56 text-sm"
             />
-          </div>
-        </div>
-
-        {/* Phone Number Section */}
-        <div className="mb-6 bg-white rounded-xl border border-neutral-100 shadow-sm p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-[#FDE7F3] flex items-center justify-center shrink-0">
-              <Phone size={22} className="text-[#E91E8C]" />
-            </div>
-            <div>
-              <h3 className="font-medium text-sm text-[#1B2A4A]">Voice Phone Number</h3>
-              <p className="text-xs text-neutral-500 mt-0.5">
-                Inbound calls to this number are handled by your Vapi AI voice assistant (WF7).
-              </p>
-            </div>
-          </div>
-          <div className="shrink-0 text-right">
-            <p className="text-xs text-neutral-400 mb-1">Provisioned number</p>
-            <p className="font-mono text-sm font-semibold text-[#1B2A4A]">
-              {phoneNumber ?? <span className="text-neutral-400 font-normal text-xs">Not provisioned</span>}
-            </p>
           </div>
         </div>
 
@@ -273,24 +523,6 @@ export default function IntegrationsPage() {
                 </button>
               ))}
             </nav>
-
-            <div className="mt-6 pt-5 border-t border-neutral-100">
-              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 px-2">Resources</p>
-              <button
-                className="w-full text-left text-sm px-3 py-2 rounded-lg text-neutral-600 hover:bg-neutral-100 flex items-center gap-1.5"
-                onClick={() => toast.info('API docs coming soon')}
-              >
-                <ExternalLink size={13} />
-                API Docs
-              </button>
-              <button
-                className="w-full text-left text-sm px-3 py-2 rounded-lg text-neutral-600 hover:bg-neutral-100 flex items-center gap-1.5"
-                onClick={() => toast.info('Webhook builder coming soon')}
-              >
-                <Zap size={13} />
-                Custom Webhook
-              </button>
-            </div>
           </div>
 
           {/* Integration grid */}

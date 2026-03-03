@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { ClerkProvider } from '@clerk/nextjs'
 import { Toaster } from 'sonner'
 import { Providers } from './providers'
+import { NavigationProgress } from '@/components/shared/NavigationProgress'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -31,9 +32,11 @@ function AppShell({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-screen bg-background font-body antialiased">
         <Providers>
+          <NavigationProgress />
           {children}
           <Toaster position="top-right" richColors closeButton toastOptions={{ duration: 4000 }} />
         </Providers>
+        
       </body>
     </html>
   )

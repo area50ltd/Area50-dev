@@ -1,8 +1,6 @@
 import { db } from '@/lib/db'
 import { companies } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
-import { WidgetLauncher } from '@/components/widget/WidgetLauncher'
-import { WidgetContainer } from '@/components/widget/WidgetContainer'
 import { WidgetClientWrapper } from './WidgetClientWrapper'
 
 interface Props {
@@ -14,7 +12,7 @@ export default async function WidgetPage({ searchParams }: Props) {
 
   if (!companyId) {
     return (
-      <div className="fixed bottom-5 right-5 w-14 h-14 rounded-full bg-neutral-300 flex items-center justify-center text-white text-xs">
+      <div className="fixed bottom-5 right-5 w-14 h-14 rounded-full bg-neutral-300 flex items-center justify-center text-white text-xs font-bold">
         !
       </div>
     )
@@ -26,7 +24,7 @@ export default async function WidgetPage({ searchParams }: Props) {
 
   if (!company) {
     return (
-      <div className="fixed bottom-5 right-5 w-14 h-14 rounded-full bg-red-400 flex items-center justify-center text-white text-xs">
+      <div className="fixed bottom-5 right-5 w-14 h-14 rounded-full bg-red-400 flex items-center justify-center text-white text-xs font-bold">
         ?
       </div>
     )

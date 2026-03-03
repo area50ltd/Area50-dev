@@ -11,8 +11,13 @@ export function useKnowledge() {
   return useQuery({
     queryKey: ['knowledge'],
     queryFn: fetchDocs,
-    staleTime: 60_000,
-    refetchInterval: 30_000, // Poll for embedding status updates
+    staleTime: 10_000,
+    // Poll every 5s while any doc is still embedding, else every 60s
+    refetchInterval: (query) => {
+      const docs = query.state.data ?? []
+      const hasProcessing = docs.some((d) => d.embedding_status === 'processing')
+      return hasProcessing ? 5_000 : 60_000
+    },
   })
 }
 

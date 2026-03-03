@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { ArrowLeft, CheckCircle2, ArrowUpCircle, ArrowRight, StickyNote } from 'lucide-react'
 import Link from 'next/link'
+import { useQueryClient } from '@tanstack/react-query'
 import { MessageBubble } from '@/components/agent/MessageBubble'
 import { ChatInput } from '@/components/agent/ChatInput'
 import { SuggestionPanel } from '@/components/agent/SuggestionPanel'
@@ -14,6 +15,7 @@ import { StatusBadge, SentimentBadge } from '@/components/shared/StatusBadge'
 import { PageLoader } from '@/components/shared/LoadingSpinner'
 import { useTicket } from '@/hooks/useTicket'
 import { useUpdateTicket } from '@/hooks/useTickets'
+import { useRealtimeMessages } from '@/hooks/useRealtime'
 import { formatRelativeTime } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -21,7 +23,12 @@ export default function AgentChatPage() {
   const { ticketId } = useParams<{ ticketId: string }>()
   const { data, isLoading } = useTicket(ticketId)
   const { mutate: updateTicket, isPending } = useUpdateTicket()
+  const queryClient = useQueryClient()
+
+  // Real-time: invalidate query instantly when widget customer sends a new message
+  useRealtimeMessages(ticketId)
   const [suggestion, setSuggestion] = useState('')
+  const [sending, setSending] = useState(false)
   const [suggestions] = useState([
     'I understand your concern. Let me look into this for you right away.',
     "I've checked your account and can see the issue. Here's what I'll do to help...",
@@ -29,8 +36,24 @@ export default function AgentChatPage() {
   ])
 
   const handleSend = async (message: string) => {
-    // In production: post message to DB and trigger agent response flow
-    toast.success('Message sent')
+    if (!message.trim() || sending) return
+    setSending(true)
+    try {
+      const res = await fetch(`/api/tickets/${ticketId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: message }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? 'Failed to send')
+      }
+      await queryClient.invalidateQueries({ queryKey: ['ticket', ticketId] })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send message')
+    } finally {
+      setSending(false)
+    }
   }
 
   const handleResolve = () => {
@@ -63,7 +86,7 @@ export default function AgentChatPage() {
     )
   }
 
-  const { ticket, messages } = data
+  const { ticket, messages, customer, ticketCount } = data
 
   return (
     <div className="min-h-screen bg-neutral-100 flex flex-col">
@@ -103,6 +126,7 @@ export default function AgentChatPage() {
           {/* Input */}
           <ChatInput
             onSend={handleSend}
+            isSending={sending}
             customerPhone={null}
             suggestion={suggestion}
             onClearSuggestion={() => setSuggestion('')}
@@ -112,7 +136,7 @@ export default function AgentChatPage() {
         {/* Right — Context panel (40%) */}
         <div className="lg:col-span-2 overflow-y-auto p-4 space-y-4 bg-neutral-50 scrollbar-thin">
           {/* Customer info */}
-          <CustomerInfoPanel customer={null} ticketCount={0} />
+          <CustomerInfoPanel customer={customer} ticketCount={ticketCount} />
 
           {/* Ticket details */}
           <div className="bg-white rounded-xl border border-neutral-100 p-4 shadow-sm">

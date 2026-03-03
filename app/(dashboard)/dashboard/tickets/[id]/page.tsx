@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import {
   ArrowLeft, Bot, User, MessageSquare, Globe, Phone, ChevronDown,
-  ChevronUp, Download, Send, CheckCircle2, ArrowUpCircle, RefreshCw,
-  StickyNote,
+  ChevronUp, Download, CheckCircle2, ArrowUpCircle, RefreshCw,
+  StickyNote, Mail, Ticket,
 } from 'lucide-react'
 import { TopBar } from '@/components/dashboard/TopBar'
 import { StatusBadge, PriorityBadge, SentimentBadge } from '@/components/shared/StatusBadge'
@@ -15,8 +15,9 @@ import { PageLoader } from '@/components/shared/LoadingSpinner'
 import { Button } from '@/components/ui/button'
 import { useTicket } from '@/hooks/useTicket'
 import { useUpdateTicket } from '@/hooks/useTickets'
-import { formatDateTime, formatRelativeTime, getInitials, truncate } from '@/lib/utils'
-import type { Message } from '@/lib/types'
+import { useRealtimeMessages } from '@/hooks/useRealtime'
+import { formatDateTime, formatRelativeTime, getInitials } from '@/lib/utils'
+import type { Message, User as UserType } from '@/lib/types'
 import Link from 'next/link'
 
 // ─── Message Bubble ───────────────────────────────────────────────────────────
@@ -65,14 +66,56 @@ function MessageBubble({ message }: { message: Message }) {
   )
 }
 
+// ─── Customer Card ─────────────────────────────────────────────────────────────
+
+function CustomerCard({ customer, ticketCount }: { customer: UserType | null; ticketCount: number }) {
+  const initials = customer?.name ? getInitials(customer.name) : '?'
+  return (
+    <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
+      <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4">Customer</h3>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-full bg-[#1B2A4A] flex items-center justify-center text-white text-sm font-bold shrink-0">
+          {initials}
+        </div>
+        <div className="min-w-0">
+          <p className="font-medium text-sm text-neutral-800 truncate">{customer?.name ?? 'Unknown'}</p>
+          <p className="text-xs text-neutral-400 truncate">{customer?.role ?? 'customer'}</p>
+        </div>
+      </div>
+      <div className="space-y-2 text-xs text-neutral-600">
+        {customer?.email && (
+          <div className="flex items-center gap-2">
+            <Mail size={12} className="text-neutral-400 shrink-0" />
+            <span className="truncate">{customer.email}</span>
+          </div>
+        )}
+        {customer?.phone && (
+          <div className="flex items-center gap-2">
+            <Phone size={12} className="text-neutral-400 shrink-0" />
+            <span>{customer.phone}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2 pt-1 border-t border-neutral-50 mt-2">
+          <Ticket size={12} className="text-neutral-400 shrink-0" />
+          <span className="text-neutral-500">
+            <span className="font-semibold text-neutral-700">{ticketCount}</span> total ticket{ticketCount !== 1 ? 's' : ''}
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function TicketDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const router = useRouter()
   const { data, isLoading, error } = useTicket(id)
   const { mutate: updateTicket, isPending } = useUpdateTicket()
   const [summaryOpen, setSummaryOpen] = useState(false)
+
+  // Real-time: refresh messages instantly when widget customer or agent sends
+  useRealtimeMessages(id)
 
   if (isLoading) return <div className="flex flex-col flex-1"><TopBar title="Ticket Detail" /><PageLoader /></div>
   if (error || !data) return (
@@ -84,7 +127,7 @@ export default function TicketDetailPage() {
     </div>
   )
 
-  const { ticket, messages } = data
+  const { ticket, messages, customer, ticketCount } = data
 
   const handleStatusChange = (status: string) => {
     updateTicket(
@@ -162,6 +205,9 @@ export default function TicketDetailPage() {
 
           {/* Right — Metadata panel (40%) */}
           <div className="lg:col-span-2 flex flex-col gap-4 overflow-y-auto scrollbar-thin">
+            {/* Customer info */}
+            <CustomerCard customer={customer} ticketCount={ticketCount} />
+
             {/* Status & Priority */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
               <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4">Ticket Details</h3>

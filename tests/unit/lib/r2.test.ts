@@ -1,17 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock the S3 client before importing r2
-vi.mock('@aws-sdk/client-s3', () => ({
-  S3Client: vi.fn().mockImplementation(() => ({
-    send: vi.fn().mockResolvedValue({}),
-  })),
-  PutObjectCommand: vi.fn(),
-  GetObjectCommand: vi.fn(),
-  DeleteObjectCommand: vi.fn(),
-}))
-
-vi.mock('@aws-sdk/s3-request-presigner', () => ({
-  getSignedUrl: vi.fn().mockResolvedValue('https://signed-url.example.com/file.pdf'),
+// Mock Supabase client before importing r2
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn().mockReturnValue({
+    storage: {
+      from: vi.fn().mockReturnValue({
+        upload: vi.fn().mockResolvedValue({ error: null }),
+        getPublicUrl: vi.fn().mockReturnValue({
+          data: { publicUrl: 'https://aeyyziqoymjlvgjvrqjw.supabase.co/storage/v1/object/public/area50-files/company-123/mock-uuid-1234/test.pdf' },
+        }),
+        createSignedUrl: vi.fn().mockResolvedValue({
+          data: { signedUrl: 'https://signed-url.example.com/file.pdf' },
+          error: null,
+        }),
+        remove: vi.fn().mockResolvedValue({ error: null }),
+      }),
+    },
+  }),
 }))
 
 vi.mock('crypto', async (importOriginal) => {
@@ -22,13 +27,10 @@ vi.mock('crypto', async (importOriginal) => {
   }
 })
 
-describe('r2 helpers', () => {
+describe('r2 helpers (Supabase Storage)', () => {
   beforeEach(() => {
-    vi.stubEnv('R2_ACCOUNT_ID', 'test-account-id')
-    vi.stubEnv('R2_ACCESS_KEY_ID', 'test-access-key')
-    vi.stubEnv('R2_SECRET_ACCESS_KEY', 'test-secret')
-    vi.stubEnv('R2_BUCKET_NAME', 'area50-files')
-    vi.stubEnv('NEXT_PUBLIC_R2_PUBLIC_URL', 'https://files.example.com')
+    vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://aeyyziqoymjlvgjvrqjw.supabase.co')
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role-key')
   })
 
   it('uploadFile returns correct key, documentId, and url', async () => {
@@ -42,20 +44,24 @@ describe('r2 helpers', () => {
 
     expect(result.documentId).toBe('mock-uuid-1234')
     expect(result.key).toBe('company-123/mock-uuid-1234/test.pdf')
-    expect(result.url).toBe('https://files.example.com/company-123/mock-uuid-1234/test.pdf')
+    expect(result.url).toContain('company-123/mock-uuid-1234/test.pdf')
   })
 
-  it('getSignedDownloadUrl returns presigned URL', async () => {
+  it('getSignedDownloadUrl returns signed URL', async () => {
     const { getSignedDownloadUrl } = await import('@/lib/r2')
     const url = await getSignedDownloadUrl('company-123/doc-id/file.pdf')
     expect(url).toBe('https://signed-url.example.com/file.pdf')
   })
 
-  it('ALLOWED_FILE_TYPES includes expected types', async () => {
+  it('ALLOWED_FILE_TYPES includes expected MIME types', async () => {
     const { ALLOWED_FILE_TYPES } = await import('@/lib/r2')
-    expect(ALLOWED_FILE_TYPES).toContain('application/pdf')
-    expect(ALLOWED_FILE_TYPES).toContain('text/plain')
-    expect(ALLOWED_FILE_TYPES).toContain('text/csv')
+    expect(ALLOWED_FILE_TYPES['application/pdf']).toBe('pdf')
+    expect(ALLOWED_FILE_TYPES['text/plain']).toBe('txt')
+    expect(ALLOWED_FILE_TYPES['text/csv']).toBe('csv')
+    expect(ALLOWED_FILE_TYPES['application/json']).toBe('json')
+    expect(
+      ALLOWED_FILE_TYPES['application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    ).toBe('docx')
   })
 
   it('MAX_FILE_SIZE is 50MB', async () => {

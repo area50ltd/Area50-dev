@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
-import { tickets, messages } from '@/lib/schema'
+import { tickets, messages, users } from '@/lib/schema'
 import { eq, and, asc } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -25,7 +25,22 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     .where(and(eq(messages.ticket_id, params.id), eq(messages.company_id, user.company_id)))
     .orderBy(asc(messages.created_at))
 
-  return NextResponse.json({ ticket, messages: msgs })
+  // Fetch customer record and their total ticket count in parallel
+  const [customer, allCustomerTickets] = await Promise.all([
+    ticket.customer_id
+      ? db.query.users.findFirst({ where: eq(users.id, ticket.customer_id) })
+      : Promise.resolve(null),
+    ticket.customer_id
+      ? db.select({ id: tickets.id }).from(tickets).where(eq(tickets.customer_id, ticket.customer_id))
+      : Promise.resolve([]),
+  ])
+
+  return NextResponse.json({
+    ticket,
+    messages: msgs,
+    customer: customer ?? null,
+    ticketCount: allCustomerTickets.length,
+  })
 }
 
 const UpdateSchema = z.object({

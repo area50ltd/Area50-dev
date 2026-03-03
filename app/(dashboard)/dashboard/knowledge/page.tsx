@@ -82,9 +82,9 @@ export default function KnowledgePage() {
 
               <div className="space-y-3">
                 {[
-                  { name: 'Website / URL', desc: 'Crawl a website URL', icon: '🌐', status: 'available' },
-                  { name: 'Notion', desc: 'Import from workspace', icon: '📝', status: 'coming_soon' },
-                  { name: 'Google Drive', desc: 'Sync documents', icon: '📁', status: 'coming_soon' },
+                  { name: 'Notion', desc: 'Import from workspace', icon: '📝' },
+                  { name: 'Google Drive', desc: 'Sync documents', icon: '📁' },
+                  { name: 'Website / URL', desc: 'Crawl a website URL', icon: '🌐' },
                 ].map((source) => (
                   <div key={source.name} className="flex items-center justify-between py-2.5 border-b border-neutral-50 last:border-0">
                     <div className="flex items-center gap-2.5">
@@ -94,13 +94,7 @@ export default function KnowledgePage() {
                         <p className="text-xs text-neutral-400">{source.desc}</p>
                       </div>
                     </div>
-                    {source.status === 'coming_soon' ? (
-                      <span className="text-[10px] font-medium bg-neutral-100 text-neutral-400 px-2 py-0.5 rounded-full">Soon</span>
-                    ) : (
-                      <Button size="sm" variant="secondary" className="text-xs rounded-full h-7 px-3">
-                        Connect
-                      </Button>
-                    )}
+                    <span className="text-[10px] font-medium bg-neutral-100 text-neutral-400 px-2 py-0.5 rounded-full">Soon</span>
                   </div>
                 ))}
               </div>

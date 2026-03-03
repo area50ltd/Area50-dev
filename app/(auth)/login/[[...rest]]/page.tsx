@@ -1,5 +1,34 @@
 import { SignIn } from '@clerk/nextjs'
+import { Suspense } from 'react'
 import Link from 'next/link'
+
+function SignInSkeleton() {
+  return (
+    <div className="w-full animate-pulse space-y-5">
+      {/* Header */}
+      <div className="space-y-2 mb-6">
+        <div className="h-7 w-40 bg-neutral-200 rounded-lg" />
+        <div className="h-4 w-56 bg-neutral-100 rounded-lg" />
+      </div>
+      {/* Social button */}
+      <div className="h-11 w-full bg-neutral-100 rounded-lg" />
+      {/* Divider */}
+      <div className="h-4 w-full bg-neutral-100 rounded-lg" />
+      {/* Email field */}
+      <div className="space-y-1.5">
+        <div className="h-3.5 w-16 bg-neutral-200 rounded" />
+        <div className="h-11 w-full bg-neutral-100 rounded-lg" />
+      </div>
+      {/* Password field */}
+      <div className="space-y-1.5">
+        <div className="h-3.5 w-20 bg-neutral-200 rounded" />
+        <div className="h-11 w-full bg-neutral-100 rounded-lg" />
+      </div>
+      {/* Submit */}
+      <div className="h-11 w-full bg-[#E91E8C]/20 rounded-full" />
+    </div>
+  )
+}
 
 export default function LoginPage() {
   return (
@@ -66,6 +95,7 @@ export default function LoginPage() {
             <span className="font-heading font-bold text-xl text-[#1B2A4A]">Area50</span>
           </div>
 
+          <Suspense fallback={<SignInSkeleton />}>
           <SignIn
             appearance={{
               elements: {
@@ -85,6 +115,7 @@ export default function LoginPage() {
               },
             }}
           />
+          </Suspense>
         </div>
       </div>
     </div>

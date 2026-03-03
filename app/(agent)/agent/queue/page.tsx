@@ -7,9 +7,13 @@ import { QueueItem } from '@/components/agent/QueueItem'
 import { CardSkeleton } from '@/components/shared/LoadingSkeleton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { useAgentQueue } from '@/hooks/useAgentQueue'
+import { useRealtimeQueue } from '@/hooks/useRealtime'
 
 export default function AgentQueuePage() {
   const { data: queue = [], isLoading } = useAgentQueue()
+
+  // Real-time: queue updates instantly when a ticket is escalated
+  useRealtimeQueue()
   const urgent = queue.filter((t) => t.priority === 'urgent' || t.priority === 'high')
   const normal = queue.filter((t) => t.priority !== 'urgent' && t.priority !== 'high')
 

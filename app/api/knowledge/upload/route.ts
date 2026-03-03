@@ -1,5 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { knowledge_documents } from '@/lib/schema'
 import { uploadFile, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '@/lib/r2'
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
       contentType
     )
 
-    // Save to DB as pending
+    // Save to DB as processing — return 200 immediately, embed in background
     await db.insert(knowledge_documents).values({
       id: documentId,
       company_id: user.company_id,
@@ -48,14 +49,28 @@ export async function POST(req: Request) {
       embedding_status: 'processing',
     })
 
-    // Trigger n8n ingestion
-    await callN8n('/webhook/knowledge/ingest', {
+    // Fire n8n ingestion without awaiting — embedding takes 10-30s
+    // Update DB status when it completes in the background
+    void callN8n('/webhook/knowledge/ingest', {
       company_id: user.company_id,
       document_id: documentId,
       file_url: url,
       file_type: fileExt,
       filename: file.name,
     })
+      .then(async () => {
+        await db
+          .update(knowledge_documents)
+          .set({ embedding_status: 'completed' })
+          .where(eq(knowledge_documents.id, documentId))
+      })
+      .catch(async (err) => {
+        console.error('[knowledge/ingest background]', err)
+        await db
+          .update(knowledge_documents)
+          .set({ embedding_status: 'error' })
+          .where(eq(knowledge_documents.id, documentId))
+      })
 
     return NextResponse.json({ success: true, documentId, url })
   } catch (err) {
