@@ -1,6 +1,7 @@
 import { TopBar } from '@/components/dashboard/TopBar'
 import { StatsCard } from '@/components/dashboard/StatsCard'
 import { CreditMeter } from '@/components/dashboard/CreditMeter'
+import { VoiceSetupBanner } from '@/components/dashboard/VoiceSetupBanner'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { tickets, companies } from '@/lib/schema'
@@ -30,7 +31,7 @@ const quickActions = [
   { label: 'Add Team Member', href: '/dashboard/users', icon: UserPlus, color: 'bg-green-50 text-green-600' },
   { label: 'Configure Widget', href: '/dashboard/widget', icon: LayoutTemplate, color: 'bg-[#FDE7F3] text-[#E91E8C]' },
   { label: 'Upload Company Data', href: '/dashboard/knowledge', icon: FileUp, color: 'bg-orange-50 text-orange-600' },
-  { label: 'Call Settings', href: '/dashboard/integrations', icon: Phone, color: 'bg-sky-50 text-sky-600' },
+  { label: 'Call Settings', href: '/dashboard/settings/voice', icon: Phone, color: 'bg-sky-50 text-sky-600' },
   { label: 'Agent Management', href: '/dashboard/agents', icon: Users, color: 'bg-yellow-50 text-yellow-600' },
   { label: 'Credit Top-up', href: '/dashboard/billing', icon: CreditCard, color: 'bg-rose-50 text-rose-600' },
 ]
@@ -160,6 +161,9 @@ export default async function DashboardPage() {
       <TopBar title="Dashboard" credits={data.credits} />
 
       <main className="flex-1 p-6 space-y-6">
+        {/* Voice setup banner — shown when voice is not yet configured */}
+        {!data.company?.vapi_assistant_id && <VoiceSetupBanner />}
+
         {/* Stats row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard

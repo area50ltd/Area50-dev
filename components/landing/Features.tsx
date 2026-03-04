@@ -30,7 +30,7 @@ const features = [
   },
   {
     icon: Phone,
-    title: 'Voice Calls (Vapi)',
+    title: 'AI Voice Calls',
     description:
       'AI answers inbound calls and makes outbound follow-ups. Full transcript synced to your ticket dashboard.',
     gradient: 'from-purple-50 to-purple-50/30',

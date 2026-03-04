@@ -167,7 +167,7 @@ function VapiConfigCard() {
         </div>
         <div>
           <h2 className="font-heading font-bold text-sm text-[#1B2A4A]">Voice & Call Settings</h2>
-          <p className="text-xs text-neutral-500">Configure your Vapi AI voice assistant for inbound and outbound calls</p>
+          <p className="text-xs text-neutral-500">Configure your AI voice assistant for inbound and outbound calls</p>
         </div>
       </div>
 
@@ -177,22 +177,22 @@ function VapiConfigCard() {
         </div>
       ) : (
         <>
-          {/* Vapi Credentials */}
+          {/* Voice Credentials */}
           <div className="mb-5">
             <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
               <Globe size={11} />
-              Vapi Configuration
+              Voice Configuration
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-neutral-600">Vapi Assistant ID</label>
+                <label className="text-xs font-medium text-neutral-600">Voice Assistant ID</label>
                 <Input
                   placeholder="e.g. asst_xxxxxxxxxxxxxxxx"
                   value={config.vapi_assistant_id}
                   onChange={(e) => set('vapi_assistant_id')(e.target.value)}
                   className="text-sm"
                 />
-                <p className="text-[11px] text-neutral-400">From your Vapi dashboard → Assistants</p>
+                <p className="text-[11px] text-neutral-400">Auto-configured by Area50 when you set up voice</p>
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-neutral-600">Provisioned Phone Number</label>
@@ -241,13 +241,13 @@ function VapiConfigCard() {
             </div>
           </div>
 
-          {/* ElevenLabs */}
+          {/* Custom Voice */}
           <div className="mb-5">
             <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3">
-              ElevenLabs Voice (Optional)
+              Custom Voice (Optional)
             </p>
             <div className="space-y-1.5 max-w-md">
-              <label className="text-xs font-medium text-neutral-600">ElevenLabs Voice ID</label>
+              <label className="text-xs font-medium text-neutral-600">Voice ID</label>
               <Input
                 placeholder="e.g. EXAVITQu4vr4xnSDxMaL"
                 value={config.elevenlabs_voice_id}
@@ -255,7 +255,7 @@ function VapiConfigCard() {
                 className="text-sm font-mono"
               />
               <p className="text-[11px] text-neutral-400">
-                Leave blank to use Vapi&apos;s default voice. Override with a specific ElevenLabs voice for your brand.
+                Leave blank to use the default AI voice. Enter a custom voice ID to use a specific voice for your brand.
               </p>
             </div>
           </div>

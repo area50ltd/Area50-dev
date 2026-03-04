@@ -26,7 +26,7 @@ const SAMPLE_LOGS: LogEntry[] = [
   { id: '5', level: 'error', message: 'Paystack webhook signature mismatch — dropped', timestamp: '14:27:30', source: 'payments' },
   { id: '6', level: 'info', message: 'New company onboarded: Kuda MicroFinance', timestamp: '14:20:05', source: 'clerk' },
   { id: '7', level: 'info', message: 'WhatsApp message processed — ticket created TKT-8820', timestamp: '14:18:22', source: 'whatsapp' },
-  { id: '8', level: 'warn', message: 'Vapi outbound call timed out after 30s', timestamp: '14:15:10', source: 'vapi' },
+  { id: '8', level: 'warn', message: 'Outbound voice call timed out after 30s', timestamp: '14:15:10', source: 'voice' },
 ]
 
 const AI_MODELS = [

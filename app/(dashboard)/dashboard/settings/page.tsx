@@ -879,11 +879,11 @@ export default function SettingsPage() {
               {/* ── Tab 4: Voice & Phone ───────────────────────────────────── */}
               {tab === 'Voice & Phone' && (
                 <div className="space-y-5">
-                  {/* Vapi IDs (read-only) */}
+                  {/* Voice System IDs (read-only) */}
                   <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="font-heading text-base font-bold text-[#1B2A4A]">
-                        Vapi Assistant
+                        Voice System
                       </h3>
                       <a
                         href="/dashboard/integrations"
@@ -925,7 +925,7 @@ export default function SettingsPage() {
                           Voice Configuration
                         </h3>
                         <p className="text-xs text-neutral-400">
-                          Powered by ElevenLabs TTS + Deepgram via Vapi
+                          Customise your AI assistant&apos;s voice and language
                         </p>
                       </div>
                     </div>
@@ -966,7 +966,7 @@ export default function SettingsPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                        ElevenLabs Voice ID
+                        Custom Voice ID
                       </label>
                       <Input
                         placeholder="e.g. 21m00Tcm4TlvDq8ikWAM"
@@ -975,7 +975,7 @@ export default function SettingsPage() {
                         className="font-mono text-sm"
                       />
                       <p className="text-xs text-neutral-400 mt-1.5">
-                        Paste your chosen voice ID from ElevenLabs Voice Library. Leave blank for
+                        Enter a custom voice ID to use a specific voice for your brand. Leave blank for
                         default.
                       </p>
                     </div>

@@ -90,3 +90,25 @@ export const MAX_UPLOAD_SIZE_MB = 50
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
 export const DEFAULT_PAGE_SIZE = 20
+
+// ─── Voice Languages ──────────────────────────────────────────────────────────
+
+export const VOICE_LANGUAGES = [
+  { value: 'en-US', label: 'English (US)' },
+  { value: 'en-GB', label: 'English (UK)' },
+  { value: 'fr-FR', label: 'French' },
+  { value: 'es-ES', label: 'Spanish' },
+  { value: 'pt-BR', label: 'Portuguese (Brazil)' },
+  { value: 'ar-SA', label: 'Arabic' },
+  { value: 'yo-NG', label: 'Yoruba' },
+  { value: 'ha-NG', label: 'Hausa' },
+] as const
+
+// ─── Voice Tones ──────────────────────────────────────────────────────────────
+
+export const VOICE_TONES = [
+  { value: 'professional', label: 'Professional' },
+  { value: 'friendly', label: 'Friendly & Warm' },
+  { value: 'concise', label: 'Concise & Direct' },
+  { value: 'empathetic', label: 'Empathetic' },
+] as const

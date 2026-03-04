@@ -25,7 +25,7 @@ const channels = [
     icon: Phone,
     name: 'Voice Calls',
     description: 'AI answers inbound calls, handles queries, or transfers to a human agent instantly.',
-    features: ['Inbound call handling', 'Outbound follow-ups', 'Live transcription', 'Vapi-powered'],
+    features: ['Inbound call handling', 'Outbound follow-ups', 'Live transcription', 'AI-powered'],
     color: 'from-purple-500 to-purple-600',
     badge: 'Voice',
   },
