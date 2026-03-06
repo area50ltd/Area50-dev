@@ -1,8 +1,9 @@
 import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { db } from '@/lib/db'
 import { tickets, users } from '@/lib/schema'
-import { eq, and, desc, ilike, or } from 'drizzle-orm'
+import { eq, and, desc } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(req: Request) {
@@ -42,4 +43,43 @@ export async function GET(req: Request) {
     : rows
 
   return NextResponse.json(filtered)
+}
+
+const CreateSchema = z.object({
+  channel: z.enum(['web_widget', 'whatsapp', 'voice_inbound']).default('web_widget'),
+  priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
+  category: z.string().max(100).optional(),
+  language: z.string().max(10).default('en'),
+})
+
+export async function POST(req: Request) {
+  const { userId } = await auth()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const user = await getCurrentUser()
+  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+
+  const body = await req.json()
+  const parsed = CreateSchema.safeParse(body)
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+
+  try {
+    const [ticket] = await db
+      .insert(tickets)
+      .values({
+        company_id: user.company_id,
+        channel: parsed.data.channel,
+        priority: parsed.data.priority,
+        category: parsed.data.category,
+        language: parsed.data.language,
+        status: 'open',
+        assigned_to: 'ai',
+      })
+      .returning()
+
+    return NextResponse.json(ticket, { status: 201 })
+  } catch (err) {
+    console.error('[api/tickets POST]', err)
+    return NextResponse.json({ error: 'Failed to create ticket' }, { status: 500 })
+  }
 }

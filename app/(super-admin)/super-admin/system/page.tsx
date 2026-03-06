@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import {
   Activity, RefreshCw, Terminal, Cpu, HardDrive,
-  Wifi, CheckCircle2, AlertTriangle, Clock, Zap,
+  Wifi, CheckCircle2, AlertTriangle, Clock, Zap, Radio,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
@@ -48,20 +49,46 @@ const LOG_BG: Record<string, string> = {
 }
 
 export default function SuperAdminSystemPage() {
-  const [selectedModel, setSelectedModel] = useState('gpt-4o')
   const [logs, setLogs] = useState<LogEntry[]>(SAMPLE_LOGS)
-  const [updating, setUpdating] = useState(false)
+  const [n8nStatus, setN8nStatus] = useState<'idle' | 'checking' | 'up' | 'down'>('idle')
 
-  const handleUpdate = async () => {
-    setUpdating(true)
-    await new Promise((r) => setTimeout(r, 1500))
-    setUpdating(false)
-    toast.success('System settings updated')
-  }
+  const { data: settings = {} } = useQuery<Record<string, string>>({
+    queryKey: ['sa-settings'],
+    queryFn: () => fetch('/api/super-admin/settings').then((r) => r.json()),
+  })
+
+  const selectedModel = settings['ai_model'] ?? 'gpt-4o'
+
+  const saveModel = useMutation({
+    mutationFn: (model: string) =>
+      fetch('/api/super-admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'ai_model', value: model }),
+      }).then((r) => r.json()),
+    onSuccess: () => toast.success('AI model updated'),
+    onError: () => toast.error('Failed to update model'),
+  })
 
   const handleRefreshLogs = () => {
     setLogs([...SAMPLE_LOGS].reverse())
     toast.info('Logs refreshed')
+  }
+
+  const handlePingN8n = async () => {
+    setN8nStatus('checking')
+    try {
+      const res = await fetch('/api/super-admin/settings')
+      const s = await res.json() as Record<string, string>
+      // The n8n_webhook_base_url stored in settings is masked — use the known URL
+      const n8nUrl = s['n8n_webhook_base_url'] || 'https://n8n.srv1194565.hstgr.cloud'
+      const pingRes = await fetch(`/api/super-admin/n8n-ping?url=${encodeURIComponent(n8nUrl)}`, {
+        signal: AbortSignal.timeout(5000),
+      }).catch(() => null)
+      setN8nStatus(pingRes?.ok ? 'up' : 'down')
+    } catch {
+      setN8nStatus('down')
+    }
   }
 
   const serverMetrics = [
@@ -86,11 +113,12 @@ export default function SuperAdminSystemPage() {
             <h2 className="text-white font-semibold text-sm">AI Model Configuration</h2>
           </div>
 
-          <div className="space-y-3 mb-5">
+          <div className="space-y-3">
             {AI_MODELS.map((model) => (
               <button
                 key={model.id}
-                onClick={() => setSelectedModel(model.id)}
+                onClick={() => saveModel.mutate(model.id)}
+                disabled={saveModel.isPending}
                 className={cn(
                   'w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left',
                   selectedModel === model.id
@@ -110,18 +138,13 @@ export default function SuperAdminSystemPage() {
                   <p className="text-white text-sm font-medium">{model.label}</p>
                   <p className="text-neutral-500 text-xs">{model.description}</p>
                 </div>
+                {saveModel.isPending && selectedModel === model.id && (
+                  <RefreshCw size={12} className="animate-spin text-neutral-400 ml-auto" />
+                )}
               </button>
             ))}
           </div>
-
-          <Button onClick={handleUpdate} disabled={updating} className="w-full rounded-xl">
-            {updating ? (
-              <span className="flex items-center gap-2">
-                <RefreshCw size={14} className="animate-spin" />
-                Updating...
-              </span>
-            ) : 'Update Model Config'}
-          </Button>
+          <p className="text-xs text-neutral-600 mt-3">Click a model to switch immediately — saved to platform settings.</p>
         </div>
 
         {/* VPS / Server Health */}
@@ -151,7 +174,7 @@ export default function SuperAdminSystemPage() {
             ))}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 mb-4">
             <div className="flex items-center justify-between text-xs">
               <span className="text-neutral-500">n8n URL</span>
               <span className="text-neutral-300 font-mono truncate ml-2">n8n.srv1194565.hstgr.cloud</span>
@@ -165,6 +188,34 @@ export default function SuperAdminSystemPage() {
               <span className="text-green-400 font-mono">14d 6h 22m</span>
             </div>
           </div>
+
+          {/* n8n ping */}
+          <div className="flex items-center gap-3">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="gap-1.5 bg-neutral-800 text-white hover:bg-neutral-700 rounded-lg text-xs"
+              onClick={handlePingN8n}
+              disabled={n8nStatus === 'checking'}
+            >
+              {n8nStatus === 'checking' ? (
+                <RefreshCw size={12} className="animate-spin" />
+              ) : (
+                <Radio size={12} />
+              )}
+              Ping n8n
+            </Button>
+            {n8nStatus === 'up' && (
+              <span className="text-xs text-green-400 flex items-center gap-1">
+                <CheckCircle2 size={12} /> n8n is reachable
+              </span>
+            )}
+            {n8nStatus === 'down' && (
+              <span className="text-xs text-red-400 flex items-center gap-1">
+                <AlertTriangle size={12} /> n8n unreachable
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -177,7 +228,7 @@ export default function SuperAdminSystemPage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-3 text-xs">
-              {['info', 'warn', 'error'].map((level) => (
+              {(['info', 'warn', 'error'] as const).map((level) => (
                 <span key={level} className={cn('flex items-center gap-1.5', LOG_COLORS[level])}>
                   <div className={cn('w-2 h-2 rounded-full', level === 'info' ? 'bg-blue-400' : level === 'warn' ? 'bg-yellow-400' : 'bg-red-400')} />
                   {level}

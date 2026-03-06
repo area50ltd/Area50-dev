@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { tickets, messages } from '@/lib/schema'
 import { eq, and } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
+import { deductCredits } from '@/lib/credits'
 
 const bodySchema = z.object({
   content: z.string().min(1).max(10000),
@@ -39,6 +40,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (ticket.status === 'open') {
     await db.update(tickets).set({ status: 'in_progress', updated_at: new Date() }).where(eq(tickets.id, params.id))
   }
+
+  // Deduct 3 credits per human agent message (fire-and-forget)
+  void deductCredits({
+    company_id: user.company_id,
+    type: 'human_message',
+    amount: 3,
+    reference: params.id,
+  })
 
   return NextResponse.json(message, { status: 201 })
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
@@ -14,21 +15,22 @@ import {
   UserCog,
   CreditCard,
   Settings,
-  LogOut,
+  Phone,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const navItems = [
+const navItems: { label: string; href: string; icon: React.ElementType; exact?: boolean }[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Tickets', href: '/dashboard/tickets', icon: Ticket },
   { label: 'AI Knowledge Base', href: '/dashboard/knowledge', icon: BookOpen },
   { label: 'Human Agents', href: '/dashboard/agents', icon: Users },
   { label: 'Team Chat', href: '/dashboard/team-chat', icon: MessageSquare },
+  { label: 'Voice & Phone', href: '/dashboard/settings/voice', icon: Phone },
   { label: 'Integrations', href: '/dashboard/integrations', icon: Zap },
   { label: 'Widget', href: '/dashboard/widget', icon: LayoutTemplate },
   { label: 'Users & Roles', href: '/dashboard/users', icon: UserCog },
   { label: 'Credits & Billing', href: '/dashboard/billing', icon: CreditCard },
-  { label: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { label: 'Settings', href: '/dashboard/settings', icon: Settings, exact: true },
 ]
 
 export function Sidebar() {
@@ -50,7 +52,9 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-4 overflow-y-auto scrollbar-thin">
         <ul className="space-y-0.5">
           {navItems.map((item) => {
-            const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+            const active = item.exact
+              ? pathname === item.href
+              : pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
             return (
               <li key={item.href}>
                 <Link

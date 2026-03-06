@@ -6,6 +6,7 @@ import { knowledge_documents } from '@/lib/schema'
 import { uploadFile, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '@/lib/r2'
 import { callN8n } from '@/lib/n8n'
 import { getCurrentUser } from '@/lib/auth'
+import { deductCredits } from '@/lib/credits'
 
 export async function POST(req: Request) {
   const { userId } = await auth()
@@ -71,6 +72,14 @@ export async function POST(req: Request) {
           .set({ embedding_status: 'error' })
           .where(eq(knowledge_documents.id, documentId))
       })
+
+    // Deduct 5 credits per KB document embed (fire-and-forget)
+    void deductCredits({
+      company_id: user.company_id,
+      type: 'kb_embed',
+      amount: 5,
+      reference: documentId,
+    })
 
     return NextResponse.json({ success: true, documentId, url })
   } catch (err) {

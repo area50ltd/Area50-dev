@@ -20,39 +20,27 @@ export const metadata: Metadata = {
   },
 }
 
-const key = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? ''
-const clerkConfigured = (key.startsWith('pk_test_') || key.startsWith('pk_live_')) && key.length > 20
-
-function AppShell({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-      </head>
-      <body className="min-h-screen bg-background font-body antialiased">
-        <Providers>
-          <NavigationProgress />
-          {children}
-          <Toaster position="top-right" richColors closeButton toastOptions={{ duration: 4000 }} />
-        </Providers>
-        
-      </body>
-    </html>
-  )
-}
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  if (clerkConfigured) {
-    return (
-      <ClerkProvider
-        signInUrl="/login"
-        signInFallbackRedirectUrl="/dashboard"
-        signUpFallbackRedirectUrl="/onboarding"
-      >
-        <AppShell>{children}</AppShell>
-      </ClerkProvider>
-    )
-  }
-  return <AppShell>{children}</AppShell>
+  return (
+    <ClerkProvider
+      signInUrl="/login"
+      signUpUrl="/login"
+      signInFallbackRedirectUrl="/auth/redirect"
+      signUpFallbackRedirectUrl="/auth/redirect"
+    >
+      <html lang="en" suppressHydrationWarning>
+        <head>
+          <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        </head>
+        <body className="min-h-screen bg-background font-body antialiased">
+          <Providers>
+            <NavigationProgress />
+            {children}
+            <Toaster position="top-right" richColors closeButton toastOptions={{ duration: 4000 }} />
+          </Providers>
+        </body>
+      </html>
+    </ClerkProvider>
+  )
 }

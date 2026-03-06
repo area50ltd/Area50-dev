@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
 import { callN8n } from '@/lib/n8n'
+import { deductCredits } from '@/lib/credits'
 
 const Schema = z.object({
   company_id: z.string().uuid(),
@@ -22,7 +23,19 @@ export async function POST(req: Request) {
 
   try {
     const result = await callN8n('/webhook/ai/chat', parsed.data)
-    return NextResponse.json(result)
+
+    // Deduct 1 credit per AI message — fire after response, never blocks
+    const deduct = await deductCredits({
+      company_id: parsed.data.company_id,
+      type: 'ai_message',
+      amount: 1,
+      reference: parsed.data.ticket_id,
+    })
+
+    return NextResponse.json({
+      ...(result as object),
+      credits_exhausted: deduct.insufficient,
+    })
   } catch (err) {
     console.error('[api/chat]', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

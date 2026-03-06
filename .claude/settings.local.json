@@ -19,7 +19,8 @@
       "Bash(npx shadcn@latest add slider switch badge label --yes)",
       "Bash(npm install @radix-ui/react-slider @radix-ui/react-switch @radix-ui/react-label --legacy-peer-deps)",
       "Bash(npx tsc --noEmit --pretty)",
-      "Bash(xargs grep -l \"VOICE_LANGUAGE\\\\|VOICE_TONE\\\\|VOICE_GENDER\\\\|VOICE_ACCENT\\\\|ELEVENLABS\")"
+      "Bash(xargs grep -l \"VOICE_LANGUAGE\\\\|VOICE_TONE\\\\|VOICE_GENDER\\\\|VOICE_ACCENT\\\\|ELEVENLABS\")",
+      "Bash(head -5 \"c:/softwares/Area50/Area50app/app/\\(dashboard\\)/dashboard/team-chat/page.tsx\")"
     ]
   }
 }

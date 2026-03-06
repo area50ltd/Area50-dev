@@ -28,6 +28,32 @@ export function useTickets(filters: TicketFilters = {}) {
   })
 }
 
+export function useCreateTicket() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (data: {
+      channel: 'web_widget' | 'whatsapp' | 'voice_inbound'
+      priority: 'low' | 'normal' | 'high' | 'urgent'
+      category?: string
+      language?: string
+    }) => {
+      const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? 'Failed to create ticket')
+      }
+      return res.json() as Promise<Ticket>
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tickets'] })
+    },
+  })
+}
+
 export function useUpdateTicket() {
   const queryClient = useQueryClient()
   return useMutation({

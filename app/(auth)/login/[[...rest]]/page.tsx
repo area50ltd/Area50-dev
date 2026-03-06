@@ -1,4 +1,6 @@
 import { SignIn } from '@clerk/nextjs'
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
 
@@ -30,7 +32,11 @@ function SignInSkeleton() {
   )
 }
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  // Already signed in — send them to their correct destination
+  const { userId } = await auth()
+  if (userId) redirect('/auth/redirect')
+
   return (
     <div className="min-h-screen bg-[#1B2A4A] flex">
       {/* Left panel — branding */}

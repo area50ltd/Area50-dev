@@ -1,10 +1,13 @@
 import Link from 'next/link'
-import { LayoutDashboard, Building2, Zap, Settings2, LogOut, Shield } from 'lucide-react'
+import { LayoutDashboard, Building2, Zap, Settings2, LogOut, Shield, Package, Receipt, SlidersHorizontal } from 'lucide-react'
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/super-admin', icon: LayoutDashboard },
   { label: 'Organizations', href: '/super-admin/organizations', icon: Building2 },
   { label: 'Credits', href: '/super-admin/credits', icon: Zap },
+  { label: 'Plans', href: '/super-admin/plans', icon: Package },
+  { label: 'Transactions', href: '/super-admin/transactions', icon: Receipt },
+  { label: 'Settings', href: '/super-admin/settings', icon: SlidersHorizontal },
   { label: 'System', href: '/super-admin/system', icon: Settings2 },
 ]
 

@@ -19,6 +19,8 @@ import {
   Phone,
   Users,
   CreditCard,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatRelativeTime } from '@/lib/utils'
@@ -163,6 +165,38 @@ export default async function DashboardPage() {
       <main className="flex-1 p-6 space-y-6">
         {/* Voice setup banner — shown when voice is not yet configured */}
         {!data.company?.vapi_assistant_id && <VoiceSetupBanner />}
+
+        {/* Low-credit warning banner */}
+        {data.credits <= 0 && (
+          <div className="flex items-start gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3.5">
+            <AlertCircle size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-red-700">You&apos;ve run out of credits</p>
+              <p className="text-xs text-red-600 mt-0.5">AI features are disabled. Top up now to restore your service.</p>
+            </div>
+            <Link
+              href="/dashboard/billing"
+              className="flex-shrink-0 bg-red-600 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Top Up Now
+            </Link>
+          </div>
+        )}
+        {data.credits > 0 && data.credits < 500 && (
+          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5">
+            <AlertTriangle size={18} className="text-amber-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-amber-700">Credits running low — {data.credits} remaining</p>
+              <p className="text-xs text-amber-600 mt-0.5">Top up to avoid service interruption.</p>
+            </div>
+            <Link
+              href="/dashboard/billing"
+              className="flex-shrink-0 bg-amber-500 text-white text-xs font-semibold px-3.5 py-1.5 rounded-lg hover:bg-amber-600 transition-colors"
+            >
+              Top Up Now
+            </Link>
+          </div>
+        )}
 
         {/* Stats row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

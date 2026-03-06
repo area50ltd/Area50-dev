@@ -130,6 +130,25 @@ export const credit_transactions = pgTable('credit_transactions', {
   created_at: timestamp('created_at').defaultNow(),
 })
 
+export const team_channels = pgTable('team_channels', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  company_id: uuid('company_id').references(() => companies.id),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  created_by: uuid('created_by').references(() => users.id),
+  created_at: timestamp('created_at').defaultNow(),
+})
+
+export const team_messages = pgTable('team_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  channel_id: uuid('channel_id').references(() => team_channels.id),
+  company_id: uuid('company_id').references(() => companies.id),
+  user_id: uuid('user_id').references(() => users.id),
+  author_name: varchar('author_name', { length: 255 }).notNull(),
+  content: text('content').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+})
+
 export const payment_transactions = pgTable('payment_transactions', {
   id: uuid('id').primaryKey().defaultRandom(),
   company_id: uuid('company_id').references(() => companies.id),
@@ -138,4 +157,34 @@ export const payment_transactions = pgTable('payment_transactions', {
   credits_purchased: integer('credits_purchased').notNull(),
   status: varchar('status', { length: 20 }).default('pending'), // pending | success | failed
   created_at: timestamp('created_at').defaultNow(),
+})
+
+export const platform_settings = pgTable('platform_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  key: varchar('key', { length: 100 }).unique().notNull(),
+  value: text('value'),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
+
+export const plans = pgTable('plans', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  key: varchar('key', { length: 50 }).unique().notNull(),
+  name: varchar('name', { length: 100 }).notNull(),
+  price_kobo: integer('price_kobo').notNull().default(0),
+  credits: integer('credits').notNull().default(0),
+  is_active: boolean('is_active').default(true),
+  sort_order: integer('sort_order').default(0),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+})
+
+export const credit_packs = pgTable('credit_packs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  label: varchar('label', { length: 100 }).notNull(),
+  price_kobo: integer('price_kobo').notNull(),
+  credits: integer('credits').notNull(),
+  is_active: boolean('is_active').default(true),
+  sort_order: integer('sort_order').default(0),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
 })
