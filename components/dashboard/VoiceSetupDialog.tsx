@@ -93,7 +93,7 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
   const handleClose = () => {
     setStep(1)
     setNumbers([])
-    setSelectedNumberId('')
+    setSelectedNumber('')
     setAreaCode('')
     setError('')
     const wasSuccess = !!successNumber

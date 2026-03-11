@@ -252,7 +252,7 @@ export default function PlansPage() {
   })
 
   const updatePlan = useMutation({
-    mutationFn: ({ id, ...data }: { id: string } & object) =>
+    mutationFn: ({ id, ...data }: { id: string } & Record<string, unknown>) =>
       fetch(`/api/super-admin/plans/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then((r) => r.json()),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['sa-plans'] }); setPlanModal(null); toast.success('Plan updated') },
     onError: () => toast.error('Failed to update plan'),
@@ -279,7 +279,7 @@ export default function PlansPage() {
   })
 
   const updatePack = useMutation({
-    mutationFn: ({ id, ...data }: { id: string } & object) =>
+    mutationFn: ({ id, ...data }: { id: string } & Record<string, unknown>) =>
       fetch(`/api/super-admin/credit-packs/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }).then((r) => r.json()),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['sa-credit-packs'] }); setPackModal(null); toast.success('Pack updated') },
     onError: () => toast.error('Failed to update pack'),
