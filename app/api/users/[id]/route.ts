@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
@@ -13,10 +12,8 @@ const PatchSchema = z.object({
 
 // PATCH /api/users/[id] — update role or is_active (suspend/reactivate)
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
   if (!['admin', 'super_admin'].includes(currentUser.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -58,10 +55,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 // DELETE /api/users/[id] — remove user from the company
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
   if (!['admin', 'super_admin'].includes(currentUser.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

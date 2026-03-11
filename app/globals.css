@@ -6,76 +6,75 @@
 @tailwind utilities;
 
 @layer base {
+  /* ============================================================
+   * ZENTATIV DESIGN TOKENS — single source of truth
+   * Primary brand: Electric Violet (#7C3AED = violet-600)
+   * Dark sidebar/nav: #0A0A10
+   * Light mode: dashboard + landing
+   * Dark mode:  super-admin (add class="dark" to layout wrapper)
+   * ============================================================ */
   :root {
-    /* Brand */
-    --brand-navy: #1B2A4A;
-    --brand-navy-light: #243460;
-    --brand-pink: #E91E8C;
-    --brand-pink-light: #FF6BB5;
-    --brand-pink-muted: #FDE7F3;
+    /* --- Brand palette --- */
+    --brand-violet:       262 83% 58%;  /* #7C3AED — violet-600 */
+    --brand-violet-light: 259 89% 76%;  /* #A78BFA — violet-400 */
+    --brand-violet-muted: 261 100% 95%; /* #EDE9FE — violet-50  */
+    --brand-dark:         240 35% 6%;   /* #0A0A10 — sidebar bg  */
+    --brand-dark-light:   247 33% 9%;   /* #12111E — dark card   */
 
-    /* Neutrals */
-    --neutral-50: #F9FAFB;
-    --neutral-100: #F3F4F6;
-    --neutral-200: #E5E7EB;
-    --neutral-400: #9CA3AF;
-    --neutral-600: #4B5563;
-    --neutral-800: #1F2937;
-    --neutral-900: #111827;
+    /* --- Semantic status --- */
+    --success:     #10B981;
+    --success-bg:  #D1FAE5;
+    --warning:     #F59E0B;
+    --warning-bg:  #FEF3C7;
+    --error:       #EF4444;
+    --error-bg:    #FEE2E2;
+    --info:        #3B82F6;
+    --info-bg:     #DBEAFE;
 
-    /* Semantic */
-    --success: #10B981;
-    --success-bg: #D1FAE5;
-    --warning: #F59E0B;
-    --warning-bg: #FEF3C7;
-    --error: #EF4444;
-    --error-bg: #FEE2E2;
-    --info: #3B82F6;
-    --info-bg: #DBEAFE;
-
-    /* shadcn/ui tokens */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    /* --- shadcn/ui surface tokens (LIGHT MODE) --- */
+    --background:           0 0% 100%;
+    --foreground:           240 10% 4%;
+    --card:                 0 0% 100%;
+    --card-foreground:      240 10% 4%;
+    --popover:              0 0% 100%;
+    --popover-foreground:   240 10% 4%;
+    --primary:              var(--brand-violet);   /* ← violet-600 */
+    --primary-foreground:   0 0% 100%;
+    --secondary:            240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+    --muted:                240 5% 96%;
+    --muted-foreground:     240 4% 46%;
+    --accent:               var(--brand-violet-muted);
+    --accent-foreground:    var(--brand-violet);
+    --destructive:          0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border:               240 6% 90%;
+    --input:                240 6% 90%;
+    --ring:                 var(--brand-violet);
+    --radius:               0.5rem;
   }
 
+  /* --- Dark mode (applied to .dark wrapper = super-admin layout) --- */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --background:           240 35% 6%;   /* #0A0A10 */
+    --foreground:           0 0% 95%;
+    --card:                 247 33% 9%;   /* #12111E */
+    --card-foreground:      0 0% 95%;
+    --popover:              247 33% 9%;
+    --popover-foreground:   0 0% 95%;
+    --primary:              var(--brand-violet);
+    --primary-foreground:   0 0% 100%;
+    --secondary:            240 7% 15%;
+    --secondary-foreground: 0 0% 90%;
+    --muted:                240 7% 15%;
+    --muted-foreground:     240 5% 55%;
+    --accent:               240 7% 15%;
+    --accent-foreground:    0 0% 90%;
+    --destructive:          0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
+    --border:               240 7% 18%;
+    --input:                240 7% 18%;
+    --ring:                 var(--brand-violet);
   }
 }
 
@@ -108,14 +107,19 @@
     z-index: 0;
   }
 
-  /* Gradient text */
+  /* Gradient text — uses brand violet */
   .gradient-text {
-    @apply bg-gradient-to-r from-pink-DEFAULT to-pink-light bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent;
   }
 
-  /* Pink gradient button */
-  .btn-pink {
-    @apply bg-gradient-to-r from-[#E91E8C] to-[#FF6BB5] text-white font-body font-semibold rounded-full px-6 py-3 transition-all hover:shadow-lg hover:shadow-pink-DEFAULT/30 hover:-translate-y-0.5 active:translate-y-0;
+  /* Primary CTA button */
+  .btn-primary {
+    @apply bg-violet-600 hover:bg-violet-700 text-white font-body font-semibold rounded-full px-6 py-3 transition-all hover:shadow-lg hover:shadow-violet-600/30 hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  /* Violet glow effect (dark panels) */
+  .glow-violet {
+    box-shadow: 0 0 40px rgba(124, 58, 237, 0.3);
   }
 
   /* Scrollbar styling */

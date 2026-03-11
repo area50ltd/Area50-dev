@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle2, Loader2, Phone, Search, X } from 'lucide-react'
 import { VOICE_LANGUAGES, VOICE_TONES } from '@/lib/constants'
-import type { VapiPhoneNumber } from '@/lib/vapi'
+import type { TwilioAvailableNumber } from '@/lib/twilio'
 
 interface Props {
   open: boolean
@@ -27,8 +27,8 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
     elevenlabs_voice_id: '',
   })
   const [areaCode, setAreaCode] = useState('')
-  const [numbers, setNumbers] = useState<VapiPhoneNumber[]>([])
-  const [selectedNumberId, setSelectedNumberId] = useState('')
+  const [numbers, setNumbers] = useState<TwilioAvailableNumber[]>([])
+  const [selectedNumber, setSelectedNumber] = useState('')
   const [searching, setSearching] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -41,19 +41,20 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
       const params = new URLSearchParams()
       if (areaCode.trim()) params.set('area_code', areaCode.trim())
       const res = await fetch(`/api/vapi/numbers?${params}`)
-      if (!res.ok) throw new Error('Failed to fetch numbers')
-      const data: VapiPhoneNumber[] = await res.json()
-      setNumbers(data)
-      if (data.length === 0) setError('No numbers available for that area code. Try a different one.')
-    } catch {
-      setError('Could not load phone numbers. Please try again.')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to fetch numbers')
+      const list: TwilioAvailableNumber[] = Array.isArray(data) ? data : []
+      setNumbers(list)
+      if (list.length === 0) setError('No numbers available for that area code. Try a different one.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load phone numbers. Please try again.')
     } finally {
       setSearching(false)
     }
   }
 
   const handleConfirm = async () => {
-    if (!selectedNumberId) {
+    if (!selectedNumber) {
       setError('Please select a phone number.')
       return
     }
@@ -65,7 +66,7 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone_number_id: selectedNumberId,
+          phone_number: selectedNumber,
           voice_language: config.voice_language,
           voice_tone: config.voice_tone,
           ...(config.elevenlabs_voice_id ? { elevenlabs_voice_id: config.elevenlabs_voice_id } : {}),
@@ -111,7 +112,7 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-neutral-100">
-          <h2 className="font-heading font-bold text-[#1B2A4A]">
+          <h2 className="font-heading font-bold text-neutral-900">
             {step === 1 && 'Configure Your AI Voice'}
             {step === 2 && 'Choose a Phone Number'}
             {step === 3 && (successNumber ? 'Voice Line Ready!' : 'Setting Up...')}
@@ -130,7 +131,7 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-colors ${
-                s <= step ? 'bg-[#E91E8C]' : 'bg-neutral-200'
+                s <= step ? 'bg-violet-600' : 'bg-neutral-200'
               }`}
             />
           ))}
@@ -148,7 +149,7 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
               <select
                 value={config.voice_language}
                 onChange={(e) => setConfig((c) => ({ ...c, voice_language: e.target.value }))}
-                className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+                className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
               >
                 {VOICE_LANGUAGES.map((l) => (
                   <option key={l.value} value={l.value}>{l.label}</option>
@@ -163,7 +164,7 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
               <select
                 value={config.voice_tone}
                 onChange={(e) => setConfig((c) => ({ ...c, voice_tone: e.target.value }))}
-                className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+                className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
               >
                 {VOICE_TONES.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
@@ -180,14 +181,14 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
                 placeholder="e.g. 21m00Tcm4TlvDq8ikWAM"
                 value={config.elevenlabs_voice_id}
                 onChange={(e) => setConfig((c) => ({ ...c, elevenlabs_voice_id: e.target.value }))}
-                className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+                className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
               />
               <p className="text-xs text-neutral-400 mt-1">Leave blank to use the default AI voice.</p>
             </div>
 
             <button
               onClick={() => setStep(2)}
-              className="w-full bg-[#E91E8C] text-white py-2.5 rounded-full text-sm font-semibold hover:bg-[#c91878] transition-colors"
+              className="w-full bg-violet-600 text-white py-2.5 rounded-full text-sm font-semibold hover:bg-violet-700 transition-colors"
             >
               Next: Choose Phone Number →
             </button>
@@ -208,13 +209,13 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
                   value={areaCode}
                   onChange={(e) => setAreaCode(e.target.value)}
                   maxLength={5}
-                  className="flex-1 border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+                  className="flex-1 border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
                 <button
                   onClick={handleSearch}
                   disabled={searching}
-                  className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B2A4A] text-white text-sm font-semibold rounded-lg hover:bg-[#243460] transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-2.5 bg-neutral-900 text-white text-sm font-semibold rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-50"
                 >
                   {searching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
                   Search
@@ -230,25 +231,25 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
               <div className="space-y-2 max-h-48 overflow-y-auto">
                 {numbers.map((n) => (
                   <label
-                    key={n.id}
+                    key={n.phone_number}
                     className={`flex items-center gap-3 border rounded-lg px-4 py-3 cursor-pointer transition-colors ${
-                      selectedNumberId === n.id
-                        ? 'border-[#E91E8C] bg-[#FDE7F3]'
+                      selectedNumber === n.phone_number
+                        ? 'border-violet-500 bg-violet-50'
                         : 'border-neutral-200 hover:border-neutral-300'
                     }`}
                   >
                     <input
                       type="radio"
                       name="phone_number"
-                      value={n.id}
-                      checked={selectedNumberId === n.id}
-                      onChange={() => setSelectedNumberId(n.id)}
-                      className="accent-[#E91E8C]"
+                      value={n.phone_number}
+                      checked={selectedNumber === n.phone_number}
+                      onChange={() => setSelectedNumber(n.phone_number)}
+                      className="accent-violet-600"
                     />
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-[#1B2A4A]">{n.number}</p>
-                      {n.country && (
-                        <p className="text-xs text-neutral-400">{n.country}</p>
+                      <p className="text-sm font-semibold text-neutral-900">{n.friendly_name}</p>
+                      {(n.locality || n.region) && (
+                        <p className="text-xs text-neutral-400">{[n.locality, n.region].filter(Boolean).join(', ')}</p>
                       )}
                     </div>
                     <Phone size={14} className="text-neutral-400" />
@@ -272,8 +273,8 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
               </button>
               <button
                 onClick={handleConfirm}
-                disabled={!selectedNumberId || submitting}
-                className="flex-1 bg-[#E91E8C] text-white py-2.5 rounded-full text-sm font-semibold hover:bg-[#c91878] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!selectedNumber || submitting}
+                className="flex-1 bg-violet-600 text-white py-2.5 rounded-full text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Confirm & Set Up
               </button>
@@ -286,8 +287,8 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
           <div className="py-8 text-center">
             {submitting ? (
               <>
-                <Loader2 size={36} className="animate-spin text-[#E91E8C] mx-auto mb-4" />
-                <p className="font-semibold text-[#1B2A4A] mb-1">Setting up your voice line…</p>
+                <Loader2 size={36} className="animate-spin text-violet-600 mx-auto mb-4" />
+                <p className="font-semibold text-neutral-900 mb-1">Setting up your voice line…</p>
                 <p className="text-sm text-neutral-500">
                   Purchasing your number and creating your AI assistant. This takes a few seconds.
                 </p>
@@ -297,14 +298,14 @@ export function VoiceSetupDialog({ open, onOpenChange, onSuccess }: Props) {
                 <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                   <CheckCircle2 size={28} className="text-green-600" />
                 </div>
-                <p className="font-semibold text-[#1B2A4A] mb-1">Your phone line is ready!</p>
-                <p className="text-2xl font-heading font-bold text-[#E91E8C] mt-3 mb-1">{successNumber}</p>
+                <p className="font-semibold text-neutral-900 mb-1">Your phone line is ready!</p>
+                <p className="text-2xl font-heading font-bold text-violet-600 mt-3 mb-1">{successNumber}</p>
                 <p className="text-xs text-neutral-400 mb-6">
                   Your AI assistant is now live on this number.
                 </p>
                 <button
                   onClick={handleClose}
-                  className="bg-[#E91E8C] text-white px-8 py-2.5 rounded-full text-sm font-semibold hover:bg-[#c91878] transition-colors"
+                  className="bg-violet-600 text-white px-8 py-2.5 rounded-full text-sm font-semibold hover:bg-violet-700 transition-colors"
                 >
                   Done
                 </button>

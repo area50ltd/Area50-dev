@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { agents, users } from '@/lib/schema'
@@ -13,10 +12,8 @@ const updateSchema = z.object({
 })
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const body = await req.json()
@@ -55,10 +52,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   // Verify agent belongs to this company

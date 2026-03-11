@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
 import { callN8n } from '@/lib/n8n'
@@ -12,8 +12,10 @@ const Schema = z.object({
 })
 
 export async function POST(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const supabase = createClient()
+  const { data: { user: _authUser } } = await supabase.auth.getUser()
+  if (!_authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const userId = _authUser.id
 
   const body = await req.json()
   const parsed = Schema.safeParse(body)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -76,7 +76,7 @@ const STEPS = [
   { label: 'Launch', icon: CheckCircle2 },
 ]
 
-const PRESET_COLORS = ['#1B2A4A', '#E91E8C', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6']
+const PRESET_COLORS = ['#7C3AED', '#0A0A10', '#3B82F6', '#10B981', '#F59E0B', '#E91E8C']
 
 const LANGUAGES = [
   { value: 'en', label: 'English' },
@@ -173,7 +173,7 @@ function ProgressBar({ currentStep }: { currentStep: number }) {
       <div className="flex items-center justify-between relative">
         <div className="absolute top-4 left-8 right-8 h-0.5 bg-neutral-200">
           <motion.div
-            className="h-full bg-[#E91E8C]"
+            className="h-full bg-violet-600"
             animate={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           />
@@ -187,9 +187,9 @@ function ProgressBar({ currentStep }: { currentStep: number }) {
               <div
                 className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
                   done
-                    ? 'bg-[#E91E8C] border-[#E91E8C] text-white'
+                    ? 'bg-violet-600 border-violet-600 text-white'
                     : active
-                    ? 'bg-white border-[#E91E8C] text-[#E91E8C]'
+                    ? 'bg-white border-violet-600 text-violet-600'
                     : 'bg-white border-neutral-200 text-neutral-400'
                 }`}
               >
@@ -197,7 +197,7 @@ function ProgressBar({ currentStep }: { currentStep: number }) {
               </div>
               <span
                 className={`text-xs font-medium hidden sm:block ${
-                  active ? 'text-[#E91E8C]' : done ? 'text-[#1B2A4A]' : 'text-neutral-400'
+                  active ? 'text-violet-600' : done ? 'text-neutral-900' : 'text-neutral-400'
                 }`}
               >
                 {step.label}
@@ -259,10 +259,10 @@ function Step1({
 
   return (
     <StepContainer>
-      <h2 className="font-heading text-2xl font-bold text-[#1B2A4A] mb-2">
+      <h2 className="font-heading text-2xl font-bold text-neutral-900 mb-2">
         Tell us about your company
       </h2>
-      <p className="text-neutral-500 mb-8">This sets up your Area50 workspace.</p>
+      <p className="text-neutral-500 mb-8">This sets up your Zentativ workspace.</p>
 
       <div className="space-y-5">
         <div>
@@ -271,7 +271,7 @@ function Step1({
             value={data.companyName}
             onChange={(e) => setData((p) => ({ ...p, companyName: e.target.value }))}
             placeholder="e.g. Acme Corp"
-            className="w-full h-11 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] focus:ring-2 focus:ring-[#E91E8C]/10 text-sm"
+            className="w-full h-11 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 text-sm"
           />
           {errors.companyName && (
             <p className="text-red-500 text-xs mt-1">{errors.companyName}</p>
@@ -285,7 +285,7 @@ function Step1({
             onChange={(e) => setData((p) => ({ ...p, supportEmail: e.target.value }))}
             type="email"
             placeholder="support@yourcompany.com"
-            className="w-full h-11 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] focus:ring-2 focus:ring-[#E91E8C]/10 text-sm"
+            className="w-full h-11 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 text-sm"
           />
           {errors.supportEmail && (
             <p className="text-red-500 text-xs mt-1">{errors.supportEmail}</p>
@@ -298,7 +298,7 @@ function Step1({
             <select
               value={data.language}
               onChange={(e) => setData((p) => ({ ...p, language: e.target.value }))}
-              className="w-full h-11 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm bg-white"
+              className="w-full h-11 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm bg-white"
             >
               {LANGUAGES.map((l) => (
                 <option key={l.value} value={l.value}>
@@ -313,7 +313,7 @@ function Step1({
             <select
               value={data.timezone}
               onChange={(e) => setData((p) => ({ ...p, timezone: e.target.value }))}
-              className="w-full h-11 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm bg-white"
+              className="w-full h-11 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm bg-white"
             >
               {TIMEZONE_GROUPS.map((g) => (
                 <optgroup key={g.group} label={g.group}>
@@ -328,7 +328,7 @@ function Step1({
             {localTime && (
               <p className="text-xs text-neutral-400 mt-1">
                 Current time:{' '}
-                <strong className="text-[#1B2A4A]">{localTime}</strong>
+                <strong className="text-neutral-900">{localTime}</strong>
               </p>
             )}
           </div>
@@ -404,7 +404,7 @@ function Step2({
 
   return (
     <StepContainer>
-      <h2 className="font-heading text-2xl font-bold text-[#1B2A4A] mb-2">AI & Widget Setup</h2>
+      <h2 className="font-heading text-2xl font-bold text-neutral-900 mb-2">AI & Widget Setup</h2>
       <p className="text-neutral-500 mb-8">
         Define your AI&apos;s voice and customize your support widget.
       </p>
@@ -426,7 +426,7 @@ function Step2({
               }
               rows={5}
               placeholder={`e.g. "You are a friendly and professional support agent for Acme Corp. Always greet customers warmly, answer questions concisely, and escalate billing issues to human agents."`}
-              className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] focus:ring-2 focus:ring-[#E91E8C]/10 text-sm resize-none leading-relaxed"
+              className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 text-sm resize-none leading-relaxed"
             />
             {errors.aiPersonality && (
               <p className="text-red-500 text-xs mt-1">{errors.aiPersonality}</p>
@@ -441,7 +441,7 @@ function Step2({
               value={data.welcomeMessage}
               onChange={(e) => setData((p) => ({ ...p, welcomeMessage: e.target.value }))}
               rows={2}
-              className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm resize-none"
+              className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm resize-none"
             />
             {errors.welcomeMessage && (
               <p className="text-red-500 text-xs mt-1">{errors.welcomeMessage}</p>
@@ -466,8 +466,8 @@ function Step2({
             <input
               value={data.widgetColor}
               onChange={(e) => setData((p) => ({ ...p, widgetColor: e.target.value }))}
-              placeholder="#1B2A4A"
-              className="w-32 h-9 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm font-mono"
+              placeholder="#7C3AED"
+              className="w-32 h-9 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm font-mono"
             />
             {errors.widgetColor && (
               <p className="text-red-500 text-xs mt-1">{errors.widgetColor}</p>
@@ -486,7 +486,7 @@ function Step2({
                   <img
                     src={avatarPreview}
                     alt="Avatar preview"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-[#E91E8C]/30"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-violet-500/30"
                   />
                   <button
                     type="button"
@@ -608,7 +608,7 @@ function Step3({
 
   return (
     <StepContainer>
-      <h2 className="font-heading text-2xl font-bold text-[#1B2A4A] mb-2">Business Hours</h2>
+      <h2 className="font-heading text-2xl font-bold text-neutral-900 mb-2">Business Hours</h2>
       <p className="text-neutral-500 mb-8">
         Set when your team is available. Outside these hours, the AI handles coverage.
       </p>
@@ -622,7 +622,7 @@ function Step3({
               type="time"
               value={data.businessHoursStart}
               onChange={(e) => setData((p) => ({ ...p, businessHoursStart: e.target.value }))}
-              className="w-full h-11 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm"
+              className="w-full h-11 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm"
             />
           </div>
           <div>
@@ -631,7 +631,7 @@ function Step3({
               type="time"
               value={data.businessHoursEnd}
               onChange={(e) => setData((p) => ({ ...p, businessHoursEnd: e.target.value }))}
-              className="w-full h-11 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm"
+              className="w-full h-11 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm"
             />
           </div>
         </div>
@@ -677,19 +677,19 @@ function Step3({
                 onClick={() => setData((p) => ({ ...p, afterHoursMode: mode.value }))}
                 className={`flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 transition-all ${
                   data.afterHoursMode === mode.value
-                    ? 'border-[#E91E8C] bg-[#FDE7F3]'
+                    ? 'border-violet-500 bg-violet-50'
                     : 'border-neutral-200 hover:border-neutral-300 bg-white'
                 }`}
               >
                 <mode.icon
                   size={20}
                   className={
-                    data.afterHoursMode === mode.value ? 'text-[#E91E8C]' : 'text-neutral-500'
+                    data.afterHoursMode === mode.value ? 'text-violet-600' : 'text-neutral-500'
                   }
                 />
                 <p
                   className={`text-sm font-semibold ${
-                    data.afterHoursMode === mode.value ? 'text-[#E91E8C]' : 'text-[#1B2A4A]'
+                    data.afterHoursMode === mode.value ? 'text-violet-600' : 'text-neutral-900'
                   }`}
                 >
                   {mode.label}
@@ -711,7 +711,7 @@ function Step3({
               onChange={(e) => setData((p) => ({ ...p, afterHoursMessage: e.target.value }))}
               rows={2}
               placeholder="e.g. Our team is offline. We'll respond first thing tomorrow morning."
-              className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm resize-none"
+              className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm resize-none"
             />
           </div>
         )}
@@ -776,7 +776,7 @@ function Step4({
 
   return (
     <StepContainer>
-      <h2 className="font-heading text-2xl font-bold text-[#1B2A4A] mb-2">Escalation Rules</h2>
+      <h2 className="font-heading text-2xl font-bold text-neutral-900 mb-2">Escalation Rules</h2>
       <p className="text-neutral-500 mb-8">
         Define when and how tickets get escalated to human agents.
       </p>
@@ -786,7 +786,7 @@ function Step4({
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-sm font-medium text-neutral-700">Complexity Threshold</label>
-            <span className="text-2xl font-heading font-bold text-[#1B2A4A]">
+            <span className="text-2xl font-heading font-bold text-neutral-900">
               {data.complexityThreshold}
             </span>
           </div>
@@ -824,7 +824,7 @@ function Step4({
                 }
               }}
               placeholder="Type a keyword and press Enter"
-              className="flex-1 h-10 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] focus:ring-2 focus:ring-[#E91E8C]/10 text-sm"
+              className="flex-1 h-10 px-4 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/10 text-sm"
             />
             <button
               type="button"
@@ -870,7 +870,7 @@ function Step4({
             >
               <Minus size={16} />
             </button>
-            <span className="font-heading font-bold text-2xl text-[#1B2A4A] w-8 text-center">
+            <span className="font-heading font-bold text-2xl text-neutral-900 w-8 text-center">
               {data.maxAiAttempts}
             </span>
             <button
@@ -904,35 +904,28 @@ function Step4({
 function Step5({
   onNext,
   onBack,
+  setKbFile,
 }: {
   onNext: () => void
   onBack: () => void
+  setKbFile: (f: File | null) => void
 }) {
   const [file, setFile] = useState<File | null>(null)
-  const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     const f = e.dataTransfer.files[0]
-    if (f) setFile(f)
+    if (f) { setFile(f); setKbFile(f) }
   }
 
-  async function handleContinue() {
-    if (!file) {
-      onNext()
-      return
-    }
-    setUploading(true)
-    await new Promise((r) => setTimeout(r, 800))
-    toast.success('Document queued for embedding!')
-    setUploading(false)
+  function handleContinue() {
     onNext()
   }
 
   return (
     <StepContainer>
-      <h2 className="font-heading text-2xl font-bold text-[#1B2A4A] mb-2">
+      <h2 className="font-heading text-2xl font-bold text-neutral-900 mb-2">
         Upload your first document
       </h2>
       <p className="text-neutral-500 mb-8">
@@ -943,7 +936,7 @@ function Step5({
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
         onClick={() => fileRef.current?.click()}
-        className="border-2 border-dashed border-neutral-200 rounded-2xl p-10 text-center hover:border-[#E91E8C]/40 hover:bg-[#FDE7F3]/30 transition-colors mb-6 cursor-pointer"
+        className="border-2 border-dashed border-neutral-200 rounded-2xl p-10 text-center hover:border-violet-500/40 hover:bg-violet-50/30 transition-colors mb-6 cursor-pointer"
       >
         <Upload size={32} className="mx-auto mb-3 text-neutral-300" />
         <p className="font-medium text-neutral-700 mb-1">Drop a file here or click to browse</p>
@@ -953,20 +946,20 @@ function Step5({
           type="file"
           accept=".pdf,.txt,.csv,.docx,.json"
           className="hidden"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          onChange={(e) => { const f = e.target.files?.[0] ?? null; setFile(f); setKbFile(f) }}
         />
       </div>
 
       {file && (
-        <div className="flex items-center justify-between bg-[#FDE7F3] border border-[#E91E8C]/20 rounded-xl px-4 py-3 mb-6">
+        <div className="flex items-center justify-between bg-violet-50 border border-violet-500/20 rounded-xl px-4 py-3 mb-6">
           <div className="flex items-center gap-3">
-            <FileUp size={18} className="text-[#E91E8C]" />
+            <FileUp size={18} className="text-violet-600" />
             <div>
-              <p className="text-sm font-medium text-[#1B2A4A]">{file.name}</p>
+              <p className="text-sm font-medium text-neutral-900">{file.name}</p>
               <p className="text-xs text-neutral-500">{(file.size / 1024).toFixed(0)} KB</p>
             </div>
           </div>
-          <button onClick={() => setFile(null)} className="text-neutral-400 hover:text-red-500">
+          <button onClick={() => { setFile(null); setKbFile(null) }} className="text-neutral-400 hover:text-red-500">
             <X size={16} />
           </button>
         </div>
@@ -987,11 +980,10 @@ function Step5({
         <Button
           size="lg"
           onClick={handleContinue}
-          disabled={uploading}
           className="flex-1 rounded-full"
         >
-          {uploading ? 'Uploading...' : file ? 'Upload & Continue' : 'Continue'}
-          {!uploading && <ArrowRight size={16} />}
+          {file ? 'Continue' : 'Continue'}
+          <ArrowRight size={16} />
         </Button>
       </div>
     </StepContainer>
@@ -1027,7 +1019,7 @@ function Step6({
 
   return (
     <StepContainer>
-      <h2 className="font-heading text-2xl font-bold text-[#1B2A4A] mb-2">Review & Launch</h2>
+      <h2 className="font-heading text-2xl font-bold text-neutral-900 mb-2">Review & Launch</h2>
       <p className="text-neutral-500 mb-8">
         Everything looks good? Hit launch to create your AI support system.
       </p>
@@ -1036,7 +1028,7 @@ function Step6({
         {/* Company */}
         <div className="bg-neutral-50 rounded-xl p-4 space-y-1.5">
           <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">Company</p>
-          <p className="text-sm font-semibold text-[#1B2A4A]">{data.companyName}</p>
+          <p className="text-sm font-semibold text-neutral-900">{data.companyName}</p>
           <p className="text-xs text-neutral-500">{data.supportEmail}</p>
           <p className="text-xs text-neutral-500">
             {langLabel} · {tzLabel.split('(')[0].trim()}
@@ -1069,7 +1061,7 @@ function Step6({
           <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">
             Business Hours
           </p>
-          <p className="text-sm font-semibold text-[#1B2A4A]">
+          <p className="text-sm font-semibold text-neutral-900">
             {data.businessHoursStart} – {data.businessHoursEnd}
           </p>
           <p className="text-xs text-neutral-500">After hours: {afterHoursLabel}</p>
@@ -1083,7 +1075,7 @@ function Step6({
           <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">
             Escalation
           </p>
-          <p className="text-sm font-semibold text-[#1B2A4A]">
+          <p className="text-sm font-semibold text-neutral-900">
             Threshold: {data.complexityThreshold}/10
           </p>
           <p className="text-xs text-neutral-500">{cLabel}</p>
@@ -1093,7 +1085,7 @@ function Step6({
               {data.keywordsEscalate.slice(0, 4).map((kw) => (
                 <span
                   key={kw}
-                  className="text-[10px] bg-[#FDE7F3] text-[#E91E8C] px-1.5 py-0.5 rounded-full"
+                  className="text-[10px] bg-violet-50 text-violet-600 px-1.5 py-0.5 rounded-full"
                 >
                   {kw}
                 </span>
@@ -1122,7 +1114,7 @@ function Step6({
           size="lg"
           onClick={handleLaunch}
           disabled={loading}
-          className="flex-1 rounded-full shadow-lg shadow-[#E91E8C]/25"
+          className="flex-1 rounded-full shadow-lg shadow-violet-600/25"
         >
           {loading ? 'Setting up your account...' : 'Launch My Account 🚀'}
         </Button>
@@ -1134,10 +1126,10 @@ function Step6({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function OnboardingPage() {
-  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [kbFile, setKbFile] = useState<File | null>(null)
 
   const [formData, setFormData] = useState<FormData>({
     companyName: '',
@@ -1146,7 +1138,7 @@ export default function OnboardingPage() {
     timezone: 'Africa/Lagos',
     aiPersonality: '',
     welcomeMessage: 'Hello! How can I help you today?',
-    widgetColor: '#1B2A4A',
+    widgetColor: '#7C3AED',
     widgetAvatar: null,
     businessHoursStart: '08:00',
     businessHoursEnd: '18:00',
@@ -1185,8 +1177,14 @@ export default function OnboardingPage() {
       }),
     })
 
-    if (!res.ok) {
-      const err = await res.json()
+    if (!res.ok || !res.headers.get('content-type')?.includes('application/json')) {
+      // If we got redirected to login (307 → login HTML with 200), session was lost
+      if (res.headers.get('content-type')?.includes('text/html')) {
+        toast.error('Session expired. Redirecting to login...')
+        window.location.href = '/login'
+        return
+      }
+      const err = await res.json().catch(() => ({ error: 'Setup failed. Please try again.' }))
       toast.error(err.error ?? 'Setup failed. Please try again.')
       throw new Error('Onboarding failed')
     }
@@ -1205,19 +1203,37 @@ export default function OnboardingPage() {
       }
     }
 
-    toast.success('Account created! Welcome to Area50.')
-    router.push('/dashboard')
+    // Upload KB document after company is created (getCurrentUser() now has company_id)
+    if (kbFile) {
+      try {
+        const kbFd = new FormData()
+        kbFd.append('file', kbFile)
+        const kbRes = await fetch('/api/knowledge/upload', { method: 'POST', body: kbFd })
+        if (!kbRes.ok) {
+          toast.warning('Document upload failed — you can upload it later in the Knowledge Base section.')
+        }
+      } catch {
+        toast.warning('Document upload failed — you can upload it later in the Knowledge Base section.')
+      }
+    }
+
+    toast.success('Account created! Welcome to Zentativ.')
+    window.location.href = '/dashboard'
   }
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-2xl">
         {/* Logo */}
-        <div className="flex items-center gap-2 mb-10 justify-center">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#E91E8C] to-[#FF6BB5] flex items-center justify-center">
-            <span className="text-white font-heading font-bold text-sm">A</span>
-          </div>
-          <span className="font-heading font-bold text-xl text-[#1B2A4A]">Area50</span>
+        <div className="flex items-center justify-center mb-10 overflow-hidden" style={{ height: '40px' }}>
+          <Image
+            src="/images/logo/logo-dark.png"
+            alt="Zentativ"
+            width={360}
+            height={108}
+            className="h-28 w-auto"
+            priority
+          />
         </div>
 
         <ProgressBar currentStep={currentStep} />
@@ -1257,7 +1273,7 @@ export default function OnboardingPage() {
                 onBack={back}
               />
             )}
-            {currentStep === 5 && <Step5 key="s5" onNext={next} onBack={back} />}
+            {currentStep === 5 && <Step5 key="s5" onNext={next} onBack={back} setKbFile={setKbFile} />}
             {currentStep === 6 && (
               <Step6
                 key="s6"

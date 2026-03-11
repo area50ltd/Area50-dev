@@ -13,7 +13,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { useCompany } from '@/hooks/useCompany'
-import type { AvailablePhoneNumber } from '@/lib/vapi'
+import type { TwilioAvailableNumber } from '@/lib/twilio'
 
 // ─── Country options ──────────────────────────────────────────────────────────
 
@@ -24,18 +24,8 @@ const COUNTRIES = [
   { code: 'ZA', label: '🇿🇦 South Africa' },
   { code: 'KE', label: '🇰🇪 Kenya' },
   { code: 'GH', label: '🇬🇭 Ghana' },
+  { code: 'NG', label: '🇳🇬 Nigeria' },
 ] as const
-
-// ─── Format phone number for display ─────────────────────────────────────────
-
-function formatPhone(number: string): string {
-  // Format +1XXXXXXXXXX → +1 (XXX) XXX-XXXX
-  const cleaned = number.replace(/\D/g, '')
-  if (cleaned.length === 11 && cleaned[0] === '1') {
-    return `+1 (${cleaned.slice(1, 4)}) ${cleaned.slice(4, 7)}-${cleaned.slice(7)}`
-  }
-  return number
-}
 
 // ─── Release Confirmation ─────────────────────────────────────────────────────
 
@@ -86,7 +76,7 @@ export function PhoneNumberManager() {
   const [country, setCountry] = useState('US')
   const [areaCode, setAreaCode] = useState('')
   const [searching, setSearching] = useState(false)
-  const [availableNumbers, setAvailableNumbers] = useState<AvailablePhoneNumber[]>([])
+  const [availableNumbers, setAvailableNumbers] = useState<TwilioAvailableNumber[]>([])
   const [selectedNumber, setSelectedNumber] = useState('')
   const [searchError, setSearchError] = useState('')
   const [purchasing, setPurchasing] = useState(false)
@@ -104,9 +94,9 @@ export function PhoneNumberManager() {
       const res = await fetch(`/api/vapi/numbers/available?${params}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to fetch numbers')
-      const list: AvailablePhoneNumber[] = data
+      const list: TwilioAvailableNumber[] = Array.isArray(data) ? data : []
       if (list.length === 0) {
-        setSearchError('No numbers available for this country. Try a different country or area code.')
+        setSearchError('No numbers available for this selection. Try a different country or area code.')
       }
       setAvailableNumbers(list)
     } catch (err) {
@@ -123,12 +113,12 @@ export function PhoneNumberManager() {
       const res = await fetch('/api/vapi/numbers/purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number: selectedNumber }),
+        body: JSON.stringify({ phone_number: selectedNumber }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to purchase number')
-      toast.success(`Phone number ${formatPhone(data.phone_number)} is now active!`)
-      // Refresh company data to show State B
+      if (data.warning) toast.warning(data.warning)
+      else toast.success(`Phone number ${data.phone_number} is now active!`)
       queryClient.invalidateQueries({ queryKey: ['company'] })
       setAvailableNumbers([])
       setSelectedNumber('')
@@ -184,14 +174,14 @@ export function PhoneNumberManager() {
           <div className="flex-1">
             <p className="text-sm font-semibold text-amber-800">AI assistant not configured yet</p>
             <p className="text-xs text-amber-700 mt-0.5">
-              You need to set up your AI assistant before purchasing a phone number.
+              Set up your AI voice assistant first before adding a phone number.
             </p>
           </div>
           <a
             href="/dashboard/settings/voice"
-            className="flex items-center gap-1 text-xs font-semibold text-[#E91E8C] hover:underline flex-shrink-0"
+            className="flex items-center gap-1 text-xs font-semibold text-violet-600 hover:underline flex-shrink-0"
           >
-            Set Up Voice <ExternalLink size={11} />
+            Configure Voice <ExternalLink size={11} />
           </a>
         </div>
       </div>
@@ -210,8 +200,8 @@ export function PhoneNumberManager() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-lg font-heading font-bold text-[#1B2A4A]">
-                {formatPhone(company.vapi_phone_number!)}
+              <span className="text-lg font-heading font-bold text-neutral-900">
+                {company.vapi_phone_number}
               </span>
               <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
@@ -220,7 +210,7 @@ export function PhoneNumberManager() {
             </div>
             <p className="text-xs text-green-700 mt-0.5 flex items-center gap-1">
               <CheckCircle2 size={12} />
-              Connected to AI Assistant — calls handled automatically
+              Connected to AI Assistant — inbound calls handled automatically
             </p>
           </div>
           <button
@@ -243,14 +233,14 @@ export function PhoneNumberManager() {
     )
   }
 
-  // ── State A: No number yet ──
+  // ── State A: No number yet — search + purchase ──
   return (
     <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 mb-6">
       <CardHeader />
 
       <p className="text-sm text-neutral-500 mt-1 mb-5">
-        Give your business a dedicated phone number powered by AI. Inbound calls are handled
-        automatically by your AI assistant.
+        Give your business a dedicated phone number. Inbound calls are handled automatically
+        by your AI assistant.
       </p>
 
       {/* Country + area code */}
@@ -262,7 +252,7 @@ export function PhoneNumberManager() {
           <select
             value={country}
             onChange={(e) => { setCountry(e.target.value); setAvailableNumbers([]); setSelectedNumber('') }}
-            className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+            className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-600/30 focus:border-violet-600"
           >
             {COUNTRIES.map((c) => (
               <option key={c.code} value={c.code}>{c.label}</option>
@@ -282,7 +272,7 @@ export function PhoneNumberManager() {
               onChange={(e) => setAreaCode(e.target.value)}
               maxLength={5}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+              className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-600/30 focus:border-violet-600"
             />
           </div>
         )}
@@ -291,7 +281,7 @@ export function PhoneNumberManager() {
           <button
             onClick={handleSearch}
             disabled={searching}
-            className="flex items-center gap-2 bg-[#1B2A4A] text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#243460] transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 bg-neutral-900 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-neutral-800 transition-colors disabled:opacity-50"
           >
             {searching ? <Loader2 size={14} className="animate-spin" /> : <Search size={14} />}
             Search Numbers
@@ -321,31 +311,31 @@ export function PhoneNumberManager() {
         <div className="space-y-2 mb-5 max-h-52 overflow-y-auto">
           {availableNumbers.map((n) => (
             <label
-              key={n.phoneNumber}
+              key={n.phone_number}
               className={`flex items-center gap-3 border rounded-xl px-4 py-3 cursor-pointer transition-all ${
-                selectedNumber === n.phoneNumber
-                  ? 'border-[#E91E8C] bg-[#FDE7F3] shadow-sm'
+                selectedNumber === n.phone_number
+                  ? 'border-violet-600 bg-violet-50 shadow-sm'
                   : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
               }`}
             >
               <input
                 type="radio"
                 name="phone_number_select"
-                value={n.phoneNumber}
-                checked={selectedNumber === n.phoneNumber}
-                onChange={() => setSelectedNumber(n.phoneNumber)}
-                className="accent-[#E91E8C]"
+                value={n.phone_number}
+                checked={selectedNumber === n.phone_number}
+                onChange={() => setSelectedNumber(n.phone_number)}
+                className="accent-violet-600"
               />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-[#1B2A4A]">{formatPhone(n.phoneNumber)}</p>
-                {(n.region || n.areaCode) && (
+                <p className="text-sm font-semibold text-neutral-900">{n.friendly_name}</p>
+                {(n.locality || n.region) && (
                   <p className="text-xs text-neutral-400">
-                    {[n.region, n.areaCode].filter(Boolean).join(' · ')}
+                    {[n.locality, n.region].filter(Boolean).join(', ')}
                   </p>
                 )}
               </div>
-              {selectedNumber === n.phoneNumber && (
-                <CheckCircle2 size={16} className="text-[#E91E8C] flex-shrink-0" />
+              {selectedNumber === n.phone_number && (
+                <CheckCircle2 size={16} className="text-violet-600 flex-shrink-0" />
               )}
             </label>
           ))}
@@ -357,12 +347,12 @@ export function PhoneNumberManager() {
         <button
           onClick={handlePurchase}
           disabled={!selectedNumber || purchasing}
-          className="w-full bg-[#E91E8C] text-white py-3 rounded-full text-sm font-semibold hover:bg-[#c91878] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full bg-violet-600 text-white py-3 rounded-full text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {purchasing ? (
             <><Loader2 size={14} className="animate-spin" /> Purchasing…</>
           ) : (
-            <><Phone size={14} /> Purchase Number</>
+            <><Phone size={14} /> Get This Number</>
           )}
         </button>
       )}
@@ -375,11 +365,11 @@ export function PhoneNumberManager() {
 function CardHeader() {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-xl bg-[#FDE7F3] flex items-center justify-center flex-shrink-0">
-        <Phone size={18} className="text-[#E91E8C]" />
+      <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0">
+        <Phone size={18} className="text-violet-600" />
       </div>
       <div>
-        <h2 className="font-heading font-bold text-sm text-[#1B2A4A]">Voice & Phone</h2>
+        <h2 className="font-heading font-bold text-sm text-neutral-900">Voice & Phone</h2>
         <p className="text-xs text-neutral-500">Dedicated AI phone line for your business</p>
       </div>
     </div>

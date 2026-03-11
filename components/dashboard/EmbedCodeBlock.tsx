@@ -13,7 +13,7 @@ interface EmbedCodeBlockProps {
 export function EmbedCodeBlock({ companyId, appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://app.yourdomain.com' }: EmbedCodeBlockProps) {
   const [copied, setCopied] = useState(false)
 
-  const code = `<!-- Area50 Support Widget -->
+  const code = `<!-- Zentativ Support Widget -->
 <script>window.AREA50_COMPANY_ID = '${companyId}';</script>
 <script src="${appUrl}/embed.js" async></script>`
 
@@ -25,7 +25,7 @@ export function EmbedCodeBlock({ companyId, appUrl = process.env.NEXT_PUBLIC_APP
   }
 
   return (
-    <div className="bg-[#1B2A4A] rounded-xl overflow-hidden">
+    <div className="bg-neutral-900 rounded-xl overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
         <span className="text-xs text-white/50 font-mono">HTML</span>
         <Button

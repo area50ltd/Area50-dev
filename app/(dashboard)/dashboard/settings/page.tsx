@@ -21,8 +21,6 @@ import {
   VolumeX,
   Bot,
   Loader2,
-  Copy,
-  Check,
   ExternalLink,
   RefreshCw,
 } from 'lucide-react'
@@ -42,7 +40,6 @@ const TABS = [
   'Escalation Rules',
   'Voice & Phone',
   'Notifications',
-  'Security',
   'Danger Zone',
 ] as const
 
@@ -50,7 +47,7 @@ type Tab = (typeof TABS)[number]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const PRESET_COLORS = ['#1B2A4A', '#E91E8C', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6']
+const PRESET_COLORS = ['#7C3AED', '#E91E8C', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6']
 
 const LANGUAGES = [
   { value: 'en', label: 'English' },
@@ -161,7 +158,7 @@ export default function SettingsPage() {
       language: 'en',
       ai_personality: '',
       widget_welcome: 'Hello! How can I help you today?',
-      widget_color: '#1B2A4A',
+      widget_color: '#7C3AED',
     },
   })
 
@@ -182,7 +179,7 @@ export default function SettingsPage() {
         language: company.language ?? 'en',
         ai_personality: company.ai_personality ?? '',
         widget_welcome: company.widget_welcome ?? 'Hello! How can I help you today?',
-        widget_color: company.widget_color ?? '#1B2A4A',
+        widget_color: company.widget_color ?? '#7C3AED',
       })
       if (company.widget_avatar) setAvatarPreview(company.widget_avatar)
     }
@@ -249,6 +246,14 @@ export default function SettingsPage() {
   const [elevenLabsVoiceId, setElevenLabsVoiceId] = useState('')
   const [rebuildingVoice, setRebuildingVoice] = useState(false)
 
+  // ── Notification state ─────────────────────────────────────────────────────
+  const [notifEmail, setNotifEmail] = useState('')
+  const [notifyEscalation, setNotifyEscalation] = useState(true)
+  const [notifyLowCredits, setNotifyLowCredits] = useState(true)
+  const [notifyWeeklyDigest, setNotifyWeeklyDigest] = useState(false)
+  const [lowCreditThreshold, setLowCreditThreshold] = useState(500)
+  const [slackWebhook, setSlackWebhook] = useState('')
+
   // Populate routing + voice from DB
   useEffect(() => {
     if (!routingRule) return
@@ -269,6 +274,12 @@ export default function SettingsPage() {
     if (company.voice_language) setVoiceLang(company.voice_language)
     if (company.voice_tone) setVoiceTone(company.voice_tone)
     if (company.elevenlabs_voice_id) setElevenLabsVoiceId(company.elevenlabs_voice_id)
+    if (company.notification_email) setNotifEmail(company.notification_email)
+    setNotifyEscalation(company.notify_email_escalation ?? true)
+    setNotifyLowCredits(company.notify_email_low_credits ?? true)
+    setNotifyWeeklyDigest(company.notify_weekly_digest ?? false)
+    if (company.low_credit_threshold) setLowCreditThreshold(company.low_credit_threshold)
+    if (company.slack_webhook_url) setSlackWebhook(company.slack_webhook_url)
   }, [company])
 
   function addKeyword() {
@@ -349,34 +360,72 @@ export default function SettingsPage() {
     }
   }
 
+  function onSaveNotifications() {
+    updateCompany(
+      {
+        notification_email: notifEmail || undefined,
+        notify_email_escalation: notifyEscalation,
+        notify_email_low_credits: notifyLowCredits,
+        notify_weekly_digest: notifyWeeklyDigest,
+        low_credit_threshold: lowCreditThreshold,
+        slack_webhook_url: slackWebhook || undefined,
+      },
+      {
+        onSuccess: () => toast.success('Notification settings saved'),
+        onError: (err) => toast.error(err.message),
+      }
+    )
+  }
+
   const startPct = timeToPct(hoursStart)
   const endPct = timeToPct(hoursEnd)
   const { text: cLabel, color: cColor } = complexityLabel(threshold)
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 min-h-0">
       <TopBar title="Settings" />
 
-      <main className="flex-1 p-6">
-        <div className="max-w-3xl">
-          {/* Tab bar */}
-          <div className="flex gap-1 mb-6 overflow-x-auto pb-1">
-            {TABS.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
-                className={cn(
-                  'px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-all',
-                  tab === t
-                    ? 'bg-[#1B2A4A] text-white'
+      <div className="flex-1 flex overflow-hidden">
+        {/* ── Sidebar tab nav (desktop) ──────────────────────────────────── */}
+        <aside className="hidden md:flex flex-col w-52 shrink-0 border-r border-neutral-200 bg-white p-3 gap-0.5 overflow-y-auto">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                'w-full text-left px-3.5 py-2.5 text-sm font-medium rounded-lg transition-all',
+                t === 'Danger Zone'
+                  ? tab === t
+                    ? 'bg-red-50 text-red-700'
+                    : 'text-red-500 hover:bg-red-50'
+                  : tab === t
+                    ? 'bg-violet-50 text-violet-700 border-l-2 border-violet-600 rounded-l-none'
                     : 'text-neutral-600 hover:bg-neutral-100'
-                )}
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </aside>
 
+        {/* ── Mobile: sticky bottom tab bar ─────────────────────────────── */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-neutral-200 flex gap-1 overflow-x-auto px-3 py-2 shadow-lg">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={cn(
+                'px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap shrink-0 transition-all',
+                tab === t ? 'bg-neutral-900 text-white' : 'text-neutral-600 bg-neutral-100'
+              )}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Content area ──────────────────────────────────────────────── */}
+        <main className="flex-1 overflow-y-auto p-6 pb-20 md:pb-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 size={24} className="animate-spin text-neutral-400" />
@@ -387,7 +436,7 @@ export default function SettingsPage() {
               {tab === 'Company Profile' && (
                 <form onSubmit={handleSubmit(onSaveProfile)} className="space-y-5">
                   <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 space-y-5">
-                    <h3 className="font-heading text-base font-bold text-[#1B2A4A]">
+                    <h3 className="font-heading text-base font-bold text-neutral-900">
                       Company Profile
                     </h3>
 
@@ -418,7 +467,7 @@ export default function SettingsPage() {
                       </label>
                       <select
                         {...register('language')}
-                        className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm bg-white"
+                        className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm bg-white"
                       >
                         {LANGUAGES.map((l) => (
                           <option key={l.value} value={l.value}>
@@ -440,7 +489,7 @@ export default function SettingsPage() {
                         {...register('ai_personality')}
                         rows={4}
                         placeholder="e.g. You are a friendly support assistant for Acme Corp. Always greet customers warmly..."
-                        className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm resize-none leading-relaxed"
+                        className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm resize-none leading-relaxed"
                         onChange={(e) => setValue('ai_personality', e.target.value.slice(0, 500))}
                       />
                     </div>
@@ -477,7 +526,7 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-3">
                         <Input
                           {...register('widget_color')}
-                          placeholder="#1B2A4A"
+                          placeholder="#7C3AED"
                           className="w-32 font-mono text-sm"
                         />
                         {errors.widget_color && (
@@ -497,7 +546,7 @@ export default function SettingsPage() {
                             <img
                               src={avatarPreview}
                               alt="Widget avatar"
-                              className="w-14 h-14 rounded-full object-cover border-2 border-[#E91E8C]/30"
+                              className="w-14 h-14 rounded-full object-cover border-2 border-violet-500/30"
                             />
                             <button
                               type="button"
@@ -542,7 +591,7 @@ export default function SettingsPage() {
 
                   {/* Live widget preview */}
                   <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6">
-                    <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4">
+                    <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4">
                       Widget Preview
                     </h3>
                     <div className="flex justify-center">
@@ -588,7 +637,7 @@ export default function SettingsPage() {
               {/* ── Tab 2: Business Hours ──────────────────────────────────── */}
               {tab === 'Business Hours' && (
                 <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 space-y-6">
-                  <h3 className="font-heading text-base font-bold text-[#1B2A4A]">
+                  <h3 className="font-heading text-base font-bold text-neutral-900">
                     Business Hours
                   </h3>
 
@@ -643,7 +692,7 @@ export default function SettingsPage() {
                     <select
                       value={timezone}
                       onChange={(e) => setTimezone(e.target.value)}
-                      className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm bg-white"
+                      className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm bg-white"
                     >
                       {TIMEZONE_GROUPS.map((g) => (
                         <optgroup key={g.group} label={g.group}>
@@ -686,7 +735,7 @@ export default function SettingsPage() {
                           onClick={() => setAfterHoursMode(mode.value)}
                           className={`flex flex-col items-center gap-1.5 p-4 rounded-xl border-2 transition-all ${
                             afterHoursMode === mode.value
-                              ? 'border-[#E91E8C] bg-[#FDE7F3]'
+                              ? 'border-violet-600 bg-violet-50'
                               : 'border-neutral-200 hover:border-neutral-300 bg-white'
                           }`}
                         >
@@ -694,13 +743,13 @@ export default function SettingsPage() {
                             size={20}
                             className={
                               afterHoursMode === mode.value
-                                ? 'text-[#E91E8C]'
+                                ? 'text-violet-600'
                                 : 'text-neutral-500'
                             }
                           />
                           <p
                             className={`text-sm font-semibold ${
-                              afterHoursMode === mode.value ? 'text-[#E91E8C]' : 'text-[#1B2A4A]'
+                              afterHoursMode === mode.value ? 'text-violet-600' : 'text-neutral-900'
                             }`}
                           >
                             {mode.label}
@@ -721,7 +770,7 @@ export default function SettingsPage() {
                         value={afterHoursMessage}
                         onChange={(e) => setAfterHoursMessage(e.target.value)}
                         placeholder="e.g. Our team is offline. We'll respond first thing tomorrow morning."
-                        className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm resize-none"
+                        className="w-full px-4 py-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm resize-none"
                       />
                     </div>
                   )}
@@ -755,7 +804,7 @@ export default function SettingsPage() {
               {/* ── Tab 3: Escalation Rules ────────────────────────────────── */}
               {tab === 'Escalation Rules' && (
                 <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 space-y-7">
-                  <h3 className="font-heading text-base font-bold text-[#1B2A4A]">
+                  <h3 className="font-heading text-base font-bold text-neutral-900">
                     Escalation Rules
                   </h3>
 
@@ -765,7 +814,7 @@ export default function SettingsPage() {
                       <label className="text-sm font-medium text-neutral-700">
                         Complexity Threshold
                       </label>
-                      <span className="text-2xl font-heading font-bold text-[#1B2A4A]">
+                      <span className="text-2xl font-heading font-bold text-neutral-900">
                         {threshold}
                       </span>
                     </div>
@@ -851,7 +900,7 @@ export default function SettingsPage() {
                       >
                         <Minus size={16} />
                       </button>
-                      <span className="font-heading font-bold text-2xl text-[#1B2A4A] w-8 text-center">
+                      <span className="font-heading font-bold text-2xl text-neutral-900 w-8 text-center">
                         {maxAiAttempts}
                       </span>
                       <button
@@ -882,12 +931,12 @@ export default function SettingsPage() {
                   {/* Voice System IDs (read-only) */}
                   <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 space-y-4">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-heading text-base font-bold text-[#1B2A4A]">
+                      <h3 className="font-heading text-base font-bold text-neutral-900">
                         Voice System
                       </h3>
                       <a
                         href="/dashboard/integrations"
-                        className="flex items-center gap-1 text-xs text-[#E91E8C] hover:underline"
+                        className="flex items-center gap-1 text-xs text-violet-600 hover:underline"
                       >
                         Manage in Integrations <ExternalLink size={11} />
                       </a>
@@ -917,11 +966,11 @@ export default function SettingsPage() {
                   {/* Voice config */}
                   <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 space-y-5">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-[#FDE7F3] flex items-center justify-center flex-shrink-0">
-                        <Phone size={18} className="text-[#E91E8C]" />
+                      <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
+                        <Phone size={18} className="text-violet-600" />
                       </div>
                       <div>
-                        <h3 className="font-heading text-base font-bold text-[#1B2A4A]">
+                        <h3 className="font-heading text-base font-bold text-neutral-900">
                           Voice Configuration
                         </h3>
                         <p className="text-xs text-neutral-400">
@@ -938,7 +987,7 @@ export default function SettingsPage() {
                         <select
                           value={voiceLang}
                           onChange={(e) => setVoiceLang(e.target.value)}
-                          className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm bg-white"
+                          className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm bg-white"
                         >
                           {LANGUAGES.map((l) => (
                             <option key={l.value} value={l.value}>
@@ -954,7 +1003,7 @@ export default function SettingsPage() {
                         <select
                           value={voiceTone}
                           onChange={(e) => setVoiceTone(e.target.value)}
-                          className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm bg-white"
+                          className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm bg-white"
                         >
                           <option value="professional">Professional</option>
                           <option value="friendly">Friendly</option>
@@ -1002,21 +1051,40 @@ export default function SettingsPage() {
               {/* ── Tab 5: Notifications ───────────────────────────────────── */}
               {tab === 'Notifications' && (
                 <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 space-y-6">
-                  <h3 className="font-heading text-base font-bold text-[#1B2A4A]">Notifications</h3>
+                  <h3 className="font-heading text-base font-bold text-neutral-900">Notifications</h3>
 
-                  <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                      Notification Email
+                    </label>
+                    <Input
+                      type="email"
+                      value={notifEmail}
+                      onChange={(e) => setNotifEmail(e.target.value)}
+                      placeholder="alerts@yourcompany.com"
+                    />
+                    <p className="text-xs text-neutral-400 mt-1.5">
+                      Receive alerts at this address. Leave blank to use your company email.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-neutral-700 mb-1">Email Alerts</p>
                     {[
-                      { label: 'Email on ticket escalation', defaultChecked: true },
-                      { label: 'Email on low credit balance', defaultChecked: true },
-                      { label: 'Weekly analytics digest', defaultChecked: false },
-                    ].map((n) => (
-                      <label key={n.label} className="flex items-center gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          defaultChecked={n.defaultChecked}
-                          className="rounded border-neutral-300 text-[#E91E8C] focus:ring-[#E91E8C]/20"
+                      { label: 'Ticket escalation', desc: 'When a ticket is escalated to a human agent', value: notifyEscalation, onChange: setNotifyEscalation },
+                      { label: 'Low credit balance', desc: `When credits fall below the threshold below`, value: notifyLowCredits, onChange: setNotifyLowCredits },
+                      { label: 'Weekly analytics digest', desc: 'Summary of weekly ticket volume and resolution stats', value: notifyWeeklyDigest, onChange: setNotifyWeeklyDigest },
+                    ].map((item) => (
+                      <label key={item.label} className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-neutral-100 hover:bg-neutral-50 transition-colors">
+                        <Switch
+                          checked={item.value}
+                          onCheckedChange={item.onChange}
+                          className="mt-0.5 shrink-0"
                         />
-                        <span className="text-sm text-neutral-700">{n.label}</span>
+                        <div>
+                          <p className="text-sm font-medium text-neutral-800">{item.label}</p>
+                          <p className="text-xs text-neutral-400 mt-0.5">{item.desc}</p>
+                        </div>
                       </label>
                     ))}
                   </div>
@@ -1024,76 +1092,49 @@ export default function SettingsPage() {
                   <div className="border-t border-neutral-100 pt-5 space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                        Slack Webhook URL
+                        Low Credit Alert Threshold
                       </label>
-                      <Input
-                        placeholder="https://hooks.slack.com/services/..."
-                        defaultValue={company?.slack_webhook_url ?? ''}
-                        className="font-mono text-sm"
-                      />
-                      <p className="text-xs text-neutral-400 mt-1.5">
-                        Receive escalation alerts directly in Slack.
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <Input
+                          type="number"
+                          min={100}
+                          max={10000}
+                          value={lowCreditThreshold}
+                          onChange={(e) => setLowCreditThreshold(Number(e.target.value))}
+                          className="w-28"
+                        />
+                        <span className="text-sm text-neutral-400">credits remaining</span>
+                      </div>
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                        Low Credit Alert Threshold
+                        Slack Webhook URL
                       </label>
-                      <div className="flex items-center gap-3">
-                        <Input type="number" defaultValue={500} className="w-28" />
-                        <span className="text-sm text-neutral-400">credits remaining</span>
-                      </div>
+                      <Input
+                        value={slackWebhook}
+                        onChange={(e) => setSlackWebhook(e.target.value)}
+                        placeholder="https://hooks.slack.com/services/..."
+                        className="font-mono text-sm"
+                      />
+                      <p className="text-xs text-neutral-400 mt-1.5">
+                        Post escalation alerts to a Slack channel.
+                      </p>
                     </div>
                   </div>
 
                   <Button
                     size="sm"
                     className="rounded-full"
-                    onClick={() => toast.success('Notifications saved')}
+                    onClick={onSaveNotifications}
+                    disabled={savingCompany}
                   >
-                    Save Notifications
+                    {savingCompany ? <><Loader2 size={13} className="animate-spin mr-1.5" />Saving...</> : 'Save Notifications'}
                   </Button>
                 </div>
               )}
 
-              {/* ── Tab 6: Security ────────────────────────────────────────── */}
-              {tab === 'Security' && (
-                <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6 space-y-5">
-                  <h3 className="font-heading text-base font-bold text-[#1B2A4A]">
-                    Security & API
-                  </h3>
-
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                      API Key
-                    </label>
-                    <ApiKeyRow />
-                    <p className="text-xs text-neutral-400 mt-1.5">
-                      Use this to authenticate API requests from your servers. Keep it secret.
-                    </p>
-                  </div>
-
-                  <div className="border-t border-neutral-100 pt-5">
-                    <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                      Change Password
-                    </label>
-                    <p className="text-xs text-neutral-500 mb-3">
-                      Manage your password through Clerk&apos;s secure account portal.
-                    </p>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="rounded-lg"
-                      onClick={() => toast.info('Password management is handled by Clerk. Visit your account settings.')}
-                    >
-                      Manage Account Security
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* ── Tab 7: Danger Zone ─────────────────────────────────────── */}
+              {/* ── Tab 6: Danger Zone ─────────────────────────────────────── */}
               {tab === 'Danger Zone' && (
                 <div className="bg-red-50 rounded-xl border border-red-200 p-6">
                   <h3 className="font-heading text-base font-bold text-red-700 mb-2 flex items-center gap-2">
@@ -1116,8 +1157,8 @@ export default function SettingsPage() {
               )}
             </>
           )}
-        </div>
-      </main>
+        </main>
+      </div>
 
       <ConfirmDialog
         open={showDeleteDialog}
@@ -1134,38 +1175,3 @@ export default function SettingsPage() {
   )
 }
 
-// ─── API Key Row (copy + regenerate) ─────────────────────────────────────────
-
-function ApiKeyRow() {
-  const [copied, setCopied] = useState(false)
-  const masked = 'area50_sk_••••••••••••••••••••••••'
-
-  function handleCopy() {
-    navigator.clipboard.writeText(masked).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  return (
-    <div className="flex gap-2">
-      <Input readOnly value={masked} className="font-mono flex-1" />
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={handleCopy}
-        className="rounded-lg px-3 shrink-0"
-      >
-        {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
-      </Button>
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => toast.success('API key regenerated')}
-        className="rounded-lg whitespace-nowrap"
-      >
-        Regenerate
-      </Button>
-    </div>
-  )
-}

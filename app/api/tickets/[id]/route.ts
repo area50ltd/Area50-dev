@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
@@ -7,14 +6,12 @@ import { eq, and, asc } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const ticket = await db.query.tickets.findFirst({
-    where: and(eq(tickets.id, params.id), eq(tickets.company_id, user.company_id)),
+    where: and(eq(tickets.id, params.id), eq(tickets.company_id, currentUser.company_id)),
   })
 
   if (!ticket) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -22,7 +19,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   const msgs = await db
     .select()
     .from(messages)
-    .where(and(eq(messages.ticket_id, params.id), eq(messages.company_id, user.company_id)))
+    .where(and(eq(messages.ticket_id, params.id), eq(messages.company_id, currentUser.company_id)))
     .orderBy(asc(messages.created_at))
 
   // Fetch customer record and their total ticket count in parallel
@@ -51,11 +48,9 @@ const UpdateSchema = z.object({
 })
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const body = await req.json()
   const parsed = UpdateSchema.safeParse(body)
@@ -70,7 +65,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   await db
     .update(tickets)
     .set(updates)
-    .where(and(eq(tickets.id, params.id), eq(tickets.company_id, user.company_id)))
+    .where(and(eq(tickets.id, params.id), eq(tickets.company_id, currentUser.company_id)))
 
   return NextResponse.json({ success: true })
 }

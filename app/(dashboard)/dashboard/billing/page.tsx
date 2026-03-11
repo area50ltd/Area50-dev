@@ -202,12 +202,12 @@ export default function BillingPage() {
         <div className="grid md:grid-cols-2 gap-5">
           <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading text-sm font-bold text-[#1B2A4A]">Current Plan</h3>
-              <span className="text-xs font-semibold bg-[#E91E8C] text-white px-3 py-1 rounded-full capitalize">
+              <h3 className="font-heading text-sm font-bold text-neutral-900">Current Plan</h3>
+              <span className="text-xs font-semibold bg-violet-600 text-white px-3 py-1 rounded-full capitalize">
                 {currentPlanKey}
               </span>
             </div>
-            <p className="text-2xl font-heading font-bold text-[#1B2A4A] mb-1">
+            <p className="text-2xl font-heading font-bold text-neutral-900 mb-1">
               {formatNaira(currentPlanObj?.price_kobo ?? 0)}
               <span className="text-sm font-body text-neutral-400 font-normal">/month</span>
             </p>
@@ -223,7 +223,7 @@ export default function BillingPage() {
 
         {/* Plan upgrade cards */}
         <section>
-          <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4">Plans</h3>
+          <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4">Plans</h3>
           {dbPlans.length === 0 ? (
             <div className="text-sm text-neutral-400 py-4">No plans configured yet.</div>
           ) : (
@@ -231,17 +231,17 @@ export default function BillingPage() {
               {dbPlans.map((plan) => {
                 const isCurrent = plan.key === currentPlanKey
                 return (
-                  <div key={plan.id} className={`rounded-xl border p-5 relative ${isCurrent ? 'border-[#E91E8C] bg-[#FDE7F3]/20' : 'border-neutral-100 bg-white shadow-sm'}`}>
+                  <div key={plan.id} className={`rounded-xl border p-5 relative ${isCurrent ? 'border-violet-500 bg-violet-50/20' : 'border-neutral-100 bg-white shadow-sm'}`}>
                     {isCurrent && (
-                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#E91E8C] text-white text-[10px] font-bold px-3 py-0.5 rounded-full whitespace-nowrap">
+                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-full whitespace-nowrap">
                         Current Plan
                       </span>
                     )}
-                    <h4 className="font-heading font-bold text-[#1B2A4A] mb-1">{plan.name}</h4>
-                    <p className="text-xl font-heading font-bold text-[#1B2A4A]">
+                    <h4 className="font-heading font-bold text-neutral-900 mb-1">{plan.name}</h4>
+                    <p className="text-xl font-heading font-bold text-neutral-900">
                       {formatNaira(plan.price_kobo)}<span className="text-sm font-body text-neutral-400 font-normal">/mo</span>
                     </p>
-                    <p className="text-xs text-[#E91E8C] mb-4">{plan.credits.toLocaleString()} credits</p>
+                    <p className="text-xs text-violet-600 mb-4">{plan.credits.toLocaleString()} credits</p>
                     <Button
                       size="sm"
                       disabled={isCurrent}
@@ -260,7 +260,7 @@ export default function BillingPage() {
 
         {/* Credit top-up packs */}
         <section>
-          <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4">Top-Up Credits</h3>
+          <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4">Top-Up Credits</h3>
           {dbPacks.length === 0 ? (
             <div className="text-sm text-neutral-400 py-4">No credit packs configured yet.</div>
           ) : (
@@ -270,13 +270,13 @@ export default function BillingPage() {
                   key={pack.id}
                   onClick={() => handleTopUp(pack.price_kobo, pack.credits, pack.label)}
                   disabled={loading === pack.label}
-                  className="flex items-center gap-3 bg-white border border-neutral-200 hover:border-[#E91E8C] hover:bg-[#FDE7F3]/20 rounded-xl px-5 py-4 transition-all disabled:opacity-50"
+                  className="flex items-center gap-3 bg-white border border-neutral-200 hover:border-violet-500 hover:bg-violet-50/20 rounded-xl px-5 py-4 transition-all disabled:opacity-50"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[#FDE7F3] flex items-center justify-center">
-                    {loading === pack.label ? <Loader2 size={16} className="animate-spin text-[#E91E8C]" /> : <Zap size={16} className="text-[#E91E8C]" />}
+                  <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                    {loading === pack.label ? <Loader2 size={16} className="animate-spin text-violet-600" /> : <Zap size={16} className="text-violet-600" />}
                   </div>
                   <div className="text-left">
-                    <p className="font-heading font-bold text-[#1B2A4A] text-sm">{pack.credits.toLocaleString()} credits</p>
+                    <p className="font-heading font-bold text-neutral-900 text-sm">{pack.credits.toLocaleString()} credits</p>
                     <p className="text-neutral-400 text-xs">{formatNaira(pack.price_kobo)} · {pack.label}</p>
                   </div>
                 </button>
@@ -287,7 +287,7 @@ export default function BillingPage() {
 
         {/* Payment history */}
         <section>
-          <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4">Payment History</h3>
+          <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4">Payment History</h3>
           <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
             {payments.length === 0 ? (
               <div className="py-12 text-center text-sm text-neutral-400">No payments yet</div>
@@ -306,7 +306,7 @@ export default function BillingPage() {
                       <td className="px-5 py-3 text-neutral-600">{p.created_at ? formatDate(p.created_at) : '—'}</td>
                       <td className="px-5 py-3 font-mono text-xs text-neutral-500">{p.paystack_reference ?? '—'}</td>
                       <td className="px-5 py-3 font-medium text-neutral-700">{formatNaira(p.amount_kobo)}</td>
-                      <td className="px-5 py-3 text-[#E91E8C] font-medium">+{p.credits_purchased.toLocaleString()}</td>
+                      <td className="px-5 py-3 text-violet-600 font-medium">+{p.credits_purchased.toLocaleString()}</td>
                       <td className="px-5 py-3">
                         <span className="flex items-center gap-1.5 text-xs">
                           {statusIcon(p.status)} {statusLabel(p.status)}
@@ -327,8 +327,8 @@ export default function BillingPage() {
 
         {/* ── Usage Breakdown ── */}
         <section>
-          <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-1 flex items-center gap-2">
-            <TrendingDown size={15} className="text-[#E91E8C]" />
+          <h3 className="font-heading text-sm font-bold text-neutral-900 mb-1 flex items-center gap-2">
+            <TrendingDown size={15} className="text-violet-600" />
             Usage Breakdown
           </h3>
           <p className="text-xs text-neutral-400 mb-4">Credit consumption by type — current month</p>
@@ -368,7 +368,7 @@ export default function BillingPage() {
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-2">
                             <div className="h-1.5 flex-1 bg-neutral-100 rounded-full overflow-hidden max-w-[80px]">
-                              <div className="h-full bg-[#E91E8C] rounded-full" style={{ width: `${pct}%` }} />
+                              <div className="h-full bg-violet-600 rounded-full" style={{ width: `${pct}%` }} />
                             </div>
                             <span className="text-xs text-neutral-500">{pct}%</span>
                           </div>
@@ -379,7 +379,7 @@ export default function BillingPage() {
                   <tr className="border-t border-neutral-200 bg-neutral-50">
                     <td className="px-5 py-3 text-xs font-bold text-neutral-700">Total</td>
                     <td className="px-5 py-3" />
-                    <td className="px-5 py-3 font-bold text-[#1B2A4A]">{usageData.total_used.toLocaleString()}</td>
+                    <td className="px-5 py-3 font-bold text-neutral-900">{usageData.total_used.toLocaleString()}</td>
                     <td className="px-5 py-3 text-xs font-semibold text-neutral-500">100%</td>
                   </tr>
                 </tbody>
@@ -392,7 +392,7 @@ export default function BillingPage() {
         <section>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-heading text-sm font-bold text-[#1B2A4A]">Credit Transaction History</h3>
+              <h3 className="font-heading text-sm font-bold text-neutral-900">Credit Transaction History</h3>
               <p className="text-xs text-neutral-400 mt-0.5">All credit deductions and top-ups</p>
             </div>
             <div className="flex items-center gap-2">
@@ -400,7 +400,7 @@ export default function BillingPage() {
               <select
                 value={txType}
                 onChange={(e) => { setTxType(e.target.value); setTxPage(1) }}
-                className="text-xs border border-neutral-200 rounded-lg px-3 py-1.5 text-neutral-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30"
+                className="text-xs border border-neutral-200 rounded-lg px-3 py-1.5 text-neutral-700 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
               >
                 <option value="">All Types</option>
                 {Object.entries(TYPE_LABELS).map(([v, l]) => (

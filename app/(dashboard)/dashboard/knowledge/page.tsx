@@ -55,7 +55,7 @@ export default function KnowledgePage() {
 
             <button
               onClick={() => refetch()}
-              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-[#1B2A4A] py-1.5 px-3 rounded-lg hover:bg-neutral-50 transition-colors"
+              className="flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-900 py-1.5 px-3 rounded-lg hover:bg-neutral-50 transition-colors"
             >
               <RefreshCw size={13} /> Refresh
             </button>
@@ -68,15 +68,15 @@ export default function KnowledgePage() {
           <div className="space-y-5">
             {/* Upload card */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
-              <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4 flex items-center gap-2">
-                <Plus size={15} className="text-[#E91E8C]" /> Upload Documents
+              <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4 flex items-center gap-2">
+                <Plus size={15} className="text-violet-600" /> Upload Documents
               </h3>
               <KnowledgeUpload />
             </div>
 
             {/* Data Sources card */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
-              <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4 flex items-center gap-2">
+              <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4 flex items-center gap-2">
                 <Database size={15} className="text-blue-500" /> Data Sources
               </h3>
 
@@ -104,7 +104,7 @@ export default function KnowledgePage() {
           {/* Right — Documents table */}
           <div className="lg:col-span-2">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-heading text-sm font-bold text-[#1B2A4A]">Uploaded Documents</h3>
+              <h3 className="font-heading text-sm font-bold text-neutral-900">Uploaded Documents</h3>
               <div className="flex gap-2">
                 <Button variant="secondary" size="sm" className="text-xs rounded-full h-7 px-3">
                   Add FAQ

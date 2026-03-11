@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { tickets, messages } from '@/lib/schema'
 import { eq, and, gte, sql, count } from 'drizzle-orm'
@@ -13,16 +12,14 @@ function daysAgo(days: number) {
 }
 
 export async function GET(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const { searchParams } = new URL(req.url)
   const rangeDays = parseInt(searchParams.get('days') ?? '30')
   const since = daysAgo(rangeDays)
-  const companyId = user.company_id
+  const companyId = currentUser.company_id
 
   // Messages per day (AI vs Human)
   const msgPerDay = await db

@@ -37,7 +37,7 @@ function useAnalytics(days: number) {
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
-      <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4">{title}</h3>
+      <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4">{title}</h3>
       {children}
     </div>
   )
@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
               onClick={() => setSelectedRange(r)}
               className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
                 selectedRange.days === r.days
-                  ? 'bg-[#1B2A4A] text-white'
+                  ? 'bg-neutral-900 text-white'
                   : 'bg-white border border-neutral-200 text-neutral-600 hover:border-neutral-300'
               }`}
             >
@@ -93,8 +93,8 @@ export default function AnalyticsPage() {
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="ai" stroke="#E91E8C" strokeWidth={2} dot={false} name="AI" />
-                    <Line type="monotone" dataKey="human" stroke="#1B2A4A" strokeWidth={2} dot={false} name="Human" />
+                    <Line type="monotone" dataKey="ai" stroke="#7c3aed" strokeWidth={2} dot={false} name="AI" />
+                    <Line type="monotone" dataKey="human" stroke="#111827" strokeWidth={2} dot={false} name="Human" />
                   </LineChart>
                 </ResponsiveContainer>
               )}
@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
                     <XAxis dataKey="channel" tick={{ fontSize: 11 }} />
                     <YAxis tick={{ fontSize: 11 }} />
                     <Tooltip />
-                    <Bar dataKey="tickets" fill="#E91E8C" radius={[4, 4, 0, 0]} name="Tickets" />
+                    <Bar dataKey="tickets" fill="#7c3aed" radius={[4, 4, 0, 0]} name="Tickets" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -120,15 +120,15 @@ export default function AnalyticsPage() {
                   <AreaChart data={data.resolutionData}>
                     <defs>
                       <linearGradient id="resGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#E91E8C" stopOpacity={0.15} />
-                        <stop offset="95%" stopColor="#E91E8C" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="#7c3aed" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
                     <XAxis dataKey="day" tick={{ fontSize: 11 }} />
                     <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(v) => [`${v}%`, 'Rate']} />
-                    <Area type="monotone" dataKey="rate" stroke="#E91E8C" fill="url(#resGrad)" strokeWidth={2} />
+                    <Area type="monotone" dataKey="rate" stroke="#7c3aed" fill="url(#resGrad)" strokeWidth={2} />
                   </AreaChart>
                 </ResponsiveContainer>
               )}

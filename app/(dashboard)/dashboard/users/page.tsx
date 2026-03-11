@@ -67,6 +67,21 @@ export default function UsersPage() {
   const [showInviteModal, setShowInviteModal] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState<UserRole>('agent')
+  const [loginHistoryUser, setLoginHistoryUser] = useState<TeamUser | null>(null)
+  const [lastLogin, setLastLogin] = useState<string | null | undefined>(undefined)
+
+  const handleViewLoginHistory = async (user: TeamUser) => {
+    setLoginHistoryUser(user)
+    setLastLogin(undefined)
+    setOpenMenuId(null)
+    try {
+      const res = await fetch(`/api/users/${user.id}/last-login`)
+      const data = await res.json()
+      setLastLogin(data.last_sign_in_at ?? null)
+    } catch {
+      setLastLogin(null)
+    }
+  }
 
   const filtered = users.filter(
     (u) =>
@@ -182,10 +197,10 @@ export default function UsersPage() {
               return (
                 <div key={role} className="bg-white rounded-xl border border-neutral-100 shadow-sm p-4 flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg bg-neutral-50 flex items-center justify-center">
-                    <Icon size={18} className="text-[#1B2A4A]" />
+                    <Icon size={18} className="text-neutral-700" />
                   </div>
                   <div>
-                    <p className="font-heading text-lg font-bold text-[#1B2A4A]">
+                    <p className="font-heading text-lg font-bold text-neutral-900">
                       {isLoading ? '—' : roleCount}
                     </p>
                     <p className="text-xs text-neutral-500 capitalize">{role}s</p>
@@ -235,11 +250,11 @@ export default function UsersPage() {
                             {/* User */}
                             <td className="px-5 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1B2A4A] to-[#243460] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-600 to-violet-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
                                   {getInitials(user.name ?? user.email)}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-[#1B2A4A]">{user.name ?? '—'}</p>
+                                  <p className="font-medium text-neutral-900">{user.name ?? '—'}</p>
                                   <p className="text-xs text-neutral-400">{user.email}</p>
                                 </div>
                               </div>
@@ -304,7 +319,7 @@ export default function UsersPage() {
                                       <button
                                         className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5"
                                         onClick={() => {
-                                          toast.info('Password reset is managed via Clerk — users can reset at /login')
+                                          toast.info('Users can reset their password via the login page → "Forgot password" link.')
                                           setOpenMenuId(null)
                                         }}
                                       >
@@ -313,7 +328,7 @@ export default function UsersPage() {
                                       </button>
                                       <button
                                         className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5"
-                                        onClick={() => { toast.info('Login history coming soon'); setOpenMenuId(null) }}
+                                        onClick={() => handleViewLoginHistory(user)}
                                       >
                                         <UserCog size={14} />
                                         Login History
@@ -370,7 +385,7 @@ export default function UsersPage() {
               className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="font-heading text-lg font-bold text-[#1B2A4A] mb-1">Invite Team Member</h3>
+              <h3 className="font-heading text-lg font-bold text-neutral-900 mb-1">Invite Team Member</h3>
               <p className="text-sm text-neutral-500 mb-5">They will sign up at /onboarding and be linked to your company.</p>
 
               <div className="space-y-4">
@@ -393,7 +408,7 @@ export default function UsersPage() {
                   <select
                     value={inviteRole}
                     onChange={(e) => setInviteRole(e.target.value as UserRole)}
-                    className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm bg-white"
+                    className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm bg-white"
                   >
                     {ADD_USER_ROLES.map((r) => (
                       <option key={r.value} value={r.value}>{r.label}</option>
@@ -410,6 +425,66 @@ export default function UsersPage() {
                   Send Invite
                 </Button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Login History Modal */}
+      <AnimatePresence>
+        {loginHistoryUser && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setLoginHistoryUser(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 8 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 8 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-violet-400 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                  {getInitials(loginHistoryUser.name ?? loginHistoryUser.email)}
+                </div>
+                <div>
+                  <p className="font-semibold text-neutral-900">{loginHistoryUser.name ?? loginHistoryUser.email}</p>
+                  <p className="text-xs text-neutral-400">{loginHistoryUser.email}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-sm py-2 border-b border-neutral-50">
+                  <span className="text-neutral-500">Last Sign In</span>
+                  <span className="font-medium text-neutral-900">
+                    {lastLogin === undefined ? (
+                      <Loader2 size={14} className="animate-spin text-neutral-400" />
+                    ) : lastLogin ? (
+                      new Date(lastLogin).toLocaleString()
+                    ) : (
+                      <span className="text-neutral-400 italic">Never signed in</span>
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-sm py-2">
+                  <span className="text-neutral-500">Member Since</span>
+                  <span className="font-medium text-neutral-900">
+                    {new Date(loginHistoryUser.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+
+              <Button
+                className="w-full mt-5 rounded-full"
+                variant="secondary"
+                onClick={() => setLoginHistoryUser(null)}
+              >
+                Close
+              </Button>
             </motion.div>
           </motion.div>
         )}

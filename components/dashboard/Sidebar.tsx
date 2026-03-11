@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { UserButton } from '@clerk/nextjs'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   Ticket,
@@ -16,7 +16,9 @@ import {
   CreditCard,
   Settings,
   Phone,
+  LogOut,
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 
 const navItems: { label: string; href: string; icon: React.ElementType; exact?: boolean }[] = [
@@ -35,16 +37,28 @@ const navItems: { label: string; href: string; icon: React.ElementType; exact?: 
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   return (
-    <aside className="w-60 bg-[#1B2A4A] flex flex-col h-screen fixed left-0 top-0 z-40">
+    <aside className="w-60 bg-[#0A0A10] flex flex-col h-screen fixed left-0 top-0 z-40">
       {/* Logo */}
-      <div className="px-5 py-5 border-b border-white/10">
-        <Link href="/dashboard" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#E91E8C] to-[#FF6BB5] flex items-center justify-center">
-            <span className="text-white font-heading font-bold text-sm">A</span>
-          </div>
-          <span className="font-heading font-bold text-white text-lg">Area50</span>
+      <div className="px-5 py-5 border-b border-white/[0.06]">
+        <Link href="/dashboard" className="flex items-center overflow-hidden" style={{ height: '40px' }}>
+          <Image
+            src="/images/logo/logo-dark.png"
+            alt="Zentativ"
+            width={360}
+            height={108}
+            className="h-28 w-auto"
+            style={{ filter: 'brightness(0) invert(1)' }}
+            priority
+          />
         </Link>
       </div>
 
@@ -62,17 +76,17 @@ export function Sidebar() {
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group relative',
                     active
-                      ? 'text-[#E91E8C] bg-[#E91E8C]/10'
-                      : 'text-white/60 hover:text-white hover:bg-white/5'
+                      ? 'text-violet-400 bg-violet-600/10'
+                      : 'text-white/50 hover:text-white hover:bg-white/5'
                   )}
                 >
                   {/* Active left border */}
                   {active && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full bg-[#E91E8C]" />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full bg-violet-500" />
                   )}
                   <item.icon
                     size={17}
-                    className={active ? 'text-[#E91E8C]' : 'text-white/50 group-hover:text-white/80'}
+                    className={active ? 'text-violet-400' : 'text-white/40 group-hover:text-white/70'}
                   />
                   {item.label}
                 </Link>
@@ -83,18 +97,21 @@ export function Sidebar() {
       </nav>
 
       {/* Bottom — user */}
-      <div className="px-4 py-4 border-t border-white/10 flex items-center gap-3">
-        <UserButton
-          appearance={{
-            elements: {
-              avatarBox: 'w-8 h-8',
-            },
-          }}
-        />
+      <div className="px-4 py-4 border-t border-white/[0.06] flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-violet-600/20 flex items-center justify-center flex-shrink-0">
+          <span className="text-violet-400 text-xs font-bold">A</span>
+        </div>
         <div className="flex-1 min-w-0">
           <p className="text-white text-xs font-medium truncate">My Account</p>
           <p className="text-white/40 text-[11px]">Admin</p>
         </div>
+        <button
+          onClick={handleSignOut}
+          className="text-white/30 hover:text-white/70 transition-colors"
+          title="Sign out"
+        >
+          <LogOut size={15} />
+        </button>
       </div>
     </aside>
   )

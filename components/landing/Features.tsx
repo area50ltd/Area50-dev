@@ -38,9 +38,9 @@ const features = [
   },
   {
     icon: MessageCircle,
-    title: 'WhatsApp Native',
+    title: 'Webhooks & Integrations',
     description:
-      'Deploy your AI agent to over 2 billion WhatsApp users. All conversations flow into a unified dashboard.',
+      'Connect Slack, GitHub, Salesforce, HubSpot, and 5,000+ apps. Trigger automations on every ticket event.',
     gradient: 'from-green-50 to-green-50/30',
     iconBg: 'bg-green-50 text-green-600',
   },

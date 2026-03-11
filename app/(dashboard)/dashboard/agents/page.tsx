@@ -82,7 +82,7 @@ function AgentModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-heading text-lg font-bold text-[#1B2A4A]">
+          <h2 className="font-heading text-lg font-bold text-neutral-900">
             {existing ? 'Edit Agent' : 'Add Agent'}
           </h2>
           <button onClick={onClose} className="text-neutral-400 hover:text-neutral-700 transition-colors">
@@ -133,7 +133,7 @@ function AgentModal({
             {specializations.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {specializations.map((s) => (
-                  <span key={s} className="flex items-center gap-1 bg-[#FDE7F3] text-[#E91E8C] text-xs font-medium px-2.5 py-1 rounded-full">
+                  <span key={s} className="flex items-center gap-1 bg-violet-50 text-violet-600 text-xs font-medium px-2.5 py-1 rounded-full">
                     {s}
                     <button type="button" onClick={() => setSpecializations((prev) => prev.filter((x) => x !== s))} className="ml-0.5 hover:text-red-600">
                       <X size={11} />
@@ -212,7 +212,7 @@ export default function AgentsPage() {
                 className="flex items-center gap-1.5 text-sm font-medium text-neutral-600"
               >
                 {autoAssign ? (
-                  <ToggleRight size={22} className="text-[#E91E8C]" />
+                  <ToggleRight size={22} className="text-violet-600" />
                 ) : (
                   <ToggleLeft size={22} className="text-neutral-300" />
                 )}

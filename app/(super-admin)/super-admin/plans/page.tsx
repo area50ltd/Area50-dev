@@ -301,7 +301,7 @@ export default function PlansPage() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Package size={18} className="text-[#E91E8C]" />
+            <Package size={18} className="text-violet-600" />
             <h2 className="font-heading text-xl font-bold text-white">Subscription Plans</h2>
           </div>
           <Button size="sm" className="rounded-full gap-2" onClick={() => setPlanModal('add')}>
@@ -380,7 +380,7 @@ export default function PlansPage() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <CreditCard size={18} className="text-[#E91E8C]" />
+            <CreditCard size={18} className="text-violet-600" />
             <h2 className="font-heading text-xl font-bold text-white">Credit Packs</h2>
           </div>
           <Button size="sm" className="rounded-full gap-2" onClick={() => setPackModal('add')}>

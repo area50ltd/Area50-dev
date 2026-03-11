@@ -16,8 +16,7 @@ export function useAgents() {
   return useQuery({
     queryKey: ['agents'],
     queryFn: fetchAgents,
-    staleTime: 30_000,
-    refetchInterval: 60_000,
+    staleTime: 5 * 60_000,
   })
 }
 

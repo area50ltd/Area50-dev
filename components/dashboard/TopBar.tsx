@@ -15,7 +15,7 @@ export function TopBar({ title, credits }: TopBarProps) {
 
   return (
     <header className="h-14 bg-white border-b border-neutral-100 flex items-center justify-between px-6 sticky top-0 z-30">
-      <h1 className="font-heading text-lg font-bold text-[#1B2A4A]">{title}</h1>
+      <h1 className="font-heading text-lg font-bold text-neutral-900">{title}</h1>
 
       <div className="flex items-center gap-3">
         {/* Credit balance chip */}
@@ -29,7 +29,7 @@ export function TopBar({ title, credits }: TopBarProps) {
                   : 'bg-neutral-50 border-neutral-200 text-neutral-700 hover:bg-neutral-100'
               )}
             >
-              <Zap size={12} className={lowCredits ? 'text-red-500' : 'text-[#E91E8C]'} />
+              <Zap size={12} className={lowCredits ? 'text-red-500' : 'text-violet-600'} />
               <span>{credits.toLocaleString()} credits</span>
               {lowCredits && <span className="text-red-400">· Low!</span>}
             </div>
@@ -39,7 +39,7 @@ export function TopBar({ title, credits }: TopBarProps) {
         {/* Notifications */}
         <button className="relative w-8 h-8 rounded-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-500 transition-colors">
           <Bell size={17} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#E91E8C]" />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-600" />
         </button>
       </div>
     </header>

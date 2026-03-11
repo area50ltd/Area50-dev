@@ -32,7 +32,7 @@ const plans = [
     description: 'For growing businesses that need multi-channel support.',
     features: [
       'Up to 15,000 AI messages/mo',
-      'Web chat + WhatsApp',
+      'Web chat + Voice',
       '5 human agent seats',
       'Knowledge base (50 docs)',
       'Advanced analytics',

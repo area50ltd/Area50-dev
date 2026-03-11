@@ -23,7 +23,7 @@ export function CreditMeter({ credits, maxCredits, planName }: CreditMeterProps)
     )}>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Zap size={16} className={isCritical ? 'text-red-500' : isLow ? 'text-orange-500' : 'text-[#E91E8C]'} />
+          <Zap size={16} className={isCritical ? 'text-red-500' : isLow ? 'text-orange-500' : 'text-violet-600'} />
           <span className="font-medium text-sm text-neutral-700">
             Credits Remaining
           </span>
@@ -43,18 +43,18 @@ export function CreditMeter({ credits, maxCredits, planName }: CreditMeterProps)
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className={cn(
             'h-full rounded-full',
-            isCritical ? 'bg-red-500' : isLow ? 'bg-orange-400' : 'bg-gradient-to-r from-[#E91E8C] to-[#FF6BB5]'
+            isCritical ? 'bg-red-500' : isLow ? 'bg-orange-400' : 'bg-gradient-to-r from-violet-600 to-violet-400'
           )}
         />
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="font-heading text-2xl font-bold text-[#1B2A4A]">
+        <p className="font-heading text-2xl font-bold text-neutral-900">
           {credits.toLocaleString()}
           <span className="font-body text-sm text-neutral-400 font-normal ml-1">/ {maxCredits.toLocaleString()}</span>
         </p>
         {(isLow || isCritical) && (
-          <Link href="/dashboard/billing" className="flex items-center gap-1 text-xs font-medium text-[#E91E8C] hover:underline">
+          <Link href="/dashboard/billing" className="flex items-center gap-1 text-xs font-medium text-violet-600 hover:underline">
             <AlertTriangle size={11} />
             Top up
           </Link>

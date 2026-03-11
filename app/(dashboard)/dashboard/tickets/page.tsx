@@ -17,8 +17,8 @@ type Priority = 'low' | 'normal' | 'high' | 'urgent'
 
 const CHANNELS: { value: Channel; label: string }[] = [
   { value: 'web_widget', label: 'Web Widget' },
-  { value: 'whatsapp', label: 'WhatsApp' },
   { value: 'voice_inbound', label: 'Voice / Phone' },
+  // whatsapp: coming soon
 ]
 
 const PRIORITIES: { value: Priority; label: string }[] = [
@@ -121,11 +121,11 @@ export default function TicketsPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-[#FDE7F3] flex items-center justify-center">
-                  <Plus size={18} className="text-[#E91E8C]" />
+                <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center">
+                  <Plus size={18} className="text-violet-600" />
                 </div>
                 <div>
-                  <h3 className="font-heading text-lg font-bold text-[#1B2A4A]">Create Ticket</h3>
+                  <h3 className="font-heading text-lg font-bold text-neutral-900">Create Ticket</h3>
                   <p className="text-xs text-neutral-400">Manually open a new support ticket</p>
                 </div>
               </div>
@@ -136,7 +136,7 @@ export default function TicketsPage() {
                   <select
                     value={channel}
                     onChange={(e) => setChannel(e.target.value as Channel)}
-                    className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-[#E91E8C] text-sm bg-white"
+                    className="w-full h-10 px-3 rounded-lg border border-neutral-200 focus:outline-none focus:border-violet-500 text-sm bg-white"
                   >
                     {CHANNELS.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
@@ -153,7 +153,7 @@ export default function TicketsPage() {
                         onClick={() => setPriority(p.value)}
                         className={`py-2 rounded-lg text-xs font-medium border transition-all ${
                           priority === p.value
-                            ? 'border-[#E91E8C] bg-[#FDE7F3] text-[#E91E8C]'
+                            ? 'border-violet-500 bg-violet-50 text-violet-600'
                             : 'border-neutral-200 text-neutral-500 hover:border-neutral-300'
                         }`}
                       >

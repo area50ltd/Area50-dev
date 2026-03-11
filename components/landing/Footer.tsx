@@ -49,7 +49,7 @@ export function Footer() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#E91E8C] to-[#FF6BB5] flex items-center justify-center">
                 <span className="text-white font-heading font-bold text-sm">A</span>
               </div>
-              <span className="font-heading font-bold text-xl">Area50</span>
+              <span className="font-heading font-bold text-xl">Zentativ</span>
             </Link>
             <p className="text-white/50 text-sm leading-relaxed mb-5">
               Hybrid AI + Human customer care for modern African businesses.
@@ -93,7 +93,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-white/40 text-sm">
-            © {new Date().getFullYear()} Area50 by Digitalwebtonics. All rights reserved.
+            © {new Date().getFullYear()} Zentativ by Digitalwebtonics. All rights reserved.
           </p>
           <p className="text-white/30 text-xs">
             Built with Next.js 14 · Hosted on Vercel · Powered by n8n

@@ -1,5 +1,8 @@
+import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/auth'
+import Image from 'next/image'
 import Link from 'next/link'
-import { LayoutDashboard, Building2, Zap, Settings2, LogOut, Shield, Package, Receipt, SlidersHorizontal } from 'lucide-react'
+import { LayoutDashboard, Building2, Zap, Settings2, LogOut, Package, Receipt, SlidersHorizontal } from 'lucide-react'
 
 const NAV_ITEMS = [
   { label: 'Overview', href: '/super-admin', icon: LayoutDashboard },
@@ -11,22 +14,27 @@ const NAV_ITEMS = [
   { label: 'System', href: '/super-admin/system', icon: Settings2 },
 ]
 
-export default function SuperAdminLayout({ children }: { children: React.ReactNode }) {
+export default async function SuperAdminLayout({ children }: { children: React.ReactNode }) {
+  const user = await getCurrentUser()
+  if (!user || user.role !== 'super_admin') redirect('/dashboard')
   return (
-    <div className="flex min-h-screen bg-neutral-950">
+    <div className="dark flex min-h-screen bg-neutral-950">
       {/* Sidebar */}
       <aside className="w-56 bg-neutral-900 border-r border-neutral-800 flex flex-col fixed inset-y-0 left-0 z-30">
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-neutral-800">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#E91E8C] flex items-center justify-center">
-              <Shield size={16} className="text-white" />
-            </div>
-            <div>
-              <p className="text-white text-sm font-bold leading-none">Area50</p>
-              <p className="text-neutral-500 text-xs mt-0.5">Super Admin</p>
-            </div>
+        <div className="px-5 py-4 border-b border-neutral-800">
+          <div className="overflow-hidden" style={{ height: '36px' }}>
+            <Image
+              src="/images/logo/logo-dark.png"
+              alt="Zentativ"
+              width={360}
+              height={108}
+              className="h-28 w-auto"
+              style={{ filter: 'brightness(0) invert(1)' }}
+              priority
+            />
           </div>
+          <p className="text-neutral-500 text-xs mt-1.5">Super Admin</p>
         </div>
 
         {/* Nav */}
@@ -37,7 +45,7 @@ export default function SuperAdminLayout({ children }: { children: React.ReactNo
               href={href}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all group"
             >
-              <Icon size={16} className="group-hover:text-[#E91E8C] transition-colors" />
+              <Icon size={16} className="group-hover:text-violet-400 transition-colors" />
               {label}
             </Link>
           ))}

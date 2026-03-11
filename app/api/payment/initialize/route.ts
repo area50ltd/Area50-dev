@@ -1,4 +1,4 @@
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
 import { initializeTransaction } from '@/lib/paystack'
@@ -13,8 +13,9 @@ const Schema = z.object({
 })
 
 export async function POST(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const supabase = createClient()
+  const { data: { user: authUser } } = await supabase.auth.getUser()
+  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const user = await getCurrentUser()
   if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })

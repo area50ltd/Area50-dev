@@ -2,7 +2,7 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Globe, MessageCircle, Phone, CheckCircle2 } from 'lucide-react'
+import { Globe, Mail, Phone, CheckCircle2 } from 'lucide-react'
 
 const channels = [
   {
@@ -14,12 +14,12 @@ const channels = [
     badge: 'Web',
   },
   {
-    icon: MessageCircle,
-    name: 'WhatsApp Business',
-    description: 'Connect your WhatsApp Business number and reach customers where they already are.',
-    features: ['Official Business API', 'Rich message types', 'Automated replies', '2B+ user reach'],
-    color: 'from-green-500 to-green-600',
-    badge: 'WhatsApp',
+    icon: Mail,
+    name: 'Email Support',
+    description: 'Convert email threads into tracked tickets. AI drafts replies and escalates when needed.',
+    features: ['Auto ticket creation', 'AI-drafted replies', 'Thread tracking', 'Priority detection'],
+    color: 'from-emerald-500 to-emerald-600',
+    badge: 'Email',
   },
   {
     icon: Phone,
@@ -36,7 +36,7 @@ export function Channels() {
   const isInView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
-    <section className="py-24 bg-[#1B2A4A] relative overflow-hidden">
+    <section className="py-24 bg-navy relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#E91E8C]/5 rounded-full blur-3xl" />
 
@@ -47,12 +47,12 @@ export function Channels() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-[#FF6BB5] text-sm font-semibold uppercase tracking-widest">
+          <span className="text-violet-400 text-sm font-semibold uppercase tracking-widest">
             Channels
           </span>
           <h2 className="font-heading text-4xl lg:text-5xl font-bold text-white mt-3 mb-4">
             Meet Customers{' '}
-            <span className="bg-gradient-to-r from-[#E91E8C] to-[#FF6BB5] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-600 to-violet-400 bg-clip-text text-transparent">
               Everywhere
             </span>
           </h2>
@@ -91,7 +91,7 @@ export function Channels() {
               <ul className="space-y-2">
                 {channel.features.map((feat) => (
                   <li key={feat} className="flex items-center gap-2 text-sm text-white/70">
-                    <CheckCircle2 size={14} className="text-[#E91E8C] flex-shrink-0" />
+                    <CheckCircle2 size={14} className="text-violet-500 flex-shrink-0" />
                     {feat}
                   </li>
                 ))}

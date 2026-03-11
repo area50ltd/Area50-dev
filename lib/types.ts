@@ -37,6 +37,11 @@ export interface Company {
   whatsapp_phone_id: string | null
   whatsapp_token: string | null
   slack_webhook_url: string | null
+  notification_email: string | null
+  notify_email_escalation: boolean | null
+  notify_email_low_credits: boolean | null
+  notify_weekly_digest: boolean | null
+  low_credit_threshold: number | null
   voice_language: string | null
   voice_accent: string | null
   voice_gender: string | null
@@ -140,6 +145,7 @@ export interface ChatResponse {
   score: number
   category: string
   sentiment: string
+  insufficient?: boolean
 }
 
 export interface SuggestResponse {

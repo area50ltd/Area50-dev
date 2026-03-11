@@ -36,7 +36,7 @@ function MessageBubble({ message }: { message: Message }) {
     >
       {/* Avatar */}
       <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold ${
-        isCustomer ? 'bg-[#1B2A4A] text-white' : isAI ? 'bg-[#FDE7F3] text-[#E91E8C]' : 'bg-blue-100 text-blue-600'
+        isCustomer ? 'bg-neutral-900 text-white' : isAI ? 'bg-violet-50 text-violet-600' : 'bg-blue-100 text-blue-600'
       }`}>
         {isAI ? <Bot size={14} /> : isAgent ? <User size={14} /> : '#'}
       </div>
@@ -50,7 +50,7 @@ function MessageBubble({ message }: { message: Message }) {
         {/* Bubble */}
         <div className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
           isCustomer
-            ? 'bg-[#1B2A4A] text-white rounded-tr-sm'
+            ? 'bg-neutral-900 text-white rounded-tr-sm'
             : isAI
             ? 'bg-neutral-100 text-neutral-800 rounded-tl-sm'
             : 'bg-blue-50 text-blue-900 rounded-tl-sm border border-blue-100'
@@ -72,9 +72,9 @@ function CustomerCard({ customer, ticketCount }: { customer: UserType | null; ti
   const initials = customer?.name ? getInitials(customer.name) : '?'
   return (
     <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
-      <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4">Customer</h3>
+      <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4">Customer</h3>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-full bg-[#1B2A4A] flex items-center justify-center text-white text-sm font-bold shrink-0">
+        <div className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-white text-sm font-bold shrink-0">
           {initials}
         </div>
         <div className="min-w-0">
@@ -157,7 +157,7 @@ export default function TicketDetailPage() {
         {/* Back + header */}
         <div className="flex items-center gap-3 mb-5">
           <Link href="/dashboard/tickets">
-            <button className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-[#1B2A4A] transition-colors">
+            <button className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 transition-colors">
               <ArrowLeft size={15} /> Back
             </button>
           </Link>
@@ -210,7 +210,7 @@ export default function TicketDetailPage() {
 
             {/* Status & Priority */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
-              <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-4">Ticket Details</h3>
+              <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4">Ticket Details</h3>
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-sm">
@@ -219,7 +219,7 @@ export default function TicketDetailPage() {
                     value={ticket.status ?? 'open'}
                     onChange={(e) => handleStatusChange(e.target.value)}
                     disabled={isPending}
-                    className="text-xs border border-neutral-200 rounded-lg px-2 py-1 focus:outline-none focus:border-[#E91E8C] bg-white"
+                    className="text-xs border border-neutral-200 rounded-lg px-2 py-1 focus:outline-none focus:border-violet-500 bg-white"
                   >
                     {['open', 'in_progress', 'escalated', 'resolved', 'closed'].map((s) => (
                       <option key={s} value={s}>{s.replace('_', ' ')}</option>
@@ -232,7 +232,7 @@ export default function TicketDetailPage() {
                   <select
                     value={ticket.priority ?? 'normal'}
                     onChange={(e) => updateTicket({ id: ticket.id, data: { priority: e.target.value as typeof ticket.priority } })}
-                    className="text-xs border border-neutral-200 rounded-lg px-2 py-1 focus:outline-none focus:border-[#E91E8C] bg-white"
+                    className="text-xs border border-neutral-200 rounded-lg px-2 py-1 focus:outline-none focus:border-violet-500 bg-white"
                   >
                     {['low', 'normal', 'high', 'urgent'].map((p) => (
                       <option key={p} value={p}>{p}</option>
@@ -289,10 +289,10 @@ export default function TicketDetailPage() {
               <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
                 <button
                   onClick={() => setSummaryOpen(!summaryOpen)}
-                  className="w-full flex items-center justify-between text-sm font-heading font-bold text-[#1B2A4A]"
+                  className="w-full flex items-center justify-between text-sm font-heading font-bold text-neutral-900"
                 >
                   <span className="flex items-center gap-2">
-                    <Bot size={14} className="text-[#E91E8C]" /> AI Summary
+                    <Bot size={14} className="text-violet-600" /> AI Summary
                   </span>
                   {summaryOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                 </button>
@@ -313,7 +313,7 @@ export default function TicketDetailPage() {
 
             {/* Actions */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5 space-y-2">
-              <h3 className="font-heading text-sm font-bold text-[#1B2A4A] mb-3">Actions</h3>
+              <h3 className="font-heading text-sm font-bold text-neutral-900 mb-3">Actions</h3>
 
               <Button
                 onClick={handleResolve}

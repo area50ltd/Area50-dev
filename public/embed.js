@@ -1,6 +1,6 @@
 (function () {
   if (!window.AREA50_COMPANY_ID) {
-    console.warn('Area50: AREA50_COMPANY_ID not set');
+    console.warn('Zentativ: AREA50_COMPANY_ID not set');
     return;
   }
   var existing = document.getElementById('area50-widget');
@@ -16,6 +16,6 @@
     'position:fixed;bottom:0;right:0;width:420px;height:660px;border:none;' +
     'z-index:2147483647;background:transparent;';
   iframe.setAttribute('allow', 'microphone');
-  iframe.setAttribute('title', 'Area50 Support Widget');
+  iframe.setAttribute('title', 'Zentativ Support Widget');
   document.body.appendChild(iframe);
 })();

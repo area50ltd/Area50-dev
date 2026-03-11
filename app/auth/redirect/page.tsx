@@ -9,27 +9,26 @@ import { getCurrentUser } from '@/lib/auth'
 export default async function AuthRedirectPage() {
   const user = await getCurrentUser()
 
-  // Not in DB yet — happens on very first sign-up before webhook fires.
-  // Clerk webhook will create the user row; send them to onboarding.
+  // Not in DB yet — brand new sign-up, needs onboarding
   if (!user) {
     redirect('/onboarding')
   }
 
-  // Existing user with no company assigned yet
+  // Super admin — never has a company_id, go straight to panel
+  if (user.role === 'super_admin') {
+    redirect('/super-admin')
+  }
+
+  // Existing user with no company yet — needs onboarding
   if (!user.company_id) {
     redirect('/onboarding')
   }
 
   // Route by role
   switch (user.role) {
-    case 'super_admin':
-      redirect('/super-admin')
     case 'agent':
       redirect('/agent')
-    case 'maintenance':
-      redirect('/dashboard')
     default:
-      // admin, customer, anything else → dashboard
       redirect('/dashboard')
   }
 }

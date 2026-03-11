@@ -73,6 +73,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'AI service unavailable' }, { status: 503 })
   }
 
+  // Handle insufficient credits — WF13 tells us credits ran out
+  if (result.insufficient) {
+    return NextResponse.json({ error: 'Service temporarily unavailable. Please try again later.' }, { status: 402 })
+  }
+
   // 4. Persist the AI response (if present)
   const responseText = result.response || (result as unknown as Record<string, unknown>).output as string | undefined
   if (responseText) {

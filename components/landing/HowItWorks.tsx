@@ -10,7 +10,7 @@ const steps = [
     number: '01',
     title: 'Customer Sends Message',
     description:
-      'A customer reaches out via web chat, WhatsApp, or phone call. Area50 captures the conversation in real time across all channels.',
+      'A customer reaches out via web chat or phone call. Zentativ captures the conversation in real time and creates a tracked support ticket.',
     color: 'bg-blue-50 text-blue-600',
     border: 'border-blue-100',
   },
@@ -58,7 +58,7 @@ export function HowItWorks() {
             <span className="text-[#E91E8C]">in Seconds</span>
           </h2>
           <p className="text-neutral-500 text-lg max-w-xl mx-auto">
-            Area50 orchestrates AI and human agents so every customer gets the right help at the right time.
+            Zentativ orchestrates AI and human agents so every customer gets the right help at the right time.
           </p>
         </motion.div>
 

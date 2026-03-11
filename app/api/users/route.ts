@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
@@ -7,10 +6,8 @@ import { getCurrentUser } from '@/lib/auth'
 
 // GET /api/users — all users in the current user's company
 export async function GET() {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   try {

@@ -196,7 +196,7 @@ export default function OrganizationsPage() {
               placeholder="Search organizations..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 w-56 bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-600 text-sm focus:border-[#E91E8C]"
+              className="pl-9 w-56 bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-600 text-sm focus:border-violet-600"
             />
           </div>
           <Button size="sm" className="rounded-full gap-2" onClick={() => setShowCreate(true)}>
@@ -244,7 +244,7 @@ export default function OrganizationsPage() {
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-[#1B2A4A] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                          <div className="w-9 h-9 rounded-lg bg-neutral-900 flex items-center justify-center text-white text-sm font-bold shrink-0">
                             {org.name.charAt(0)}
                           </div>
                           <div>
@@ -316,7 +316,7 @@ export default function OrganizationsPage() {
                                     setOpenMenuId(null)
                                   }}
                                 >
-                                  <Zap size={14} className="text-[#E91E8C]" /> Add Credits
+                                  <Zap size={14} className="text-violet-600" /> Add Credits
                                 </button>
                                 <button
                                   className="w-full text-left px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700 flex items-center gap-2.5"
@@ -373,8 +373,8 @@ export default function OrganizationsPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-[#E91E8C]/20 flex items-center justify-center">
-                  <Building2 size={18} className="text-[#E91E8C]" />
+                <div className="w-10 h-10 rounded-xl bg-violet-600/20 flex items-center justify-center">
+                  <Building2 size={18} className="text-violet-600" />
                 </div>
                 <h3 className="font-heading text-lg font-bold text-white">Create Organization</h3>
               </div>
@@ -404,7 +404,7 @@ export default function OrganizationsPage() {
                     <select
                       value={newPlan}
                       onChange={(e) => setNewPlan(e.target.value as Plan)}
-                      className="w-full h-9 bg-neutral-800 border border-neutral-700 text-white rounded-md px-3 text-sm focus:outline-none focus:border-[#E91E8C]"
+                      className="w-full h-9 bg-neutral-800 border border-neutral-700 text-white rounded-md px-3 text-sm focus:outline-none focus:border-violet-600"
                     >
                       {PLANS.map((p) => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
                     </select>
@@ -486,7 +486,7 @@ export default function OrganizationsPage() {
                   <select
                     value={editPlan}
                     onChange={(e) => setEditPlan(e.target.value as Plan)}
-                    className="w-full h-9 bg-neutral-800 border border-neutral-700 text-white rounded-md px-3 text-sm focus:outline-none focus:border-[#E91E8C]"
+                    className="w-full h-9 bg-neutral-800 border border-neutral-700 text-white rounded-md px-3 text-sm focus:outline-none focus:border-violet-600"
                   >
                     {PLANS.map((p) => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
                   </select>
@@ -526,8 +526,8 @@ export default function OrganizationsPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-[#E91E8C]/20 flex items-center justify-center">
-                  <Zap size={18} className="text-[#E91E8C]" />
+                <div className="w-10 h-10 rounded-xl bg-violet-600/20 flex items-center justify-center">
+                  <Zap size={18} className="text-violet-600" />
                 </div>
                 <div>
                   <h3 className="text-white font-bold">Add Credits</h3>

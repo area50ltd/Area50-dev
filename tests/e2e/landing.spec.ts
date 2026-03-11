@@ -31,10 +31,10 @@ test.describe('Landing Page', () => {
 
   test('footer renders', async ({ page }) => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    await expect(page.getByText(/Area50/i).last()).toBeVisible()
+    await expect(page.getByText(/Zentativ/i).last()).toBeVisible()
   })
 
   test('page title is set', async ({ page }) => {
-    await expect(page).toHaveTitle(/Area50/i)
+    await expect(page).toHaveTitle(/Zentativ/i)
   })
 })

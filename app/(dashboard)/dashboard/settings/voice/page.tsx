@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { toast } from 'sonner'
 import {
   CheckCircle2,
@@ -12,6 +12,10 @@ import {
   Mail,
   ChevronRight,
   Info,
+  MessageSquare,
+  Phone,
+  PhoneOff,
+  Mic,
 } from 'lucide-react'
 import { useCompany, useUpdateCompany } from '@/hooks/useCompany'
 import { VOICE_LANGUAGES, VOICE_TONES } from '@/lib/constants'
@@ -59,9 +63,17 @@ export default function VoiceSettingsPage() {
     setHydrated(true)
   }
 
-  // Test call state
-  const [testPhone, setTestPhone] = useState('')
-  const [callingTest, setCallingTest] = useState(false)
+  // Test mode: 'browser' | 'text' | 'inbound'
+  const [testMode, setTestMode] = useState<'browser' | 'text' | 'inbound'>('browser')
+  const [isBrowserCalling, setIsBrowserCalling] = useState(false)
+  const [callSeconds, setCallSeconds] = useState(0)
+  const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const vapiRef = useRef<import('@vapi-ai/web').default | null>(null)
+
+  // Text preview state
+  const [textQuery, setTextQuery] = useState('')
+  const [textResponse, setTextResponse] = useState('')
+  const [textLoading, setTextLoading] = useState(false)
 
   // Rebuild only state
   const [rebuilding, setRebuilding] = useState(false)
@@ -88,24 +100,62 @@ export default function VoiceSettingsPage() {
     }
   }
 
-  const handleTestCall = async () => {
-    if (!testPhone.trim()) {
-      toast.error('Enter a phone number to call.')
-      return
-    }
-    setCallingTest(true)
+  const startBrowserCall = async () => {
+    if (!company?.vapi_assistant_id) return
+    setIsBrowserCalling(true)
+    setCallSeconds(0)
     try {
-      const res = await fetch('/api/vapi/outbound', {
+      const Vapi = (await import('@vapi-ai/web')).default
+      const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY!)
+      vapiRef.current = vapi
+      vapi.on('call-end', stopBrowserCall)
+      vapi.on('error', () => { toast.error('Call error. Please try again.'); stopBrowserCall() })
+      await vapi.start(company.vapi_assistant_id)
+      callTimerRef.current = setInterval(() => {
+        setCallSeconds((s) => {
+          if (s >= 119) { stopBrowserCall(); return 0 } // 2-minute hard cap
+          return s + 1
+        })
+      }, 1000)
+    } catch {
+      toast.error('Failed to start browser call.')
+      setIsBrowserCalling(false)
+    }
+  }
+
+  const stopBrowserCall = () => {
+    vapiRef.current?.stop()
+    vapiRef.current = null
+    if (callTimerRef.current) clearInterval(callTimerRef.current)
+    setIsBrowserCalling(false)
+    setCallSeconds(0)
+  }
+
+  useEffect(() => () => { vapiRef.current?.stop(); if (callTimerRef.current) clearInterval(callTimerRef.current) }, [])
+
+  const handleTextPreview = async () => {
+    if (!textQuery.trim()) return
+    setTextLoading(true)
+    setTextResponse('')
+    try {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customer_phone: testPhone.trim(), ticket_id: '00000000-0000-0000-0000-000000000000' }),
+        body: JSON.stringify({
+          company_id: company?.id,
+          message: textQuery,
+          session_id: 'voice-preview-test',
+          ticket_id: '00000000-0000-0000-0000-000000000001',
+          channel: 'web_widget',
+          language: 'en',
+        }),
       })
-      if (!res.ok) throw new Error('Call failed')
-      toast.success('Test call initiated! Check your phone.')
+      const data = await res.json()
+      setTextResponse(data.response || data.output || data.message || 'No response received.')
     } catch {
-      toast.error('Failed to initiate test call.')
+      toast.error('Preview failed. Check your AI assistant is configured.')
     } finally {
-      setCallingTest(false)
+      setTextLoading(false)
     }
   }
 
@@ -154,7 +204,7 @@ export default function VoiceSettingsPage() {
 
             {/* Voice Configuration */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6">
-              <h2 className="font-heading font-bold text-[#1B2A4A] mb-4">Voice Configuration</h2>
+              <h2 className="font-heading font-bold text-neutral-900 mb-4">Voice Configuration</h2>
 
               <div className="space-y-4">
                 <div>
@@ -164,7 +214,7 @@ export default function VoiceSettingsPage() {
                   <select
                     value={voiceLanguage}
                     onChange={(e) => setVoiceLanguage(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+                    className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                   >
                     {VOICE_LANGUAGES.map((l) => (
                       <option key={l.value} value={l.value}>{l.label}</option>
@@ -179,7 +229,7 @@ export default function VoiceSettingsPage() {
                   <select
                     value={voiceTone}
                     onChange={(e) => setVoiceTone(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+                    className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                   >
                     {VOICE_TONES.map((t) => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -196,14 +246,14 @@ export default function VoiceSettingsPage() {
                     placeholder="e.g. 21m00Tcm4TlvDq8ikWAM"
                     value={elevenlabsId}
                     onChange={(e) => setElevenlabsId(e.target.value)}
-                    className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
+                    className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
                   />
                 </div>
 
                 <button
                   onClick={handleSaveAndRebuild}
                   disabled={savingVoice}
-                  className="flex items-center gap-2 bg-[#E91E8C] text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-[#c91878] transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 bg-violet-600 text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50"
                 >
                   {savingVoice ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                   Save & Rebuild Assistant
@@ -211,39 +261,144 @@ export default function VoiceSettingsPage() {
               </div>
             </div>
 
-            {/* Test Your Voice Line */}
+            {/* Test Your Voice Agent */}
             {isConfigured && (
               <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6">
-                <h2 className="font-heading font-bold text-[#1B2A4A] mb-4 flex items-center gap-2">
-                  <PhoneCall size={18} className="text-[#E91E8C]" />
-                  Test Your Voice Line
+                <h2 className="font-heading font-bold text-neutral-900 mb-1 flex items-center gap-2">
+                  <Mic size={18} className="text-violet-600" />
+                  Test Your Voice Agent
                 </h2>
-                <p className="text-sm text-neutral-500 mb-4">
-                  Enter a phone number to receive a test call from your AI assistant.
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="tel"
-                    placeholder="+1 415 555 0100"
-                    value={testPhone}
-                    onChange={(e) => setTestPhone(e.target.value)}
-                    className="flex-1 border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#E91E8C]/30 focus:border-[#E91E8C]"
-                  />
-                  <button
-                    onClick={handleTestCall}
-                    disabled={callingTest}
-                    className="flex items-center gap-1.5 px-4 py-2.5 bg-[#1B2A4A] text-white text-sm font-semibold rounded-lg hover:bg-[#243460] transition-colors disabled:opacity-50"
-                  >
-                    {callingTest ? <Loader2 size={14} className="animate-spin" /> : <PhoneCall size={14} />}
-                    Call
-                  </button>
+                <p className="text-sm text-neutral-500 mb-4">Choose how you want to test.</p>
+
+                {/* Mode tabs */}
+                <div className="flex gap-1 p-1 bg-neutral-100 rounded-xl mb-5">
+                  {([
+                    { key: 'browser', label: 'Browser Call', icon: Mic },
+                    { key: 'text', label: 'Text Preview', icon: MessageSquare },
+                    { key: 'inbound', label: 'Call the Number', icon: Phone },
+                  ] as const).map(({ key, label, icon: Icon }) => (
+                    <button
+                      key={key}
+                      onClick={() => setTestMode(key)}
+                      className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 rounded-lg transition-all ${
+                        testMode === key
+                          ? 'bg-white shadow-sm text-violet-700'
+                          : 'text-neutral-500 hover:text-neutral-700'
+                      }`}
+                    >
+                      <Icon size={13} /> {label}
+                    </button>
+                  ))}
                 </div>
+
+                {/* Browser Call */}
+                {testMode === 'browser' && (
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2 bg-violet-50 border border-violet-100 rounded-lg px-3 py-2.5">
+                      <Info size={14} className="text-violet-500 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-violet-700">
+                        Calls your AI assistant live via your browser microphone. Capped at 2 minutes.
+                        Uses <strong>10 credits/min</strong> from your balance.
+                      </p>
+                    </div>
+                    {isBrowserCalling ? (
+                      <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-sm font-medium text-green-800">
+                            {Math.floor(callSeconds / 60)}:{String(callSeconds % 60).padStart(2, '0')} / 2:00
+                          </span>
+                        </div>
+                        <button
+                          onClick={stopBrowserCall}
+                          className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors"
+                        >
+                          <PhoneOff size={12} /> End Call
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={startBrowserCall}
+                        className="w-full flex items-center justify-center gap-2 bg-violet-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-violet-700 transition-colors"
+                      >
+                        <PhoneCall size={15} /> Start Browser Call
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Text Preview */}
+                {testMode === 'text' && (
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2 bg-green-50 border border-green-100 rounded-lg px-3 py-2.5">
+                      <Info size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-green-700">
+                        Free preview — sends text to the AI and shows what it would say to customers.
+                        No credits deducted.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={textQuery}
+                        onChange={(e) => setTextQuery(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleTextPreview()}
+                        placeholder="e.g. What are your office hours?"
+                        className="flex-1 border border-neutral-200 rounded-lg px-3 py-2.5 text-sm placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                      />
+                      <button
+                        onClick={handleTextPreview}
+                        disabled={textLoading || !textQuery.trim()}
+                        className="flex items-center gap-1.5 px-4 py-2.5 bg-neutral-900 text-white text-sm font-semibold rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40"
+                      >
+                        {textLoading ? <Loader2 size={14} className="animate-spin" /> : <MessageSquare size={14} />}
+                        Ask
+                      </button>
+                    </div>
+                    {textResponse && (
+                      <div className="bg-neutral-50 border border-neutral-100 rounded-xl px-4 py-3">
+                        <p className="text-xs text-neutral-500 font-semibold mb-1">AI Response:</p>
+                        <p className="text-sm text-neutral-800 leading-relaxed">{textResponse}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Call the Number */}
+                {testMode === 'inbound' && (
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2 bg-sky-50 border border-sky-100 rounded-lg px-3 py-2.5">
+                      <Info size={14} className="text-sky-600 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-sky-700">
+                        Test the full inbound experience — call your number directly. Customers will follow the same flow.
+                      </p>
+                    </div>
+                    {company?.vapi_phone_number ? (
+                      <div className="flex items-center gap-3 bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3">
+                        <Phone size={16} className="text-neutral-500 flex-shrink-0" />
+                        <span className="text-base font-mono font-bold text-neutral-900 flex-1">
+                          {company.vapi_phone_number}
+                        </span>
+                        <a
+                          href={`tel:${company.vapi_phone_number}`}
+                          className="flex items-center gap-1.5 bg-green-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-green-600 transition-colors"
+                        >
+                          <PhoneCall size={12} /> Call Now
+                        </a>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-neutral-400 text-center py-3">
+                        No phone number assigned yet. Purchase one above.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
             {/* Assistant Status */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6">
-              <h2 className="font-heading font-bold text-[#1B2A4A] mb-4">Assistant Status</h2>
+              <h2 className="font-heading font-bold text-neutral-900 mb-4">Assistant Status</h2>
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -297,7 +452,7 @@ export default function VoiceSettingsPage() {
             {/* Support card */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
               {/* Gradient header */}
-              <div className="bg-gradient-to-br from-[#1B2A4A] to-[#243460] px-5 py-5">
+              <div className="bg-gradient-to-br from-neutral-900 to-neutral-700 px-5 py-5">
                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center mb-3">
                   <Headphones size={20} className="text-white" />
                 </div>
@@ -315,8 +470,8 @@ export default function VoiceSettingsPage() {
                   Number porting typically takes 3–5 business days. Reach out and we&apos;ll guide you through the process.
                 </p>
                 <a
-                  href="mailto:support@area50.com?subject=Phone%20Number%20Porting%20Request"
-                  className="flex items-center justify-center gap-2 w-full bg-[#E91E8C] text-white py-2.5 rounded-lg text-xs font-semibold hover:bg-[#c91878] transition-colors"
+                  href={`mailto:support@zentativ.com?subject=${encodeURIComponent('Phone Number Porting Request')}&body=${encodeURIComponent('Hi Zentativ team,\n\nI would like to port my existing business number to my AI assistant.\n\nMy current number: \nAccount name: \n\nPlease guide me through the process.\n\nThanks')}`}
+                  className="flex items-center justify-center gap-2 w-full bg-violet-600 text-white py-2.5 rounded-lg text-xs font-semibold hover:bg-violet-700 transition-colors"
                 >
                   <Mail size={13} />
                   Contact Support Team
@@ -327,7 +482,7 @@ export default function VoiceSettingsPage() {
             {/* How it works card */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
               <div className="flex items-center gap-2 mb-4">
-                <Info size={14} className="text-[#E91E8C]" />
+                <Info size={14} className="text-violet-600" />
                 <p className="text-xs font-semibold text-neutral-700 uppercase tracking-wide">How it works</p>
               </div>
               <ol className="space-y-3">
@@ -338,7 +493,7 @@ export default function VoiceSettingsPage() {
                   { step: '4', text: 'All inbound calls are handled automatically by your AI' },
                 ].map(({ step, text }) => (
                   <li key={step} className="flex items-start gap-3">
-                    <span className="w-5 h-5 rounded-full bg-[#FDE7F3] text-[#E91E8C] text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="w-5 h-5 rounded-full bg-violet-50 text-violet-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                       {step}
                     </span>
                     <span className="text-xs text-neutral-500 leading-relaxed">{text}</span>
@@ -361,10 +516,10 @@ export default function VoiceSettingsPage() {
                     href={href}
                     className="flex items-center justify-between group px-3 py-2 rounded-lg hover:bg-neutral-50 transition-colors"
                   >
-                    <span className="text-xs text-neutral-600 group-hover:text-[#1B2A4A] transition-colors">
+                    <span className="text-xs text-neutral-600 group-hover:text-neutral-900 transition-colors">
                       {label}
                     </span>
-                    <ChevronRight size={13} className="text-neutral-300 group-hover:text-[#E91E8C] transition-colors" />
+                    <ChevronRight size={13} className="text-neutral-300 group-hover:text-violet-600 transition-colors" />
                   </a>
                 ))}
               </div>

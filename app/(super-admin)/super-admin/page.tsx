@@ -67,12 +67,12 @@ export default async function SuperAdminOverviewPage() {
     <main className="flex-1 p-8">
       <div className="mb-8">
         <h1 className="font-heading text-2xl font-bold text-white mb-1">Platform Overview</h1>
-        <p className="text-neutral-500 text-sm">Area50 super admin panel — all companies, all data.</p>
+        <p className="text-neutral-500 text-sm">Zentativ super admin panel — all companies, all data.</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Companies" value={totalCompanies} icon={Building2} color="bg-[#E91E8C]" />
+        <StatCard label="Total Companies" value={totalCompanies} icon={Building2} color="bg-violet-600" />
         <StatCard label="Total Tickets" value={totalTickets} icon={Ticket} color="bg-blue-600" />
         <StatCard label="Total Users" value={totalUsers} icon={Users} color="bg-purple-600" />
         <StatCard
@@ -88,7 +88,7 @@ export default async function SuperAdminOverviewPage() {
         <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white font-semibold text-sm flex items-center gap-2">
-              <TrendingUp size={15} className="text-[#E91E8C]" />
+              <TrendingUp size={15} className="text-violet-600" />
               Recent Companies
             </h2>
           </div>
@@ -96,7 +96,7 @@ export default async function SuperAdminOverviewPage() {
             {recentCompanies.map((company) => (
               <div key={company.id} className="flex items-center justify-between py-2 border-b border-neutral-800 last:border-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#1B2A4A] flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center text-white text-xs font-bold">
                     {company.name.charAt(0)}
                   </div>
                   <div>
@@ -119,7 +119,7 @@ export default async function SuperAdminOverviewPage() {
         {/* System status */}
         <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Activity size={15} className="text-[#E91E8C]" />
+            <Activity size={15} className="text-violet-600" />
             <h2 className="text-white font-semibold text-sm">System Status</h2>
           </div>
           <div className="space-y-3">

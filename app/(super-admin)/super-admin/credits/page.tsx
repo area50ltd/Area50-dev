@@ -119,7 +119,7 @@ export default function SuperAdminCreditsPage() {
             placeholder="Search organizations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 w-56 text-sm bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-[#E91E8C]"
+            className="pl-9 w-56 text-sm bg-neutral-900 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-violet-600"
           />
         </div>
       </div>
@@ -158,7 +158,7 @@ export default function SuperAdminCreditsPage() {
                   >
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[#1B2A4A] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center text-white text-xs font-bold shrink-0">
                           {company.name.charAt(0)}
                         </div>
                         <span className="text-white font-medium">{company.name}</span>
@@ -183,7 +183,7 @@ export default function SuperAdminCreditsPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 px-3 text-xs rounded-lg text-[#E91E8C] hover:bg-[#E91E8C]/10 gap-1.5"
+                          className="h-7 px-3 text-xs rounded-lg text-violet-600 hover:bg-violet-600/10 gap-1.5"
                           onClick={() => setTopUpTarget(company)}
                         >
                           <Plus size={12} />
@@ -222,8 +222,8 @@ export default function SuperAdminCreditsPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-[#E91E8C]/20 flex items-center justify-center">
-                <Zap size={18} className="text-[#E91E8C]" />
+              <div className="w-10 h-10 rounded-xl bg-violet-600/20 flex items-center justify-center">
+                <Zap size={18} className="text-violet-600" />
               </div>
               <div>
                 <h3 className="text-white font-bold">Add Credits</h3>

@@ -76,8 +76,8 @@ export default function TransactionsPage() {
       label: 'Total Revenue',
       value: stats ? formatNaira(stats.total_revenue) : '—',
       icon: TrendingUp,
-      color: 'text-[#E91E8C]',
-      bg: 'bg-[#E91E8C]/10',
+      color: 'text-violet-600',
+      bg: 'bg-violet-600/10',
     },
     {
       label: 'Successful',
@@ -131,7 +131,7 @@ export default function TransactionsPage() {
         <select
           value={status}
           onChange={(e) => { setStatus(e.target.value); setPage(1) }}
-          className="h-9 px-3 rounded-lg border border-neutral-700 bg-neutral-800 text-white text-sm focus:outline-none focus:border-[#E91E8C]"
+          className="h-9 px-3 rounded-lg border border-neutral-700 bg-neutral-800 text-white text-sm focus:outline-none focus:border-violet-600"
         >
           {STATUS_OPTS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>

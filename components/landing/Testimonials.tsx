@@ -7,7 +7,7 @@ import { Star, Quote } from 'lucide-react'
 const testimonials = [
   {
     quote:
-      "Area50 cut our average response time from 8 minutes to under 30 seconds. Our customers are happier and our agents finally have time to focus on complex issues.",
+      "Zentativ cut our average response time from 8 minutes to under 30 seconds. Our customers are happier and our agents finally have time to focus on complex issues.",
     name: 'Adaeze Okonkwo',
     role: 'Head of Customer Success',
     company: 'PayEdge Fintech',
@@ -17,7 +17,7 @@ const testimonials = [
   },
   {
     quote:
-      "We deployed Area50 on WhatsApp for our property listings. The AI handles 80% of enquiries automatically — nights, weekends, public holidays. It never sleeps.",
+      "We embedded the Zentativ chat widget on our listings site. The AI handles 80% of enquiries automatically — nights, weekends, public holidays. It never sleeps.",
     name: 'Chukwuemeka Obi',
     role: 'CEO',
     company: 'Pinnacle Realty Lagos',

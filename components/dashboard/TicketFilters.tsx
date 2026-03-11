@@ -29,7 +29,7 @@ export function TicketFilters({ activeFilter, onFilterChange }: TicketFiltersPro
           className={cn(
             'px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all',
             activeFilter === tab.value
-              ? 'bg-[#1B2A4A] text-white shadow-sm'
+              ? 'bg-neutral-900 text-white shadow-sm'
               : 'bg-white border border-neutral-200 text-neutral-600 hover:border-neutral-300 hover:text-neutral-800'
           )}
         >

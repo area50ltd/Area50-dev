@@ -128,10 +128,10 @@ export function Hero() {
             initial="hidden"
             animate="visible"
             custom={0.1}
-            className="inline-flex items-center gap-2 bg-[#E91E8C]/10 border border-[#E91E8C]/20 rounded-full px-4 py-1.5 mb-6"
+            className="inline-flex items-center gap-2 bg-violet-600/10 border border-violet-600/20 rounded-full px-4 py-1.5 mb-6"
           >
-            <span className="w-2 h-2 rounded-full bg-[#E91E8C] animate-pulse" />
-            <span className="text-[#FF6BB5] text-sm font-medium">Now with voice & WhatsApp support</span>
+            <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+            <span className="text-violet-400 text-sm font-medium">Now with AI voice call support</span>
           </motion.div>
 
           <motion.h1
@@ -157,8 +157,8 @@ export function Hero() {
             custom={0.35}
             className="text-white/60 text-lg lg:text-xl leading-relaxed mb-10 max-w-lg"
           >
-            Area50 handles 73% of support queries automatically, routes complex issues
-            to human agents, and works across web chat, WhatsApp, and phone — all in one platform.
+            Zentativ handles 73% of support queries automatically, routes complex issues
+            to human agents, and works across web chat and phone — all in one platform.
           </motion.p>
 
           <motion.div

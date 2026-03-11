@@ -1,26 +1,36 @@
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { searchAvailableByCountry } from '@/lib/vapi'
+import { searchAvailableNumbers, TwilioError } from '@/lib/twilio'
 import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 
 export async function GET(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const supabase = createClient()
+  const { data: { user: _authUser } } = await supabase.auth.getUser()
+  if (!_authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const user = await db.query.users.findFirst({ where: eq(users.clerk_id, userId) })
-  if (!user?.company_id) return NextResponse.json({ error: 'Company not found' }, { status: 404 })
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerk_id, _authUser.id) })
+  if (!dbUser?.company_id) return NextResponse.json({ error: 'Company not found' }, { status: 404 })
 
   const { searchParams } = new URL(req.url)
-  const country = searchParams.get('country') ?? 'US'
+  const country = (searchParams.get('country') ?? 'US').toUpperCase()
   const areaCode = searchParams.get('area_code') ?? undefined
 
   try {
-    const numbers = await searchAvailableByCountry(country, areaCode)
+    const numbers = await searchAvailableNumbers(country, areaCode)
     return NextResponse.json(numbers)
   } catch (err) {
     console.error('[api/vapi/numbers/available]', err)
-    return NextResponse.json({ error: 'Failed to fetch available numbers' }, { status: 500 })
+    if (err instanceof TwilioError) {
+      if (err.code === 'not_configured') {
+        return NextResponse.json(
+          { error: 'Phone number purchasing is not configured. Please contact support.', code: 'not_configured' },
+          { status: 503 },
+        )
+      }
+      return NextResponse.json({ error: err.message }, { status: 502 })
+    }
+    return NextResponse.json({ error: 'Failed to fetch available numbers. Please try again.' }, { status: 500 })
   }
 }

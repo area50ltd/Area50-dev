@@ -31,7 +31,7 @@ const quickActions = [
   { label: 'View Tickets', href: '/dashboard/tickets', icon: Eye, color: 'bg-blue-50 text-blue-600' },
   { label: 'Usage Analytics', href: '/dashboard/analytics', icon: BarChart2, color: 'bg-purple-50 text-purple-600' },
   { label: 'Add Team Member', href: '/dashboard/users', icon: UserPlus, color: 'bg-green-50 text-green-600' },
-  { label: 'Configure Widget', href: '/dashboard/widget', icon: LayoutTemplate, color: 'bg-[#FDE7F3] text-[#E91E8C]' },
+  { label: 'Configure Widget', href: '/dashboard/widget', icon: LayoutTemplate, color: 'bg-violet-50 text-violet-600' },
   { label: 'Upload Company Data', href: '/dashboard/knowledge', icon: FileUp, color: 'bg-orange-50 text-orange-600' },
   { label: 'Call Settings', href: '/dashboard/settings/voice', icon: Phone, color: 'bg-sky-50 text-sky-600' },
   { label: 'Agent Management', href: '/dashboard/agents', icon: Users, color: 'bg-yellow-50 text-yellow-600' },
@@ -95,10 +95,10 @@ export default async function DashboardPage() {
         <TopBar title="Dashboard" credits={0} />
         <main className="flex-1 flex items-center justify-center p-6">
           <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-10 max-w-md text-center">
-            <div className="w-14 h-14 rounded-2xl bg-[#FDE7F3] flex items-center justify-center mx-auto mb-5">
-              <Zap size={28} className="text-[#E91E8C]" />
+            <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-5">
+              <Zap size={28} className="text-violet-600" />
             </div>
-            <h2 className="font-heading text-xl font-bold text-[#1B2A4A] mb-2">Database Setup Required</h2>
+            <h2 className="font-heading text-xl font-bold text-neutral-900 mb-2">Database Setup Required</h2>
             <p className="text-sm text-neutral-500 leading-relaxed mb-5">
               Your account is ready but the database isn&apos;t connected yet.
               Add your <code className="bg-neutral-100 px-1.5 py-0.5 rounded text-xs">DATABASE_URL</code> to{' '}
@@ -120,16 +120,16 @@ export default async function DashboardPage() {
         <TopBar title="Dashboard" credits={0} />
         <main className="flex-1 flex items-center justify-center p-6">
           <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-10 max-w-md text-center">
-            <div className="w-14 h-14 rounded-2xl bg-[#FDE7F3] flex items-center justify-center mx-auto mb-5">
-              <CheckCircle2 size={28} className="text-[#E91E8C]" />
+            <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-5">
+              <CheckCircle2 size={28} className="text-violet-600" />
             </div>
-            <h2 className="font-heading text-xl font-bold text-[#1B2A4A] mb-2">Welcome to Area50!</h2>
+            <h2 className="font-heading text-xl font-bold text-neutral-900 mb-2">Welcome to Zentativ!</h2>
             <p className="text-sm text-neutral-500 leading-relaxed mb-6">
               Your account is set up. Complete onboarding to create your company workspace.
             </p>
             <Link
               href="/onboarding"
-              className="inline-flex items-center gap-2 bg-[#E91E8C] text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-[#c91878] transition-colors"
+              className="inline-flex items-center gap-2 bg-violet-600 text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-violet-700 transition-colors"
             >
               Start Onboarding →
             </Link>
@@ -238,7 +238,7 @@ export default async function DashboardPage() {
 
         {/* Quick actions */}
         <section>
-          <h2 className="font-heading text-base font-bold text-[#1B2A4A] mb-3">Quick Actions</h2>
+          <h2 className="font-heading text-base font-bold text-neutral-900 mb-3">Quick Actions</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {quickActions.map((action) => (
               <Link key={action.href} href={action.href}>
@@ -246,7 +246,7 @@ export default async function DashboardPage() {
                   <div className={`w-9 h-9 rounded-lg ${action.color} flex items-center justify-center`}>
                     <action.icon size={18} />
                   </div>
-                  <p className="font-medium text-sm text-neutral-700 group-hover:text-[#1B2A4A] transition-colors">
+                  <p className="font-medium text-sm text-neutral-700 group-hover:text-neutral-900 transition-colors">
                     {action.label}
                   </p>
                 </div>
@@ -257,7 +257,7 @@ export default async function DashboardPage() {
 
         {/* Recent activity */}
         <section>
-          <h2 className="font-heading text-base font-bold text-[#1B2A4A] mb-3">Recent Activity</h2>
+          <h2 className="font-heading text-base font-bold text-neutral-900 mb-3">Recent Activity</h2>
           <div className="bg-white rounded-xl border border-neutral-100 shadow-sm divide-y divide-neutral-50">
             {activity.length === 0 ? (
               <div className="py-12 text-center">
@@ -273,7 +273,7 @@ export default async function DashboardPage() {
                       #
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1B2A4A] truncate">
+                      <p className="text-sm font-medium text-neutral-900 truncate">
                         Ticket #{ticket.id.slice(0, 8)} — {ticket.category ?? 'General inquiry'}
                       </p>
                       <p className="text-xs text-neutral-400">

@@ -87,6 +87,18 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
 
       if (!res.ok) {
         const err = await res.json()
+        if (res.status === 402) {
+          // Insufficient credits — show as AI message so customer isn't alarmed
+          addMessage({
+            ticket_id: ticketId,
+            company_id: company.id,
+            sender_type: 'ai',
+            sender_id: null,
+            content: 'Our support service is temporarily unavailable. Please try again later or contact us directly.',
+            is_helpful: null,
+          })
+          return
+        }
         throw new Error(err.error ?? 'Failed to get response')
       }
 
@@ -231,7 +243,7 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
           {/* Footer */}
           <div className="bg-white px-4 py-2 border-t border-neutral-50 text-center">
             <span className="text-[10px] text-neutral-300">Powered by</span>
-            <span className="text-[10px] font-heading font-bold text-neutral-400 ml-1">Area50</span>
+            <span className="text-[10px] font-heading font-bold text-neutral-400 ml-1">Zentativ</span>
           </div>
         </motion.div>
       )}

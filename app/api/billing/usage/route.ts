@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { credit_transactions } from '@/lib/schema'
@@ -6,11 +5,9 @@ import { eq, and, lt, gte, sql } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function GET() {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   // Start of current month in UTC
   const startOfMonth = new Date()
@@ -27,7 +24,7 @@ export async function GET() {
     .from(credit_transactions)
     .where(
       and(
-        eq(credit_transactions.company_id, user.company_id),
+        eq(credit_transactions.company_id, currentUser.company_id),
         lt(credit_transactions.amount, 0),
         gte(credit_transactions.created_at, startOfMonth),
       ),

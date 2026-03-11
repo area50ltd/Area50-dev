@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
@@ -12,15 +11,13 @@ const bodySchema = z.object({
 })
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   // Verify ticket belongs to this company
   const ticket = await db.query.tickets.findFirst({
-    where: and(eq(tickets.id, params.id), eq(tickets.company_id, user.company_id)),
+    where: and(eq(tickets.id, params.id), eq(tickets.company_id, currentUser.company_id)),
   })
   if (!ticket) return NextResponse.json({ error: 'Ticket not found' }, { status: 404 })
 
@@ -30,9 +27,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const [message] = await db.insert(messages).values({
     ticket_id: params.id,
-    company_id: user.company_id,
+    company_id: currentUser.company_id,
     sender_type: 'agent',
-    sender_id: user.id,
+    sender_id: currentUser.id,
     content: parsed.data.content,
   }).returning()
 
@@ -43,7 +40,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   // Deduct 3 credits per human agent message (fire-and-forget)
   void deductCredits({
-    company_id: user.company_id,
+    company_id: currentUser.company_id,
     type: 'human_message',
     amount: 3,
     reference: params.id,

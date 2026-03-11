@@ -1,36 +1,50 @@
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { cache } from 'react'
+import { createClient } from './supabase/server'
 import { db } from './db'
 import { users } from './schema'
 import { eq } from 'drizzle-orm'
 
-export async function getCurrentUser() {
-  const { userId } = await auth()
-  if (!userId) return null
-
+// cache() deduplicates this function within a single server render / request lifecycle.
+// If getCurrentUser() is called multiple times (e.g., layout + page), getUser()
+// only hits the Supabase Auth server once.
+export const getCurrentUser = cache(async function getCurrentUser() {
   try {
-    // Look up existing user record
-    const existing = await db.query.users.findFirst({ where: eq(users.clerk_id, userId) })
+    const supabase = createClient()
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    if (!authUser) return null
+
+    // Look up existing user record (clerk_id column stores the Supabase auth user UUID)
+    const [existing] = await db
+      .select()
+      .from(users)
+      .where(eq(users.clerk_id, authUser.id))
+      .limit(1)
     if (existing) return existing
 
-    // First visit after sign-up — auto-create the user record
-    const clerkUser = await currentUser()
-    if (!clerkUser) return null
-
-    const email = clerkUser.emailAddresses[0]?.emailAddress ?? ''
-    const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') || null
+    // First login — auto-create user row
+    const name = (authUser.user_metadata?.full_name as string | undefined)
+      ?? (authUser.user_metadata?.name as string | undefined)
+      ?? null
 
     const [created] = await db
       .insert(users)
-      .values({ clerk_id: userId, email, name, role: 'admin' })
-      .onConflictDoUpdate({ target: users.clerk_id, set: { email, name } })
+      .values({
+        clerk_id: authUser.id,
+        email: authUser.email ?? '',
+        name,
+        role: 'admin',
+      })
+      .onConflictDoUpdate({
+        target: users.clerk_id,
+        set: { email: authUser.email ?? '' },
+      })
       .returning()
 
     return created ?? null
   } catch {
-    // DB not configured yet — return null gracefully
     return null
   }
-}
+})
 
 export async function requireRole(...roles: string[]) {
   const user = await getCurrentUser()
@@ -39,7 +53,8 @@ export async function requireRole(...roles: string[]) {
 }
 
 export async function requireAuth() {
-  const { userId } = await auth()
-  if (!userId) throw new Error('Unauthorized')
-  return userId
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+  return user.id
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { Pencil, Save, Loader2, AlertTriangle, Cpu, Webhook } from 'lucide-react'
+import { Pencil, Save, Loader2, AlertTriangle, Cpu, Webhook, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
@@ -22,6 +22,12 @@ const PAYSTACK_KEYS = [
 const N8N_KEYS = [
   { key: 'n8n_webhook_base_url', label: 'Webhook Base URL', placeholder: 'https://n8n.example.com', masked: false },
   { key: 'n8n_secret', label: 'Shared Secret', placeholder: 'area50_sk_...', masked: true },
+]
+
+const EMAIL_KEYS = [
+  { key: 'resend_api_key', label: 'Resend API Key', placeholder: 're_...', masked: true },
+  { key: 'email_from_address', label: 'From Email Address', placeholder: 'notifications@zentativ.com', masked: false },
+  { key: 'email_from_name', label: 'From Name', placeholder: 'Zentativ', masked: false },
 ]
 
 type Settings = Record<string, string>
@@ -181,8 +187,8 @@ export default function SettingsPage() {
       {/* ─── Paystack ─── */}
       <section className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-9 h-9 rounded-lg bg-[#E91E8C]/20 flex items-center justify-center">
-            <span className="text-[#E91E8C] font-bold text-sm">₦</span>
+          <div className="w-9 h-9 rounded-lg bg-violet-600/20 flex items-center justify-center">
+            <span className="text-violet-600 font-bold text-sm">₦</span>
           </div>
           <div>
             <h2 className="font-heading text-lg font-bold text-white">Paystack Integration</h2>
@@ -268,11 +274,11 @@ export default function SettingsPage() {
               onClick={() => handleSave('ai_model', model.value)}
               className={`p-4 rounded-xl border text-left transition-all ${
                 currentModel === model.value
-                  ? 'border-[#E91E8C] bg-[#E91E8C]/10'
+                  ? 'border-violet-600 bg-violet-600/10'
                   : 'border-neutral-700 hover:border-neutral-500'
               }`}
             >
-              <p className={`font-semibold text-sm ${currentModel === model.value ? 'text-[#E91E8C]' : 'text-white'}`}>
+              <p className={`font-semibold text-sm ${currentModel === model.value ? 'text-violet-600' : 'text-white'}`}>
                 {model.label}
               </p>
               <p className="text-xs text-neutral-500 mt-0.5">{model.desc}</p>
@@ -285,6 +291,50 @@ export default function SettingsPage() {
             <Loader2 size={11} className="animate-spin" /> Saving...
           </p>
         )}
+      </section>
+
+      {/* ─── Email / Notifications ─── */}
+      <section className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+            <Mail size={16} className="text-emerald-400" />
+          </div>
+          <div>
+            <h2 className="font-heading text-lg font-bold text-white">Email & Notifications</h2>
+            <p className="text-xs text-neutral-500">Resend API for transactional emails (escalations, low credits, digests)</p>
+          </div>
+        </div>
+
+        <div className="bg-blue-900/20 border border-blue-700/40 rounded-lg p-3 mb-5 flex items-start gap-2">
+          <Mail size={14} className="text-blue-400 mt-0.5 shrink-0" />
+          <p className="text-xs text-blue-300">Get a free API key at <strong>resend.com</strong>. The from address must be a verified domain in your Resend account.</p>
+        </div>
+
+        <div className="space-y-4">
+          {EMAIL_KEYS.map((field) =>
+            field.masked ? (
+              <MaskedField
+                key={field.key}
+                label={field.label}
+                settingKey={field.key}
+                placeholder={field.placeholder}
+                currentMasked={settings[field.key] ?? ''}
+                onSave={handleSave}
+                saving={saveSetting.isPending}
+              />
+            ) : (
+              <PlainField
+                key={field.key}
+                label={field.label}
+                settingKey={field.key}
+                placeholder={field.placeholder}
+                currentValue={settings[field.key] ?? ''}
+                onSave={handleSave}
+                saving={saveSetting.isPending}
+              />
+            )
+          )}
+        </div>
       </section>
     </div>
   )

@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
@@ -9,11 +8,9 @@ import { getCurrentUser } from '@/lib/auth'
 import { deductCredits } from '@/lib/credits'
 
 export async function POST(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   try {
     const formData = await req.formData()
@@ -32,7 +29,7 @@ export async function POST(req: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const { key, documentId, url } = await uploadFile(
-      user.company_id,
+      currentUser.company_id,
       buffer,
       file.name,
       contentType
@@ -41,7 +38,7 @@ export async function POST(req: Request) {
     // Save to DB as processing — return 200 immediately, embed in background
     await db.insert(knowledge_documents).values({
       id: documentId,
-      company_id: user.company_id,
+      company_id: currentUser.company_id,
       filename: file.name,
       file_type: fileExt,
       file_size: file.size,
@@ -53,7 +50,7 @@ export async function POST(req: Request) {
     // Fire n8n ingestion without awaiting — embedding takes 10-30s
     // Update DB status when it completes in the background
     void callN8n('/webhook/knowledge/ingest', {
-      company_id: user.company_id,
+      company_id: currentUser.company_id,
       document_id: documentId,
       file_url: url,
       file_type: fileExt,
@@ -75,7 +72,7 @@ export async function POST(req: Request) {
 
     // Deduct 5 credits per KB document embed (fire-and-forget)
     void deductCredits({
-      company_id: user.company_id,
+      company_id: currentUser.company_id,
       type: 'kb_embed',
       amount: 5,
       reference: documentId,

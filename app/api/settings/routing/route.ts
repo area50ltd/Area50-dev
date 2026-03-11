@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { routing_rules } from '@/lib/schema'
@@ -7,14 +6,12 @@ import { eq } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function GET() {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const rule = await db.query.routing_rules.findFirst({
-    where: eq(routing_rules.company_id, user.company_id),
+    where: eq(routing_rules.company_id, currentUser.company_id),
   })
 
   return NextResponse.json(rule ?? null)
@@ -33,11 +30,9 @@ const updateSchema = z.object({
 })
 
 export async function PATCH(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const body = await req.json()
   const parsed = updateSchema.safeParse(body)
@@ -46,7 +41,7 @@ export async function PATCH(req: Request) {
   const [updated] = await db
     .update(routing_rules)
     .set(parsed.data)
-    .where(eq(routing_rules.company_id, user.company_id))
+    .where(eq(routing_rules.company_id, currentUser.company_id))
     .returning()
 
   return NextResponse.json(updated)

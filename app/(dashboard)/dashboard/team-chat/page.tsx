@@ -165,7 +165,7 @@ export default function TeamChatPage() {
 
       <main className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-56 bg-[#1B2A4A] flex flex-col shrink-0">
+        <aside className="w-56 bg-[#0A0A10] flex flex-col shrink-0">
           <div className="p-3">
             <div className="relative">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40" />
@@ -202,7 +202,7 @@ export default function TeamChatPage() {
                   className={cn(
                     'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all',
                     activeId === ch.id
-                      ? 'bg-white/15 text-white font-medium border-l-2 border-[#E91E8C]'
+                      ? 'bg-white/15 text-white font-medium border-l-2 border-violet-500'
                       : 'text-white/60 hover:bg-white/10 hover:text-white'
                   )}
                 >
@@ -230,7 +230,7 @@ export default function TeamChatPage() {
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-100">
               <div className="flex items-center gap-2">
                 <Hash size={18} className="text-neutral-400" />
-                <span className="font-medium text-[#1B2A4A]">{activeChannel.name}</span>
+                <span className="font-medium text-neutral-900">{activeChannel.name}</span>
                 {activeChannel.description && (
                   <>
                     <span className="text-neutral-200">|</span>
@@ -239,7 +239,7 @@ export default function TeamChatPage() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="gap-1.5 text-neutral-500 hover:text-[#1B2A4A]" onClick={() => toast.info('Invite via Users & Roles page')}>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-neutral-500 hover:text-neutral-900" onClick={() => toast.info('Invite via Users & Roles page')}>
                   <UserPlus size={15} />
                   <span className="text-xs">Add Member</span>
                 </Button>
@@ -300,13 +300,13 @@ export default function TeamChatPage() {
                       >
                         <div className={cn(
                           'w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0',
-                          isMine ? 'bg-[#E91E8C]' : 'bg-[#1B2A4A]'
+                          isMine ? 'bg-violet-600' : 'bg-neutral-700'
                         )}>
                           {getInitials(msg.author_name)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-baseline gap-2 mb-0.5">
-                            <span className={cn('text-sm font-semibold', isMine ? 'text-[#E91E8C]' : 'text-[#1B2A4A]')}>
+                            <span className={cn('text-sm font-semibold', isMine ? 'text-violet-600' : 'text-neutral-900')}>
                               {isMine ? 'You' : msg.author_name}
                             </span>
                             <span className="text-xs text-neutral-400">{formatRelativeTime(new Date(msg.created_at))}</span>
@@ -348,7 +348,7 @@ export default function TeamChatPage() {
                 <button
                   onClick={handleSend}
                   disabled={!input.trim() || sendMutation.isPending}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#E91E8C] text-white disabled:opacity-30 disabled:cursor-not-allowed transition-opacity shrink-0"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-violet-600 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-opacity shrink-0"
                 >
                   {sendMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={15} />}
                 </button>
@@ -376,7 +376,7 @@ export default function TeamChatPage() {
               className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="font-heading text-lg font-bold text-[#1B2A4A] mb-4">Create Channel</h3>
+              <h3 className="font-heading text-lg font-bold text-neutral-900 mb-4">Create Channel</h3>
               <div className="relative mb-4">
                 <Hash size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <Input

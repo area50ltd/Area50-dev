@@ -20,7 +20,18 @@
       "Bash(npm install @radix-ui/react-slider @radix-ui/react-switch @radix-ui/react-label --legacy-peer-deps)",
       "Bash(npx tsc --noEmit --pretty)",
       "Bash(xargs grep -l \"VOICE_LANGUAGE\\\\|VOICE_TONE\\\\|VOICE_GENDER\\\\|VOICE_ACCENT\\\\|ELEVENLABS\")",
-      "Bash(head -5 \"c:/softwares/Area50/Area50app/app/\\(dashboard\\)/dashboard/team-chat/page.tsx\")"
+      "Bash(head -5 \"c:/softwares/Area50/Area50app/app/\\(dashboard\\)/dashboard/team-chat/page.tsx\")",
+      "Bash(npm install @supabase/ssr)",
+      "Bash(node -e \":*)",
+      "Bash(head -60 \"c:/softwares/Area50/Area50app/app/\\(dashboard\\)/dashboard/tickets/page.tsx\")",
+      "Bash(head -60 \"c:/softwares/Area50/Area50app/app/\\(dashboard\\)/dashboard/billing/page.tsx\")",
+      "Bash(grep -l \"supabase.auth.getUser\\\\|getCurrentUser\" c:/softwares/Area50/Area50app/app/api/**/*.ts)",
+      "Bash(for f in \"c:/softwares/Area50/Area50app/app/api/tickets/route.ts\" \"c:/softwares/Area50/Area50app/app/api/analytics/route.ts\" \"c:/softwares/Area50/Area50app/app/api/billing/route.ts\" \"c:/softwares/Area50/Area50app/app/api/agents/route.ts\" \"c:/softwares/Area50/Area50app/app/api/knowledge/route.ts\")",
+      "Bash(do echo \"=== $f ===\")",
+      "Read(//c/softwares/Area50/Area50app/**)",
+      "Bash(done)",
+      "Bash(for f in \"c:/softwares/Area50/Area50app/app/api/tickets/route.ts\" \"c:/softwares/Area50/Area50app/app/api/analytics/route.ts\" \"c:/softwares/Area50/Area50app/app/api/billing/route.ts\" \"c:/softwares/Area50/Area50app/app/api/agents/route.ts\")",
+      "Bash(xargs grep -L \"getCurrentUser\")"
     ]
   }
 }

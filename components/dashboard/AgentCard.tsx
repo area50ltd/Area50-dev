@@ -26,7 +26,7 @@ export function AgentCard({ agent, user, onEdit, onRemove, onViewQueue }: AgentC
         <div className="flex items-center gap-3">
           {/* Avatar */}
           <div className="relative">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1B2A4A] to-[#243460] flex items-center justify-center text-white text-sm font-heading font-bold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neutral-900 to-neutral-700 flex items-center justify-center text-white text-sm font-heading font-bold">
               {getInitials(name)}
             </div>
             <AgentStatusDot
@@ -36,7 +36,7 @@ export function AgentCard({ agent, user, onEdit, onRemove, onViewQueue }: AgentC
           </div>
 
           <div>
-            <p className="font-semibold text-[#1B2A4A] text-sm">{name}</p>
+            <p className="font-semibold text-neutral-900 text-sm">{name}</p>
             <p className="text-neutral-400 text-xs">{user?.email}</p>
           </div>
         </div>
@@ -56,19 +56,19 @@ export function AgentCard({ agent, user, onEdit, onRemove, onViewQueue }: AgentC
       {/* Metrics */}
       <div className="grid grid-cols-3 gap-3 mb-4">
         <div className="text-center bg-neutral-50 rounded-lg py-2">
-          <p className="font-heading text-lg font-bold text-[#1B2A4A]">
+          <p className="font-heading text-lg font-bold text-neutral-900">
             {agent.active_chats ?? 0}/{agent.max_concurrent_chats ?? 3}
           </p>
           <p className="text-neutral-400 text-[10px]">Active Chats</p>
         </div>
         <div className="text-center bg-neutral-50 rounded-lg py-2">
-          <p className="font-heading text-lg font-bold text-[#1B2A4A]">
+          <p className="font-heading text-lg font-bold text-neutral-900">
             {agent.total_resolved ?? 0}
           </p>
           <p className="text-neutral-400 text-[10px]">Resolved</p>
         </div>
         <div className="text-center bg-neutral-50 rounded-lg py-2">
-          <p className="font-heading text-lg font-bold text-[#1B2A4A]">
+          <p className="font-heading text-lg font-bold text-neutral-900">
             {agent.avg_response_time ?? 0}s
           </p>
           <p className="text-neutral-400 text-[10px]">Avg Response</p>
@@ -95,13 +95,13 @@ export function AgentCard({ agent, user, onEdit, onRemove, onViewQueue }: AgentC
       <div className="flex gap-2 pt-3 border-t border-neutral-50">
         <button
           onClick={onViewQueue}
-          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-neutral-600 hover:text-[#1B2A4A] hover:bg-neutral-50 rounded-lg transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 rounded-lg transition-colors"
         >
           <Eye size={13} /> Queue
         </button>
         <button
           onClick={onEdit}
-          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-neutral-600 hover:text-[#1B2A4A] hover:bg-neutral-50 rounded-lg transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50 rounded-lg transition-colors"
         >
           <Edit size={13} /> Edit
         </button>

@@ -23,15 +23,25 @@ const config: Config = {
         sans: ['DM Sans', 'sans-serif'],
       },
       colors: {
-        // Brand
+        // ── Brand tokens (sourced from CSS vars in globals.css) ──
+        // Use bg-brand, text-brand, etc. for the primary violet accent.
+        // bg-surface / text-surface for dark sidebar backgrounds.
+        brand: {
+          DEFAULT: 'hsl(var(--brand-violet))',        // violet-600 #7C3AED
+          light:   'hsl(var(--brand-violet-light))',  // violet-400 #A78BFA
+          muted:   'hsl(var(--brand-violet-muted))',  // violet-50  #EDE9FE
+          dark:    'hsl(var(--brand-dark))',           // #0A0A10 sidebar
+          'dark-light': 'hsl(var(--brand-dark-light))', // #12111E dark card
+        },
+        // Legacy aliases kept so existing bg-navy / text-pink classes still resolve
         navy: {
-          DEFAULT: '#1B2A4A',
-          light: '#243460',
+          DEFAULT: 'hsl(var(--brand-dark))',
+          light:   'hsl(var(--brand-dark-light))',
         },
         pink: {
-          DEFAULT: '#E91E8C',
-          light: '#FF6BB5',
-          muted: '#FDE7F3',
+          DEFAULT: 'hsl(var(--brand-violet))',
+          light:   'hsl(var(--brand-violet-light))',
+          muted:   'hsl(var(--brand-violet-muted))',
         },
         // Semantic
         success: {
@@ -100,9 +110,9 @@ const config: Config = {
           to: { height: '0' },
         },
         'pulse-ring': {
-          '0%': { transform: 'scale(0.95)', boxShadow: '0 0 0 0 rgba(233, 30, 140, 0.4)' },
-          '70%': { transform: 'scale(1)', boxShadow: '0 0 0 10px rgba(233, 30, 140, 0)' },
-          '100%': { transform: 'scale(0.95)', boxShadow: '0 0 0 0 rgba(233, 30, 140, 0)' },
+          '0%': { transform: 'scale(0.95)', boxShadow: '0 0 0 0 rgba(124, 58, 237, 0.4)' },
+          '70%': { transform: 'scale(1)', boxShadow: '0 0 0 10px rgba(124, 58, 237, 0)' },
+          '100%': { transform: 'scale(0.95)', boxShadow: '0 0 0 0 rgba(124, 58, 237, 0)' },
         },
         'fade-in-up': {
           from: { opacity: '0', transform: 'translateY(10px)' },

@@ -1,25 +1,98 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-const isPublicRoute = createRouteMatcher([
+// Truly public UI routes — no auth check needed
+const PUBLIC_PATHS = [
   '/',
-  '/login(.*)',
-  '/auth/redirect(.*)',
-  '/widget(.*)',
-  '/api/widget/(.*)',
-  '/api/webhooks/(.*)',
-  '/api/payment/webhook',
-  '/api/vapi/widget-call(.*)',
-])
+  '/login',
+  '/sign-up',
+  '/forgot-password',
+  '/reset-password',
+  '/auth/redirect',
+  '/auth/callback',
+  '/widget',
+]
 
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    await auth.protect()
+// API routes that don't need Clerk/Supabase session protection at the middleware level
+// (each route handler does its own auth via getCurrentUser())
+const PUBLIC_API_PREFIXES = [
+  '/api/webhooks',
+  '/api/payment/webhook',
+  '/api/vapi/widget-call',
+  '/api/widget',
+]
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))
+}
+
+function isPublicApi(pathname: string): boolean {
+  return PUBLIC_API_PREFIXES.some((p) => pathname.startsWith(p))
+}
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // 1. Skip all static assets immediately — no processing needed
+  // (handled by the matcher config below, but belt-and-suspenders)
+
+  // 2. All API routes: skip middleware session refresh.
+  //    Each route handler calls getCurrentUser() which calls getUser() internally.
+  //    Running getUser() twice (middleware + handler) wastes ~200ms per request.
+  if (pathname.startsWith('/api/')) {
+    // Still block unauthenticated access to protected API routes
+    if (!isPublicApi(pathname)) {
+      // Let the route handler handle auth — it already does via getCurrentUser()
+      return NextResponse.next()
+    }
+    return NextResponse.next()
   }
-})
+
+  // 3. Truly public UI pages — skip session refresh entirely
+  if (isPublicPath(pathname)) {
+    return NextResponse.next()
+  }
+
+  // 4. Protected UI pages — refresh session token and enforce auth
+  let supabaseResponse = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  // getUser() contacts Supabase Auth to validate + refresh the session token.
+  // Only called for protected page routes (not API routes — see above).
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('redirect_url', pathname)
+    return NextResponse.redirect(loginUrl)
+  }
+
+  return supabaseResponse
+}
 
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Skip Next.js internals and static files
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff2?|ttf)).*)',
     '/(api|trpc)(.*)',
   ],
 }

@@ -1,19 +1,21 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { users, companies } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 
 export async function GET() {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const supabase = createClient()
+  const { data: { user: _authUser } } = await supabase.auth.getUser()
+  if (!_authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const userId = _authUser.id
 
-  const user = await db.query.users.findFirst({ where: eq(users.clerk_id, userId) })
-  if (!user?.company_id) return NextResponse.json(null)
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerk_id, userId) })
+  if (!dbUser?.company_id) return NextResponse.json(null)
 
   const company = await db.query.companies.findFirst({
-    where: eq(companies.id, user.company_id),
+    where: eq(companies.id, dbUser.company_id),
   })
 
   return NextResponse.json(company ?? null)
@@ -38,11 +40,13 @@ const updateSchema = z.object({
 })
 
 export async function PATCH(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const supabase = createClient()
+  const { data: { user: _authUser } } = await supabase.auth.getUser()
+  if (!_authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const userId = _authUser.id
 
-  const user = await db.query.users.findFirst({ where: eq(users.clerk_id, userId) })
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const dbUser = await db.query.users.findFirst({ where: eq(users.clerk_id, userId) })
+  if (!dbUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const body = await req.json()
   const parsed = updateSchema.safeParse(body)
@@ -51,7 +55,7 @@ export async function PATCH(req: Request) {
   const [updated] = await db
     .update(companies)
     .set({ ...parsed.data, updated_at: new Date() })
-    .where(eq(companies.id, user.company_id))
+    .where(eq(companies.id, dbUser.company_id))
     .returning()
 
   return NextResponse.json(updated)

@@ -4,15 +4,14 @@ import { useState } from 'react'
 import { TopBar } from '@/components/dashboard/TopBar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { toast } from 'sonner'
 import {
   type LucideIcon,
   Search,
-  CheckCircle2,
   Zap,
   MessageSquare,
   Github,
-  Settings2,
+  Clock,
+  Mail,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
@@ -56,16 +55,6 @@ const INTEGRATIONS: Integration[] = [
     connected: false,
   },
   {
-    id: 'whatsapp',
-    name: 'WhatsApp Business',
-    description: 'Deploy AI agents to over 2 billion users. Handle queries directly in WhatsApp.',
-    category: 'Messaging',
-    icon: MessageSquare,
-    iconBg: 'bg-green-100',
-    iconColor: 'text-green-600',
-    connected: false,
-  },
-  {
     id: 'salesforce',
     name: 'Salesforce',
     description: 'Two-way sync for leads, contacts, and opportunities.',
@@ -98,20 +87,7 @@ const INTEGRATIONS: Integration[] = [
 ]
 
 function IntegrationCard({ integration }: { integration: Integration }) {
-  const [connected, setConnected] = useState(integration.connected)
-  const [loading, setLoading] = useState(false)
   const Icon = integration.icon
-
-  const handleToggle = async () => {
-    setLoading(true)
-    await new Promise((r) => setTimeout(r, 800))
-    setConnected((prev) => {
-      const next = !prev
-      toast.success(next ? `${integration.name} connected` : `${integration.name} disconnected`)
-      return next
-    })
-    setLoading(false)
-  }
 
   return (
     <motion.div
@@ -123,51 +99,26 @@ function IntegrationCard({ integration }: { integration: Integration }) {
         <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center', integration.iconBg)}>
           <Icon size={24} className={integration.iconColor} />
         </div>
-        {connected && (
-          <span className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
-            <CheckCircle2 size={11} />
-            Connected
-          </span>
-        )}
+        <span className="flex items-center gap-1 text-xs font-medium text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-full">
+          <Clock size={10} />
+          Soon
+        </span>
       </div>
 
       <div className="flex-1">
-        <h3 className="font-medium text-sm text-[#1B2A4A] mb-1">{integration.name}</h3>
+        <h3 className="font-medium text-sm text-neutral-900 mb-1">{integration.name}</h3>
         <p className="text-xs text-neutral-500 leading-relaxed">{integration.description}</p>
       </div>
 
       <div className="flex gap-2">
-        {connected ? (
-          <>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="flex-1 rounded-lg text-xs"
-              onClick={() => toast.info('Configure coming soon')}
-            >
-              <Settings2 size={13} className="mr-1.5" />
-              Configure
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-lg text-xs text-red-500 border-red-200 hover:bg-red-50"
-              onClick={handleToggle}
-              disabled={loading}
-            >
-              {loading ? '...' : 'Disconnect'}
-            </Button>
-          </>
-        ) : (
-          <Button
-            size="sm"
-            className="w-full rounded-lg text-xs"
-            onClick={handleToggle}
-            disabled={loading}
-          >
-            {loading ? 'Connecting...' : 'Install Integration'}
-          </Button>
-        )}
+        <Button
+          size="sm"
+          className="w-full rounded-lg text-xs bg-neutral-100 text-neutral-400 hover:bg-neutral-100 cursor-not-allowed"
+          disabled
+        >
+          <Clock size={12} className="mr-1.5" />
+          Coming Soon
+        </Button>
       </div>
     </motion.div>
   )
@@ -180,17 +131,12 @@ function IntegrationCard({ integration }: { integration: Integration }) {
 export default function IntegrationsPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All Apps')
-  const [tab, setTab] = useState<'marketplace' | 'connected'>('marketplace')
-
-  const connectedCount = INTEGRATIONS.filter((i) => i.connected).length
-
   const filtered = INTEGRATIONS.filter((i) => {
     const matchSearch =
       i.name.toLowerCase().includes(search.toLowerCase()) ||
       i.description.toLowerCase().includes(search.toLowerCase())
     const matchCategory = category === 'All Apps' || i.category === category
-    const matchTab = tab === 'marketplace' || i.connected
-    return matchSearch && matchCategory && matchTab
+    return matchSearch && matchCategory
   })
 
   return (
@@ -198,37 +144,32 @@ export default function IntegrationsPage() {
       <TopBar title="Integrations" />
 
       <main className="flex-1 p-6">
+
+        {/* Coming Soon Banner */}
+        <div className="mb-6 flex items-center justify-between gap-4 bg-violet-50 border border-violet-200 rounded-xl px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+              <Clock size={16} className="text-violet-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-violet-900">Integrations are coming soon</p>
+              <p className="text-xs text-violet-600 mt-0.5">
+                We&apos;re building native connections to your favourite tools. Get notified when they launch.
+              </p>
+            </div>
+          </div>
+          <a
+            href={`mailto:support@zentativ.com?subject=${encodeURIComponent('Integrations Early Access')}&body=${encodeURIComponent('Hi,\n\nI\'d like to be notified when integrations are available on my Zentativ account.\n\nIntegrations I need most:\n- \n\nThanks')}`}
+            className="flex items-center gap-1.5 text-xs font-semibold text-violet-600 border border-violet-300 bg-white px-3 py-1.5 rounded-lg hover:bg-violet-50 transition-colors whitespace-nowrap flex-shrink-0"
+          >
+            <Mail size={12} />
+            Notify Me
+          </a>
+        </div>
+
         {/* Third-party integrations */}
         <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setTab('marketplace')}
-              className={cn(
-                'text-sm font-medium px-4 py-2 rounded-lg transition-all',
-                tab === 'marketplace' ? 'bg-[#1B2A4A] text-white' : 'text-neutral-600 hover:bg-neutral-100'
-              )}
-            >
-              App Marketplace
-            </button>
-            <button
-              onClick={() => setTab('connected')}
-              className={cn(
-                'text-sm font-medium px-4 py-2 rounded-lg transition-all flex items-center gap-1.5',
-                tab === 'connected' ? 'bg-[#1B2A4A] text-white' : 'text-neutral-600 hover:bg-neutral-100'
-              )}
-            >
-              Connected
-              <span
-                className={cn(
-                  'text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center',
-                  tab === 'connected' ? 'bg-white text-[#1B2A4A]' : 'bg-[#E91E8C] text-white'
-                )}
-              >
-                {connectedCount}
-              </span>
-            </button>
-          </div>
-
+          <p className="text-sm font-semibold text-neutral-700">App Marketplace</p>
           <div className="relative">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <Input
@@ -252,7 +193,7 @@ export default function IntegrationsPage() {
                   className={cn(
                     'w-full text-left text-sm px-3 py-2 rounded-lg transition-all',
                     category === cat
-                      ? 'bg-[#E91E8C]/10 text-[#E91E8C] font-medium'
+                      ? 'bg-violet-600/10 text-violet-600 font-medium'
                       : 'text-neutral-600 hover:bg-neutral-100'
                   )}
                 >

@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
 import { uploadFile } from '@/lib/r2'
@@ -10,11 +9,9 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 
 export async function POST(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const formData = await req.formData()
   const file = formData.get('file') as File | null
@@ -31,13 +28,13 @@ export async function POST(req: Request) {
   const buffer = Buffer.from(await file.arrayBuffer())
   const filename = `avatar.${file.type.split('/')[1]}`
 
-  const { url } = await uploadFile(user.company_id, buffer, filename, file.type)
+  const { url } = await uploadFile(currentUser.company_id, buffer, filename, file.type)
 
   // Update the company's widget_avatar field
   await db
     .update(companies)
     .set({ widget_avatar: url, updated_at: new Date() })
-    .where(eq(companies.id, user.company_id))
+    .where(eq(companies.id, currentUser.company_id))
 
   return NextResponse.json({ url })
 }

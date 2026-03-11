@@ -109,7 +109,7 @@ export default function SuperAdminSystemPage() {
         {/* AI Model Config */}
         <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-5">
           <div className="flex items-center gap-2 mb-5">
-            <Zap size={16} className="text-[#E91E8C]" />
+            <Zap size={16} className="text-violet-600" />
             <h2 className="text-white font-semibold text-sm">AI Model Configuration</h2>
           </div>
 
@@ -122,16 +122,16 @@ export default function SuperAdminSystemPage() {
                 className={cn(
                   'w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all text-left',
                   selectedModel === model.id
-                    ? 'border-[#E91E8C] bg-[#E91E8C]/10'
+                    ? 'border-violet-600 bg-violet-600/10'
                     : 'border-neutral-800 hover:border-neutral-700 bg-neutral-800/50'
                 )}
               >
                 <div className={cn(
                   'w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0',
-                  selectedModel === model.id ? 'border-[#E91E8C]' : 'border-neutral-600'
+                  selectedModel === model.id ? 'border-violet-600' : 'border-neutral-600'
                 )}>
                   {selectedModel === model.id && (
-                    <div className="w-2 h-2 rounded-full bg-[#E91E8C]" />
+                    <div className="w-2 h-2 rounded-full bg-violet-600" />
                   )}
                 </div>
                 <div>
@@ -151,7 +151,7 @@ export default function SuperAdminSystemPage() {
         <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-5">
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <Activity size={16} className="text-[#E91E8C]" />
+              <Activity size={16} className="text-violet-600" />
               <h2 className="text-white font-semibold text-sm">VPS Health</h2>
             </div>
             <div className="flex items-center gap-1.5 text-xs text-green-400">
@@ -223,7 +223,7 @@ export default function SuperAdminSystemPage() {
       <div className="bg-neutral-900 rounded-xl border border-neutral-800">
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800">
           <div className="flex items-center gap-2">
-            <Terminal size={15} className="text-[#E91E8C]" />
+            <Terminal size={15} className="text-violet-600" />
             <h2 className="text-white font-semibold text-sm">System Logs</h2>
           </div>
           <div className="flex items-center gap-3">

@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
 import { verifyTransaction } from '@/lib/paystack'
@@ -10,11 +9,9 @@ import { getCurrentUser } from '@/lib/auth'
 const Schema = z.object({ reference: z.string() })
 
 export async function POST(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const body = await req.json()
   const parsed = Schema.safeParse(body)
@@ -37,7 +34,7 @@ export async function POST(req: Request) {
       await db
         .update(companies)
         .set({ credits: sql`credits + ${credits}` })
-        .where(eq(companies.id, user.company_id))
+        .where(eq(companies.id, currentUser.company_id))
 
       return NextResponse.json({ success: true, credits_added: credits })
     }

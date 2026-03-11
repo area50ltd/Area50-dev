@@ -18,8 +18,8 @@ export function StatsCard({
   change,
   changeType = 'neutral',
   icon: Icon,
-  iconColor = 'text-[#E91E8C]',
-  iconBg = 'bg-[#FDE7F3]',
+  iconColor = 'text-violet-600',
+  iconBg = 'bg-violet-50',
 }: StatsCardProps) {
   const ChangeIcon = changeType === 'up' ? TrendingUp : changeType === 'down' ? TrendingDown : Minus
 
@@ -32,7 +32,7 @@ export function StatsCard({
         </div>
       </div>
 
-      <p className="font-heading text-3xl font-bold text-[#1B2A4A] mb-1.5">
+      <p className="font-heading text-3xl font-bold text-neutral-900 mb-1.5">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
 

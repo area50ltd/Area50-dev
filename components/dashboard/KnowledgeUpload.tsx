@@ -73,8 +73,8 @@ export function KnowledgeUpload() {
         onClick={() => inputRef.current?.click()}
         className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all ${
           dragging
-            ? 'border-[#E91E8C] bg-[#FDE7F3]/40 scale-[1.01]'
-            : 'border-neutral-200 hover:border-[#E91E8C]/40 hover:bg-neutral-50'
+            ? 'border-violet-600 bg-violet-50/40 scale-[1.01]'
+            : 'border-neutral-200 hover:border-violet-600/40 hover:bg-neutral-50'
         }`}
       >
         <div className="w-12 h-12 rounded-xl bg-neutral-100 flex items-center justify-center mx-auto mb-3">
@@ -102,7 +102,7 @@ export function KnowledgeUpload() {
               key={idx}
               className={`flex items-center gap-3 border rounded-xl px-4 py-3 transition-colors ${
                 entry.status === 'uploading'
-                  ? 'bg-[#FDE7F3]/40 border-[#E91E8C]/20'
+                  ? 'bg-violet-50/40 border-violet-600/20'
                   : entry.status === 'done'
                   ? 'bg-green-50 border-green-100'
                   : entry.status === 'error'
@@ -116,7 +116,7 @@ export function KnowledgeUpload() {
                 <p className="text-xs text-neutral-400">
                   {formatFileSize(entry.file.size)} ·{' '}
                   <span className={
-                    entry.status === 'uploading' ? 'text-[#E91E8C]'
+                    entry.status === 'uploading' ? 'text-violet-600'
                     : entry.status === 'done' ? 'text-green-600'
                     : entry.status === 'error' ? 'text-red-500'
                     : 'text-neutral-400'
@@ -129,7 +129,7 @@ export function KnowledgeUpload() {
                 </p>
               </div>
               {entry.status === 'uploading' && (
-                <Loader2 size={15} className="text-[#E91E8C] animate-spin shrink-0" />
+                <Loader2 size={15} className="text-violet-600 animate-spin shrink-0" />
               )}
               {entry.status === 'done' && (
                 <CheckCircle2 size={15} className="text-green-500 shrink-0" />
@@ -149,7 +149,7 @@ export function KnowledgeUpload() {
             <button
               onClick={uploadAll}
               disabled={anyUploading}
-              className="w-full py-2.5 rounded-xl bg-[#E91E8C] text-white text-sm font-semibold hover:bg-[#c91878] disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-60 transition-colors flex items-center justify-center gap-2"
             >
               {anyUploading ? (
                 <><Loader2 size={15} className="animate-spin" /> Uploading...</>

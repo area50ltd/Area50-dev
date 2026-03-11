@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { credit_transactions } from '@/lib/schema'
@@ -6,11 +5,9 @@ import { eq, and, desc, sql } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
 export async function GET(req: Request) {
-  const { userId } = await auth()
-  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  const currentUser = await getCurrentUser()
+  if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const { searchParams } = new URL(req.url)
   const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
@@ -21,10 +18,10 @@ export async function GET(req: Request) {
 
   const whereClause = typeFilter
     ? and(
-        eq(credit_transactions.company_id, user.company_id),
+        eq(credit_transactions.company_id, currentUser.company_id),
         eq(credit_transactions.type, typeFilter),
       )
-    : eq(credit_transactions.company_id, user.company_id)
+    : eq(credit_transactions.company_id, currentUser.company_id)
 
   const [rows, countResult] = await Promise.all([
     db

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -28,18 +29,17 @@ export function Navbar() {
       }`}
     >
       <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#E91E8C] to-[#FF6BB5] flex items-center justify-center">
-            <span className="text-white font-heading font-bold text-sm">A</span>
-          </div>
-          <span
-            className={`font-heading font-bold text-xl ${
-              scrolled ? 'text-[#1B2A4A]' : 'text-white'
-            }`}
-          >
-            Area50
-          </span>
+        {/* Logo — single source, CSS filter for white on dark hero */}
+        <Link href="/" className="flex items-center overflow-hidden" style={{ height: '40px' }}>
+          <Image
+            src="/images/logo/logo-dark.png"
+            alt="Zentativ"
+            width={360}
+            height={108}
+            className="h-28 w-auto transition-all duration-300"
+            style={!scrolled ? { filter: 'brightness(0) invert(1)' } : {}}
+            priority
+          />
         </Link>
 
         {/* Desktop nav */}

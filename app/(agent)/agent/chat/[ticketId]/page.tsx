@@ -29,11 +29,30 @@ export default function AgentChatPage() {
   useRealtimeMessages(ticketId)
   const [suggestion, setSuggestion] = useState('')
   const [sending, setSending] = useState(false)
-  const [suggestions] = useState([
-    'I understand your concern. Let me look into this for you right away.',
-    "I've checked your account and can see the issue. Here's what I'll do to help...",
-    'Thank you for your patience. I\'ve escalated this to our specialist team.',
-  ])
+  const [aiSuggestion, setAiSuggestion] = useState('')
+  const [fetchingSuggestion, setFetchingSuggestion] = useState(false)
+
+  const handleFetchSuggestion = async (sessionId?: string) => {
+    setFetchingSuggestion(true)
+    try {
+      const res = await fetch('/api/suggest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticket_id: ticketId,
+          session_id: sessionId ?? ticketId,
+          agent_message: suggestion || undefined,
+        }),
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error ?? 'Failed to get suggestion')
+      setAiSuggestion(result.suggestion ?? '')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to get AI suggestion')
+    } finally {
+      setFetchingSuggestion(false)
+    }
+  }
 
   const handleSend = async (message: string) => {
     if (!message.trim() || sending) return
@@ -166,8 +185,10 @@ export default function AgentChatPage() {
 
           {/* AI Suggestions */}
           <SuggestionPanel
-            suggestions={suggestions}
+            suggestions={aiSuggestion ? [aiSuggestion] : []}
+            isLoading={fetchingSuggestion}
             onSelect={(s) => setSuggestion(s)}
+            onRefresh={() => handleFetchSuggestion(ticket.session_id ?? ticketId)}
           />
 
           {/* Actions */}
