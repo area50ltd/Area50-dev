@@ -12,7 +12,7 @@ const testimonials = [
     role: 'Head of Customer Success',
     company: 'PayEdge Fintech',
     avatar: 'AO',
-    avatarColor: 'from-[#E91E8C] to-[#FF6BB5]',
+    avatarColor: 'from-violet-600 to-violet-400',
     rating: 5,
   },
   {
@@ -50,7 +50,7 @@ export function Testimonials() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <span className="text-[#E91E8C] text-sm font-semibold uppercase tracking-widest">
+          <span className="text-violet-600 text-sm font-semibold uppercase tracking-widest">
             Testimonials
           </span>
           <h2 className="font-heading text-4xl lg:text-5xl font-bold text-[#1B2A4A] mt-3">
@@ -65,17 +65,17 @@ export function Testimonials() {
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: idx * 0.15 }}
-              className="bg-neutral-50 rounded-2xl p-7 border border-neutral-100 flex flex-col hover:border-[#E91E8C]/20 hover:shadow-md transition-all"
+              className="bg-neutral-50 rounded-2xl p-7 border border-neutral-100 flex flex-col hover:border-violet-600/20 hover:shadow-md transition-all"
             >
               {/* Stars */}
               <div className="flex gap-1 mb-5">
                 {Array.from({ length: t.rating }).map((_, i) => (
-                  <Star key={i} size={14} className="fill-[#E91E8C] text-[#E91E8C]" />
+                  <Star key={i} size={14} className="fill-violet-600 text-violet-600" />
                 ))}
               </div>
 
               {/* Quote icon */}
-              <Quote size={22} className="text-[#E91E8C]/30 mb-3" />
+              <Quote size={22} className="text-violet-600/30 mb-3" />
 
               {/* Quote */}
               <p className="text-neutral-600 leading-relaxed text-sm flex-1 mb-6 italic">
