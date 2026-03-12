@@ -18,9 +18,9 @@ const footerLinks = {
 }
 
 const socials = [
-  { icon: Twitter, href: '#', label: 'Twitter' },
-  { icon: Linkedin, href: '#', label: 'LinkedIn' },
-  { icon: Instagram, href: '#', label: 'Instagram' },
+  { icon: Twitter, href: 'https://twitter.com/zentativ', label: 'Twitter' },
+  { icon: Linkedin, href: 'https://linkedin.com/company/zentativ', label: 'LinkedIn' },
+  { icon: Instagram, href: 'https://instagram.com/zentativ', label: 'Instagram' },
 ]
 
 export function Footer() {
@@ -81,7 +81,7 @@ export function Footer() {
             © {new Date().getFullYear()} Zentativ by Digitalwebtonics. All rights reserved.
           </p>
           <p className="text-white/20 text-xs">
-            Built with Next.js · Hosted on Vercel
+            zentativ.com
           </p>
         </div>
       </div>

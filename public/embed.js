@@ -9,7 +9,7 @@
   var iframe = document.createElement('iframe');
   iframe.id = 'area50-widget';
   iframe.src =
-    (window.AREA50_APP_URL || 'https://app.yourdomain.com') +
+    (window.AREA50_APP_URL || 'https://zentativ.com') +
     '/widget?company_id=' +
     encodeURIComponent(window.AREA50_COMPANY_ID);
   iframe.style.cssText =
