@@ -24,7 +24,7 @@ export function Navbar() {
       transition={{ duration: 0.5, ease: 'easeOut' }}
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm'
+          ? 'bg-[#0A0010]/95 backdrop-blur-md border-b border-white/10 shadow-lg shadow-black/20'
           : 'bg-transparent'
       }`}
     >
@@ -36,8 +36,8 @@ export function Navbar() {
             alt="Zentativ"
             width={360}
             height={108}
-            className="h-28 w-auto transition-all duration-300"
-            style={!scrolled ? { filter: 'brightness(0) invert(1)' } : {}}
+            className="h-28 w-auto"
+            style={{ filter: 'brightness(0) invert(1)' }}
             priority
           />
         </Link>
@@ -48,8 +48,8 @@ export function Navbar() {
             <Link
               key={item}
               href={`#${item.toLowerCase()}`}
-              className={`text-sm font-medium transition-colors hover:text-[#E91E8C] ${
-                scrolled ? 'text-neutral-600' : 'text-white/80'
+              className={`text-sm font-medium transition-colors hover:text-violet-400 ${
+                scrolled ? 'text-white/70' : 'text-white/80'
               }`}
             >
               {item}
@@ -62,14 +62,13 @@ export function Navbar() {
           <Link href="/login">
             <Button
               variant="ghost"
-              size="sm"
-              className={scrolled ? 'text-neutral-700 hover:text-[#1B2A4A]' : 'text-white hover:bg-white/10'}
+              className="text-white/70 hover:text-white hover:bg-white/10 px-5 h-10"
             >
               Log in
             </Button>
           </Link>
           <Link href="/login">
-            <Button size="sm" className="rounded-full font-semibold shadow-lg shadow-pink-DEFAULT/25">
+            <Button className="rounded-full font-semibold bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-900/40 px-6 h-10">
               Get Started
             </Button>
           </Link>
@@ -103,10 +102,10 @@ export function Navbar() {
           ))}
           <div className="flex gap-3 pt-2 border-t border-neutral-100">
             <Link href="/login" className="flex-1">
-              <Button variant="secondary" size="sm" className="w-full">Log in</Button>
+              <Button variant="secondary" className="w-full h-10">Log in</Button>
             </Link>
             <Link href="/login" className="flex-1">
-              <Button size="sm" className="w-full rounded-full">Get Started</Button>
+              <Button className="w-full rounded-full h-10 bg-violet-600 hover:bg-violet-700 text-white">Get Started</Button>
             </Link>
           </div>
         </motion.div>
