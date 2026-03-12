@@ -84,9 +84,10 @@ export default function SignUpPage() {
   async function handleGoogleSSO() {
     setSsoLoading(true)
     const supabase = createClient()
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/auth/callback' },
+      options: { redirectTo: `${appUrl}/auth/callback` },
     })
     if (error) {
       toast.error(mapAuthError(error.message))
@@ -113,12 +114,13 @@ export default function SignUpPage() {
     setLoading(true)
 
     const supabase = createClient()
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { full_name: name },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${appUrl}/auth/callback`,
       },
     })
 

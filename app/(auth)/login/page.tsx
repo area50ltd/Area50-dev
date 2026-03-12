@@ -40,9 +40,13 @@ function LoginForm() {
   async function handleGoogleSSO() {
     setSsoLoading(true)
     const supabase = createClient()
+    // Always redirect to the canonical app URL, not window.location.origin.
+    // If user is on zentativ.vercel.app, window.location.origin would produce a URL
+    // not in Supabase's allowed redirect list, causing a fallback to the home page.
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/auth/callback' },
+      options: { redirectTo: `${appUrl}/auth/callback` },
     })
     if (error) {
       toast.error(mapAuthError(error.message))

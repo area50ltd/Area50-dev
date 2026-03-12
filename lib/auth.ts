@@ -41,7 +41,8 @@ export const getCurrentUser = cache(async function getCurrentUser() {
       .returning()
 
     return created ?? null
-  } catch {
+  } catch (err) {
+    console.error('[getCurrentUser] failed:', err)
     return null
   }
 })
