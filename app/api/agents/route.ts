@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { randomUUID } from 'crypto'
 import { db } from '@/lib/db'
 import { agents, users } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
 
   // Create user with agent role
   const [newUser] = await db.insert(users).values({
-    clerk_id: `manual_${Date.now()}`,
+    clerk_id: `agent_${randomUUID()}`,
     company_id: currentUser.company_id,
     name,
     email,
@@ -51,14 +52,24 @@ export async function POST(req: Request) {
     is_active: true,
   }).returning()
 
-  // Create agent record
-  const [newAgent] = await db.insert(agents).values({
-    user_id: newUser.id,
-    company_id: currentUser.company_id,
-    status: 'offline',
-    max_concurrent_chats,
-    specializations,
-  }).returning()
+  // Create agent record — try with specializations, fall back without if column missing
+  let newAgent
+  try {
+    ;[newAgent] = await db.insert(agents).values({
+      user_id: newUser.id,
+      company_id: currentUser.company_id,
+      status: 'offline',
+      max_concurrent_chats,
+      specializations,
+    }).returning()
+  } catch {
+    ;[newAgent] = await db.insert(agents).values({
+      user_id: newUser.id,
+      company_id: currentUser.company_id,
+      status: 'offline',
+      max_concurrent_chats,
+    }).returning()
+  }
 
   return NextResponse.json({ agent: newAgent, user: newUser }, { status: 201 })
 }

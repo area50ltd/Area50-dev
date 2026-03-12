@@ -24,6 +24,7 @@ import {
   Minus,
   Phone,
   VolumeX,
+  Loader2,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -292,7 +293,7 @@ function Step1({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Language</label>
             <select
@@ -615,7 +616,7 @@ function Step3({
 
       <div className="space-y-6">
         {/* Time inputs */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-1.5">Opens at</label>
             <input
@@ -1004,10 +1005,28 @@ function Step6({
   onLaunch: () => Promise<void>
 }) {
   const [loading, setLoading] = useState(false)
+  const [stepIndex, setStepIndex] = useState(0)
+
+  const LAUNCH_STEPS = [
+    'Creating your workspace…',
+    'Configuring your AI agent…',
+    'Setting up routing rules…',
+    'Saving widget settings…',
+    'Finalising your account…',
+  ]
 
   async function handleLaunch() {
     setLoading(true)
-    await onLaunch().catch(() => setLoading(false))
+    setStepIndex(0)
+    // Cycle through progress messages while the API call runs
+    const interval = setInterval(() => {
+      setStepIndex((i) => (i + 1 < LAUNCH_STEPS.length ? i + 1 : i))
+    }, 1400)
+    await onLaunch().catch(() => {
+      clearInterval(interval)
+      setLoading(false)
+    })
+    clearInterval(interval)
   }
 
   const langLabel = LANGUAGES.find((l) => l.value === data.language)?.label ?? data.language
@@ -1016,6 +1035,68 @@ function Step6({
   const afterHoursLabel = { ai_only: 'AI Only', voicemail: 'Voicemail', offline: 'Offline' }[
     data.afterHoursMode
   ]
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#070711] flex flex-col items-center justify-center">
+        {/* Ambient glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl pointer-events-none" />
+
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
+          className="relative z-10 flex flex-col items-center gap-8 text-center px-8"
+        >
+          {/* Spinner ring */}
+          <div className="relative w-20 h-20">
+            <div className="absolute inset-0 rounded-full border-4 border-white/5" />
+            <div className="absolute inset-0 rounded-full border-4 border-t-violet-500 border-r-transparent border-b-transparent border-l-transparent animate-spin" />
+            <div className="absolute inset-2 rounded-full bg-violet-600/10 flex items-center justify-center">
+              <Bot size={26} className="text-violet-400" />
+            </div>
+          </div>
+
+          {/* Brand */}
+          <div>
+            <p className="text-white/30 text-xs uppercase tracking-widest mb-2">ZENTATIV</p>
+            <h2 className="font-heading text-2xl font-bold text-white mb-1">Setting up your account</h2>
+            <p className="text-white/40 text-sm">This only takes a moment</p>
+          </div>
+
+          {/* Cycling step label */}
+          <div className="h-7 overflow-hidden">
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={stepIndex}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.3 }}
+                className="text-violet-400 text-sm font-medium"
+              >
+                {LAUNCH_STEPS[stepIndex]}
+              </motion.p>
+            </AnimatePresence>
+          </div>
+
+          {/* Progress dots */}
+          <div className="flex gap-2">
+            {LAUNCH_STEPS.map((_, i) => (
+              <div
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-500 ${
+                  i <= stepIndex
+                    ? 'bg-violet-500 w-6'
+                    : 'bg-white/10 w-1.5'
+                }`}
+              />
+            ))}
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
     <StepContainer>
@@ -1116,7 +1197,11 @@ function Step6({
           disabled={loading}
           className="flex-1 rounded-full shadow-lg shadow-violet-600/25"
         >
-          {loading ? 'Setting up your account...' : 'Launch My Account 🚀'}
+          {loading ? (
+            <><Loader2 size={16} className="animate-spin" /> Setting up…</>
+          ) : (
+            'Launch My Account 🚀'
+          )}
         </Button>
       </div>
     </StepContainer>

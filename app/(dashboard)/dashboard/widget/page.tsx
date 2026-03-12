@@ -94,7 +94,7 @@ export default function WidgetCustomizerPage() {
             <Loader2 size={24} className="animate-spin text-neutral-400" />
           </div>
         ) : (
-          <div className="grid grid-cols-[1fr_360px] gap-8 max-w-5xl">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-5xl">
             {/* Left: controls */}
             <div className="space-y-6">
               {/* Appearance */}
@@ -245,7 +245,7 @@ export default function WidgetCustomizerPage() {
             </div>
 
             {/* Right: live preview */}
-            <div className="sticky top-6">
+            <div className="lg:sticky lg:top-6">
               <p className="text-sm font-medium text-neutral-500 mb-4">Live Preview</p>
               <div className="bg-gradient-to-br from-neutral-100 to-neutral-200 rounded-2xl p-6">
                 <WidgetPreview

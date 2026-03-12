@@ -162,7 +162,7 @@ export default async function DashboardPage() {
     <div className="flex flex-col flex-1">
       <TopBar title="Dashboard" credits={data.credits} />
 
-      <main className="flex-1 p-6 space-y-6">
+      <main className="flex-1 p-4 md:p-6 space-y-4 md:space-y-6">
         {/* Voice setup banner — shown when voice is not yet configured */}
         {!data.company?.vapi_assistant_id && <VoiceSetupBanner />}
 

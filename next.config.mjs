@@ -17,11 +17,23 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        // All routes: deny framing + security defaults
+        source: '/((?!widget).*)',
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+      {
+        // Widget route: allow embedding from any origin (it IS the embeddable widget)
+        source: '/widget(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // No X-Frame-Options → browser allows cross-origin iframe
+          // CSP frame-ancestors '*' explicitly permits all origins
+          { key: 'Content-Security-Policy', value: "frame-ancestors *" },
         ],
       },
     ]

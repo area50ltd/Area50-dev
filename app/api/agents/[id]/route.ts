@@ -28,13 +28,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const { name, max_concurrent_chats, specializations } = parsed.data
 
-  // Update agent record
+  // Update agent record — handle specializations gracefully if column doesn't exist in DB
   const agentUpdates: Record<string, unknown> = {}
   if (max_concurrent_chats !== undefined) agentUpdates.max_concurrent_chats = max_concurrent_chats
-  if (specializations !== undefined) agentUpdates.specializations = specializations
 
   if (Object.keys(agentUpdates).length > 0) {
     await db.update(agents).set(agentUpdates).where(eq(agents.id, params.id))
+  }
+
+  // Update specializations separately (column may not exist in older DB versions)
+  if (specializations !== undefined) {
+    try {
+      await db.update(agents).set({ specializations }).where(eq(agents.id, params.id))
+    } catch { /* specializations column not yet applied to DB — skip silently */ }
   }
 
   // Update user name if provided

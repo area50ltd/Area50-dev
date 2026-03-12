@@ -1,9 +1,10 @@
 'use client'
 
-import { Bell, Zap } from 'lucide-react'
+import { Bell, Zap, Menu } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { CREDIT_WARNING_THRESHOLD } from '@/lib/constants'
+import { useSidebar } from '@/hooks/useSidebar'
 
 interface TopBarProps {
   title: string
@@ -12,10 +13,21 @@ interface TopBarProps {
 
 export function TopBar({ title, credits }: TopBarProps) {
   const lowCredits = credits !== undefined && credits !== null && credits < CREDIT_WARNING_THRESHOLD
+  const { toggle } = useSidebar()
 
   return (
-    <header className="h-14 bg-white border-b border-neutral-100 flex items-center justify-between px-6 sticky top-0 z-30">
-      <h1 className="font-heading text-lg font-bold text-neutral-900">{title}</h1>
+    <header className="h-14 bg-white border-b border-neutral-100 flex items-center justify-between px-4 md:px-6 sticky top-0 z-30">
+      <div className="flex items-center gap-3">
+        {/* Hamburger — mobile only */}
+        <button
+          onClick={toggle}
+          className="md:hidden w-8 h-8 rounded-lg hover:bg-neutral-100 flex items-center justify-center text-neutral-500 transition-colors"
+          aria-label="Open menu"
+        >
+          <Menu size={18} />
+        </button>
+        <h1 className="font-heading text-base md:text-lg font-bold text-neutral-900">{title}</h1>
+      </div>
 
       <div className="flex items-center gap-3">
         {/* Credit balance chip */}

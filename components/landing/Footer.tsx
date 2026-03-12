@@ -8,7 +8,7 @@ const footerLinks = {
     { label: 'How It Works', href: '#how-it-works' },
   ],
   Company: [
-    { label: 'About', href: '#' },
+    { label: 'About', href: '/about' },
     { label: 'Contact', href: 'mailto:hello@zentativ.com' },
   ],
   Legal: [
@@ -78,7 +78,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-white/30 text-sm">
-            © {new Date().getFullYear()} Zentativ by Digitalwebtonics. All rights reserved.
+            © {new Date().getFullYear()} Zentativ by Area50/Webtonics. All rights reserved.
           </p>
           <p className="text-white/20 text-xs">
             zentativ.com

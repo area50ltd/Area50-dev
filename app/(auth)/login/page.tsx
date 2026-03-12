@@ -128,7 +128,7 @@ function LoginForm() {
           </div>
         </div>
 
-        <p className="text-white/20 text-xs relative z-10">© {new Date().getFullYear()} Zentativ by Digitalwebtonics</p>
+        <p className="text-white/20 text-xs relative z-10">© {new Date().getFullYear()} Zentativ by Area50/Webtonics</p>
       </div>
 
       {/* Right panel */}

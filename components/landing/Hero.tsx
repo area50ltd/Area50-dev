@@ -120,7 +120,7 @@ export function Hero() {
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[#E91E8C]/10 rounded-full blur-3xl" />
       <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-[#243460]/60 rounded-full blur-3xl" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 grid lg:grid-cols-2 gap-16 items-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 lg:py-32 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
         {/* Left — copy */}
         <div>
           <motion.div
@@ -139,7 +139,7 @@ export function Hero() {
             initial="hidden"
             animate="visible"
             custom={0.2}
-            className="font-heading text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6"
+            className="font-heading text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6"
           >
             AI That Handles{' '}
             <span className="bg-gradient-to-r from-[#E91E8C] to-[#FF6BB5] bg-clip-text text-transparent">

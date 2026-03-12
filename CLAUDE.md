@@ -1208,6 +1208,6 @@ curl -X POST https://n8n.srv1194565.hstgr.cloud/webhook/ai/chat \
 
 ---
 
-*Area50 — Built by Digitalwebtonics*
+*Area50 — Built by Area50/Webtonics*
 *CLAUDE.md v2.0 | February 2026*
 *Stack: Next.js 14 + Supabase + Vercel + Clerk + Paystack + Cloudflare R2 + n8n VPS*
