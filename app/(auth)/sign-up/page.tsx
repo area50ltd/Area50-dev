@@ -84,10 +84,10 @@ export default function SignUpPage() {
   async function handleGoogleSSO() {
     setSsoLoading(true)
     const supabase = createClient()
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin
+    // PKCE: callback must be on the same domain as the initiating page
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${appUrl}/auth/callback` },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) {
       toast.error(mapAuthError(error.message))

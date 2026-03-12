@@ -12,6 +12,10 @@ export const metadata: Metadata = {
   description:
     'Multi-tenant AI-powered customer support platform. Handle routine queries automatically, escalate complex issues to human agents.',
   keywords: ['customer support', 'AI chat', 'helpdesk', 'WhatsApp', 'voice support'],
+  icons: {
+    icon: '/images/logo/logo-dark.png',
+    apple: '/images/logo/logo-dark.png',
+  },
   openGraph: {
     title: 'Zentativ — Hybrid AI + Human Customer Care',
     description: 'AI That Handles Support. Humans That Close Deals.',
