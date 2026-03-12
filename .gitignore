@@ -38,3 +38,4 @@ next-env.d.ts
 
 # drizzle
 /drizzle/migrations/meta
+.github/secrets.local
