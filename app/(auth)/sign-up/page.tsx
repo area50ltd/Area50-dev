@@ -18,6 +18,9 @@ function mapAuthError(message: string): string {
     return 'Too many attempts. Please wait a few minutes.'
   }
   if (lower.includes('password should be at least')) return 'Password must be at least 8 characters.'
+  if (lower.includes('provider') || lower.includes('oauth') || lower.includes('not enabled')) {
+    return 'Google sign-in is not configured yet. Please use email and password.'
+  }
   if (lower.includes('failed to fetch') || lower.includes('network') || lower.includes('connection')) {
     return 'Connection failed. Check your internet and try again.'
   }
@@ -113,7 +116,10 @@ export default function SignUpPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } },
+      options: {
+        data: { full_name: name },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     })
 
     if (error) {

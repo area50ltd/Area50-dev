@@ -168,7 +168,7 @@ export function Hero() {
             custom={0.5}
             className="flex flex-col sm:flex-row gap-4"
           >
-            <Link href="/login">
+            <Link href="/sign-up">
               <Button size="xl" className="w-full sm:w-auto font-heading shadow-xl shadow-[#E91E8C]/30">
                 Start Free Trial
                 <ArrowRight size={18} />

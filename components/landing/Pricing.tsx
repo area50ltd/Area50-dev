@@ -148,7 +148,7 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <Link href="/login" className="block">
+              <Link href="/sign-up" className="block">
                 <Button
                   className="w-full rounded-full"
                   variant={plan.highlight ? 'default' : 'navy'}

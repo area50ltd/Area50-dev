@@ -15,6 +15,9 @@ function mapAuthError(message: string): string {
   if (lower.includes('over_email_send_rate_limit') || lower.includes('email rate limit') || lower.includes('rate limit')) {
     return 'Too many attempts. Please wait a few minutes.'
   }
+  if (lower.includes('provider') || lower.includes('oauth') || lower.includes('not enabled')) {
+    return 'Google sign-in is not configured yet. Please use email and password.'
+  }
   if (lower.includes('failed to fetch') || lower.includes('network') || lower.includes('connection')) {
     return 'Connection failed. Check your internet and try again.'
   }

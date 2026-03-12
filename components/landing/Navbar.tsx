@@ -67,7 +67,7 @@ export function Navbar() {
               Log in
             </Button>
           </Link>
-          <Link href="/login">
+          <Link href="/sign-up">
             <Button className="rounded-full font-semibold bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-900/40 px-6 h-10">
               Get Started
             </Button>
@@ -104,7 +104,7 @@ export function Navbar() {
             <Link href="/login" className="flex-1">
               <Button variant="secondary" className="w-full h-10">Log in</Button>
             </Link>
-            <Link href="/login" className="flex-1">
+            <Link href="/sign-up" className="flex-1">
               <Button className="w-full rounded-full h-10 bg-violet-600 hover:bg-violet-700 text-white">Get Started</Button>
             </Link>
           </div>
