@@ -32,10 +32,19 @@ function isPublicApi(pathname: string): boolean {
 }
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  const { pathname, searchParams } = request.nextUrl
 
-  // 1. Skip all static assets immediately — no processing needed
-  // (handled by the matcher config below, but belt-and-suspenders)
+  // 1. Supabase Site URL fallback catcher.
+  //    When Supabase can't match the redirectTo against its allowed list it falls
+  //    back to the configured Site URL (e.g. https://zentativ.com/) and appends
+  //    the auth params there.  We intercept any request to "/" that carries a
+  //    Supabase auth param and forward it to /auth/callback so the code-exchange
+  //    runs correctly.
+  if (pathname === '/' && (searchParams.has('code') || searchParams.has('token_hash'))) {
+    const callbackUrl = new URL('/auth/callback', request.url)
+    searchParams.forEach((value, key) => callbackUrl.searchParams.set(key, value))
+    return NextResponse.redirect(callbackUrl)
+  }
 
   // 2. All API routes: skip middleware session refresh.
   //    Each route handler calls getCurrentUser() which calls getUser() internally.
