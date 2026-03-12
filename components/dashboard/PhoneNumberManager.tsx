@@ -69,11 +69,11 @@ function ReleaseConfirmPanel({ onConfirm, onCancel, releasing }: {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function PhoneNumberManager() {
+export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string }) {
   const { data: company, isLoading } = useCompany()
   const queryClient = useQueryClient()
 
-  const [country, setCountry] = useState('US')
+  const [country, setCountry] = useState(defaultCountry ?? 'US')
   const [areaCode, setAreaCode] = useState('')
   const [searching, setSearching] = useState(false)
   const [availableNumbers, setAvailableNumbers] = useState<TwilioAvailableNumber[]>([])
