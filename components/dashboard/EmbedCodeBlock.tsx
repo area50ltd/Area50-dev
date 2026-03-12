@@ -10,7 +10,14 @@ interface EmbedCodeBlockProps {
   appUrl?: string
 }
 
-export function EmbedCodeBlock({ companyId, appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://zentativ.com' }: EmbedCodeBlockProps) {
+// Embed code must always point to the production domain, never localhost.
+// NEXT_PUBLIC_APP_URL is only used if it's a proper https:// URL.
+const PRODUCTION_URL = (() => {
+  const env = process.env.NEXT_PUBLIC_APP_URL
+  return env && env.startsWith('https://') ? env : 'https://zentativ.com'
+})()
+
+export function EmbedCodeBlock({ companyId, appUrl = PRODUCTION_URL }: EmbedCodeBlockProps) {
   const [copied, setCopied] = useState(false)
 
   const code = `<!-- Zentativ Support Widget -->
