@@ -13,12 +13,12 @@ import {
   Mail,
   ChevronRight,
   Info,
-  MessageSquare,
   Phone,
   PhoneOff,
   Mic,
   Gift,
   X,
+  Volume2,
 } from 'lucide-react'
 import { useCompany, useUpdateCompany } from '@/hooks/useCompany'
 import { VOICE_LANGUAGES, VOICE_TONES } from '@/lib/constants'
@@ -102,53 +102,62 @@ function BuildingBanner() {
   )
 }
 
+// ─── Transcript types ─────────────────────────────────────────────────────────
+
+interface TranscriptLine {
+  id: string
+  role: 'user' | 'assistant'
+  text: string
+  final: boolean
+}
+
 // ─── Call Modal ───────────────────────────────────────────────────────────────
 
 function CallModal({
   isActive,
   callSeconds,
   freeTestUsed,
-  textQuery,
-  textResponse,
-  textLoading,
-  onTextQueryChange,
-  onTextPreview,
+  transcript,
   onEndCall,
   onClose,
 }: {
   isActive: boolean
   callSeconds: number
   freeTestUsed: boolean
-  textQuery: string
-  textResponse: string
-  textLoading: boolean
-  onTextQueryChange: (v: string) => void
-  onTextPreview: () => void
+  transcript: TranscriptLine[]
   onEndCall: () => void
   onClose: () => void
 }) {
   const remaining = 119 - callSeconds
   const mins = Math.floor(remaining / 60)
   const secs = String(remaining % 60).padStart(2, '0')
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [transcript])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm flex flex-col overflow-hidden" style={{ maxHeight: '90vh' }}>
 
         {/* Header */}
-        <div className="bg-gradient-to-br from-violet-700 to-violet-500 px-5 pt-6 pb-8 relative">
+        <div className="bg-gradient-to-br from-violet-700 to-violet-500 px-5 pt-5 pb-6 relative flex-shrink-0">
           <button
             onClick={isActive ? onEndCall : onClose}
             className="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
           >
             <X size={14} className="text-white" />
           </button>
-          <p className="text-white/70 text-xs font-medium mb-1 text-center">
-            {isActive ? 'Live call' : 'Voice Agent Test'}
+
+          <p className="text-white/70 text-xs font-medium mb-3 text-center">
+            {isActive ? 'Live call' : transcript.length > 0 ? 'Call ended' : 'Voice Agent Test'}
           </p>
 
           {/* Pulsing circle */}
-          <div className="flex items-center justify-center my-4">
+          <div className="flex items-center justify-center mb-3">
             <div className="relative">
               {isActive && (
                 <>
@@ -156,43 +165,93 @@ function CallModal({
                   <div className="absolute -inset-3 rounded-full bg-white/10 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.3s' }} />
                 </>
               )}
-              <div className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-white shadow-lg shadow-violet-900/30' : 'bg-white/20'}`}>
+              <div className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-white shadow-lg shadow-violet-900/30' : 'bg-white/20'}`}>
                 {isActive
-                  ? <Mic size={32} className="text-violet-600" />
-                  : <PhoneCall size={32} className="text-white" />
+                  ? <Mic size={26} className="text-violet-600" />
+                  : transcript.length > 0
+                    ? <Volume2 size={26} className="text-white/70" />
+                    : <PhoneCall size={26} className="text-white" />
                 }
               </div>
             </div>
           </div>
 
-          {/* Status */}
+          {/* Timer / status */}
           {isActive ? (
             <div className="text-center">
-              <p className="text-white font-heading font-bold text-2xl">{mins}:{secs}</p>
-              <p className="text-white/60 text-xs mt-1">remaining</p>
+              <p className="text-white font-heading font-bold text-xl">{mins}:{secs}</p>
+              <p className="text-white/60 text-[11px] mt-0.5">remaining</p>
             </div>
+          ) : transcript.length > 0 ? (
+            <p className="text-white/70 text-xs text-center">Call complete</p>
           ) : (
-            <p className="text-white font-heading font-bold text-center text-lg">Ready to test</p>
+            <p className="text-white font-heading font-bold text-center">Connecting…</p>
           )}
         </div>
 
-        {/* Body */}
-        <div className="px-5 py-5 space-y-4">
-
-          {/* Free test badge or credits notice */}
+        {/* Free / credits badge */}
+        <div className="px-4 pt-3 flex-shrink-0">
           {!freeTestUsed ? (
-            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-              <Gift size={13} className="text-green-600 flex-shrink-0" />
-              <p className="text-xs font-semibold text-green-700">FREE — up to 2 min, on us 🎁</p>
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
+              <Gift size={12} className="text-green-600 flex-shrink-0" />
+              <p className="text-xs font-semibold text-green-700">FREE test — up to 2 min, on us 🎁</p>
             </div>
-          ) : !isActive ? (
-            <div className="flex items-center gap-2 bg-violet-50 border border-violet-100 rounded-lg px-3 py-2">
-              <Info size={13} className="text-violet-500 flex-shrink-0" />
-              <p className="text-xs text-violet-700">Uses <strong>10 credits/min</strong> from your balance.</p>
+          ) : isActive ? (
+            <div className="flex items-center gap-2 bg-violet-50 border border-violet-100 rounded-lg px-3 py-1.5">
+              <Info size={12} className="text-violet-500 flex-shrink-0" />
+              <p className="text-xs text-violet-700">Using <strong>10 credits/min</strong></p>
             </div>
           ) : null}
+        </div>
 
-          {/* Call button / end button */}
+        {/* Transcript */}
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto px-4 py-3 space-y-2 min-h-[140px]"
+        >
+          {transcript.length === 0 ? (
+            <div className="flex items-center justify-center h-24">
+              {isActive ? (
+                <div className="flex items-center gap-2 text-neutral-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              ) : (
+                <p className="text-xs text-neutral-300">Transcript will appear here during the call</p>
+              )}
+            </div>
+          ) : (
+            transcript.map((line) => (
+              <div key={line.id} className={`flex gap-2 ${line.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {line.role === 'assistant' && (
+                  <div className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Volume2 size={10} className="text-violet-600" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[80%] rounded-2xl px-3 py-2 text-xs leading-relaxed transition-opacity ${
+                    line.final ? 'opacity-100' : 'opacity-60'
+                  } ${
+                    line.role === 'user'
+                      ? 'bg-violet-600 text-white rounded-tr-sm'
+                      : 'bg-neutral-100 text-neutral-800 rounded-tl-sm'
+                  }`}
+                >
+                  {line.text}
+                </div>
+                {line.role === 'user' && (
+                  <div className="w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Mic size={10} className="text-white" />
+                  </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* End call button */}
+        <div className="px-4 pb-4 pt-2 flex-shrink-0">
           {isActive ? (
             <button
               onClick={onEndCall}
@@ -200,38 +259,14 @@ function CallModal({
             >
               <PhoneOff size={15} /> End Call
             </button>
-          ) : null}
-
-          {/* Text preview */}
-          <div>
-            <p className="text-xs text-neutral-400 font-medium mb-2 flex items-center gap-1.5">
-              <MessageSquare size={12} />
-              Or type a question to preview the AI response
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={textQuery}
-                onChange={(e) => onTextQueryChange(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && onTextPreview()}
-                placeholder="e.g. What are your hours?"
-                className="flex-1 border border-neutral-200 rounded-lg px-3 py-2 text-xs placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
-              />
-              <button
-                onClick={onTextPreview}
-                disabled={textLoading || !textQuery.trim()}
-                className="flex items-center gap-1 px-3 py-2 bg-neutral-900 text-white text-xs font-semibold rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-40"
-              >
-                {textLoading ? <Loader2 size={12} className="animate-spin" /> : 'Ask'}
-              </button>
-            </div>
-            {textResponse && (
-              <div className="mt-2 bg-neutral-50 border border-neutral-100 rounded-lg px-3 py-2.5">
-                <p className="text-[10px] text-neutral-400 font-semibold mb-1">AI Response:</p>
-                <p className="text-xs text-neutral-800 leading-relaxed">{textResponse}</p>
-              </div>
-            )}
-          </div>
+          ) : (
+            <button
+              onClick={onClose}
+              className="w-full flex items-center justify-center gap-2 border border-neutral-200 text-neutral-600 py-3 rounded-xl text-sm font-semibold hover:bg-neutral-50 transition-colors"
+            >
+              Close
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -298,10 +333,8 @@ export default function VoiceSettingsPage() {
   const vapiRef = useRef<import('@vapi-ai/web').default | null>(null)
   const intentionalStopRef = useRef(false)
 
-  // Text preview state
-  const [textQuery, setTextQuery] = useState('')
-  const [textResponse, setTextResponse] = useState('')
-  const [textLoading, setTextLoading] = useState(false)
+  // Transcript state
+  const [transcript, setTranscript] = useState<TranscriptLine[]>([])
 
   // Rebuild state
   const [rebuilding, setRebuilding] = useState(false)
@@ -367,6 +400,19 @@ export default function VoiceSettingsPage() {
         setCallSeconds(0)
         vapiRef.current = null
       })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vapi.on('message', (msg: any) => {
+        if (msg?.type !== 'transcript') return
+        const role = msg.role as 'user' | 'assistant'
+        const isFinal = msg.transcriptType === 'final'
+        setTranscript((prev) => {
+          const last = prev[prev.length - 1]
+          if (last && last.role === role && !last.final) {
+            return [...prev.slice(0, -1), { ...last, text: msg.transcript, final: isFinal }]
+          }
+          return [...prev, { id: `${Date.now()}-${role}`, role, text: msg.transcript, final: isFinal }]
+        })
+      })
       await vapi.start(company.vapi_assistant_id)
       callTimerRef.current = setInterval(() => {
         setCallSeconds((s) => {
@@ -385,33 +431,6 @@ export default function VoiceSettingsPage() {
     vapiRef.current?.stop()
     if (callTimerRef.current) clearInterval(callTimerRef.current)
   }, [])
-
-  const handleTextPreview = async () => {
-    if (!textQuery.trim()) return
-    setTextLoading(true)
-    setTextResponse('')
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company_id: company?.id,
-          message: textQuery,
-          session_id: 'voice-preview-test',
-          ticket_id: '33333333-3333-3333-3333-333333333333',
-          channel: 'web_widget',
-          language: 'en',
-        }),
-      })
-      const data = await res.json()
-      const reply = data.response || data.reply || data.output || data.message || data.text
-      setTextResponse(reply || 'No response — ensure your AI personality is set in Settings → AI Personality.')
-    } catch {
-      toast.error('Preview failed. Check your AI assistant is configured.')
-    } finally {
-      setTextLoading(false)
-    }
-  }
 
   const handleRebuildOnly = async () => {
     setRebuilding(true)
@@ -432,8 +451,7 @@ export default function VoiceSettingsPage() {
   }
 
   const handleOpenModal = () => {
-    setTextQuery('')
-    setTextResponse('')
+    setTranscript([])
     setShowModal(true)
     startBrowserCall()
   }
@@ -473,11 +491,7 @@ export default function VoiceSettingsPage() {
           isActive={isBrowserCalling}
           callSeconds={callSeconds}
           freeTestUsed={freeTestUsed}
-          textQuery={textQuery}
-          textResponse={textResponse}
-          textLoading={textLoading}
-          onTextQueryChange={setTextQuery}
-          onTextPreview={handleTextPreview}
+          transcript={transcript}
           onEndCall={stopBrowserCall}
           onClose={handleCloseModal}
         />
