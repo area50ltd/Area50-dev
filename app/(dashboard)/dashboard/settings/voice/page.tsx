@@ -150,7 +150,7 @@ export default function VoiceSettingsPage() {
 
   // Auto-build on first visit if assistant not yet created
   useEffect(() => {
-    if (!company || company.vapi_assistant_id) return
+    if (!company || (company.vapi_assistant_id && company.vapi_assistant_id !== 'null')) return
     if (isAutoBuilding || autoBuilt) return
     setIsAutoBuilding(true)
     fetch('/api/vapi/assistant', {
@@ -310,7 +310,7 @@ export default function VoiceSettingsPage() {
     )
   }
 
-  const isConfigured = !!company?.vapi_assistant_id
+  const isConfigured = !!company?.vapi_assistant_id && company.vapi_assistant_id !== 'null'
   const hasVoiceConfig = !!(company?.voice_language && company.voice_language !== 'en-US')
   const hasPhone = !!company?.vapi_phone_number
 
@@ -573,12 +573,12 @@ export default function VoiceSettingsPage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-neutral-500 w-32 flex-shrink-0">Assistant ID</span>
-                  {company?.vapi_assistant_id ? (
+                  {isConfigured ? (
                     <div className="flex items-center min-w-0">
                       <code className="text-xs text-neutral-700 bg-neutral-50 px-2 py-1 rounded border border-neutral-200 truncate max-w-xs">
-                        {company.vapi_assistant_id}
+                        {company!.vapi_assistant_id}
                       </code>
-                      <CopyButton value={company.vapi_assistant_id} />
+                      <CopyButton value={company!.vapi_assistant_id!} />
                     </div>
                   ) : (
                     <span className="text-xs text-neutral-400 italic">

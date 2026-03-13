@@ -162,7 +162,7 @@ export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string
   }
 
   const hasNumber = !!company?.vapi_phone_number
-  const hasAssistant = !!company?.vapi_assistant_id
+  const hasAssistant = !!company?.vapi_assistant_id && company.vapi_assistant_id !== 'null'
 
   // ── State C: No assistant yet ──
   if (!hasAssistant) {
