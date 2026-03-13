@@ -106,10 +106,12 @@ interface TranscriptLine {
   final: boolean
 }
 
+type CallStatus = 'idle' | 'connecting' | 'active' | 'ended'
+
 // ─── Call Modal ───────────────────────────────────────────────────────────────
 
-function CallModal({ isActive, callSeconds, freeTestUsed, transcript, onEndCall, onClose }: {
-  isActive: boolean
+function CallModal({ callStatus, callSeconds, freeTestUsed, transcript, onEndCall, onClose }: {
+  callStatus: CallStatus
   callSeconds: number
   freeTestUsed: boolean
   transcript: TranscriptLine[]
@@ -120,6 +122,9 @@ function CallModal({ isActive, callSeconds, freeTestUsed, transcript, onEndCall,
   const mins = Math.floor(remaining / 60)
   const secs = String(remaining % 60).padStart(2, '0')
   const scrollRef = useRef<HTMLDivElement>(null)
+  const isActive = callStatus === 'active'
+  const isConnecting = callStatus === 'connecting'
+  const isLive = isActive || isConnecting
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -132,14 +137,14 @@ function CallModal({ isActive, callSeconds, freeTestUsed, transcript, onEndCall,
         {/* Header */}
         <div className="bg-gradient-to-br from-violet-700 to-violet-500 px-5 pt-5 pb-6 relative flex-shrink-0">
           <button
-            onClick={isActive ? onEndCall : onClose}
+            onClick={isLive ? onEndCall : onClose}
             className="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
           >
             <X size={14} className="text-white" />
           </button>
 
           <p className="text-white/70 text-xs font-medium mb-3 text-center">
-            {isActive ? 'Live call' : transcript.length > 0 ? 'Call ended' : 'Voice Agent Test'}
+            {isConnecting ? 'Connecting…' : isActive ? 'Live call' : callStatus === 'ended' ? 'Call ended' : 'Voice Agent Test'}
           </p>
 
           <div className="flex items-center justify-center mb-3">
@@ -150,12 +155,14 @@ function CallModal({ isActive, callSeconds, freeTestUsed, transcript, onEndCall,
                   <div className="absolute -inset-3 rounded-full bg-white/10 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.3s' }} />
                 </>
               )}
-              <div className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all ${isActive ? 'bg-white shadow-lg shadow-violet-900/30' : 'bg-white/20'}`}>
-                {isActive
-                  ? <Mic size={26} className="text-violet-600" />
-                  : transcript.length > 0
-                    ? <Volume2 size={26} className="text-white/70" />
-                    : <PhoneCall size={26} className="text-white" />
+              <div className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all ${isLive ? 'bg-white shadow-lg shadow-violet-900/30' : 'bg-white/20'}`}>
+                {isConnecting
+                  ? <Loader2 size={26} className="text-violet-600 animate-spin" />
+                  : isActive
+                    ? <Mic size={26} className="text-violet-600" />
+                    : callStatus === 'ended'
+                      ? <Volume2 size={26} className="text-white/70" />
+                      : <PhoneCall size={26} className="text-white" />
                 }
               </div>
             </div>
@@ -166,11 +173,11 @@ function CallModal({ isActive, callSeconds, freeTestUsed, transcript, onEndCall,
               <p className="text-white font-heading font-bold text-xl">{mins}:{secs}</p>
               <p className="text-white/60 text-[11px] mt-0.5">remaining</p>
             </div>
-          ) : transcript.length > 0 ? (
+          ) : isConnecting ? (
+            <p className="text-white/60 text-xs text-center">Setting up microphone &amp; connection…</p>
+          ) : callStatus === 'ended' ? (
             <p className="text-white/70 text-xs text-center">Call complete</p>
-          ) : (
-            <p className="text-white font-heading font-bold text-center">Connecting…</p>
-          )}
+          ) : null}
         </div>
 
         {/* Credit badge */}
@@ -191,13 +198,18 @@ function CallModal({ isActive, callSeconds, freeTestUsed, transcript, onEndCall,
         {/* Transcript */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2 min-h-[140px]">
           {transcript.length === 0 ? (
-            <div className="flex items-center justify-center h-24">
-              {isActive ? (
-                <div className="flex items-center gap-1.5">
-                  {[0, 150, 300].map((d) => (
-                    <span key={d} className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: `${d}ms` }} />
-                  ))}
-                </div>
+            <div className="flex flex-col items-center justify-center h-24 gap-2">
+              {isConnecting ? (
+                <p className="text-xs text-neutral-400">Waiting for connection…</p>
+              ) : isActive ? (
+                <>
+                  <div className="flex items-center gap-1.5">
+                    {[0, 150, 300].map((d) => (
+                      <span key={d} className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: `${d}ms` }} />
+                    ))}
+                  </div>
+                  <p className="text-xs text-neutral-400">AI is ready — start speaking</p>
+                </>
               ) : (
                 <p className="text-xs text-neutral-300">Transcript will appear here during the call</p>
               )}
@@ -231,12 +243,13 @@ function CallModal({ isActive, callSeconds, freeTestUsed, transcript, onEndCall,
 
         {/* Action button */}
         <div className="px-4 pb-5 pt-2 flex-shrink-0">
-          {isActive ? (
+          {isLive ? (
             <button
               onClick={onEndCall}
-              className="w-full flex items-center justify-center gap-2 bg-red-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors"
+              disabled={isConnecting}
+              className="w-full flex items-center justify-center gap-2 bg-red-500 text-white py-3 rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors disabled:opacity-50"
             >
-              <PhoneOff size={15} /> End Call
+              <PhoneOff size={15} /> {isConnecting ? 'Connecting…' : 'End Call'}
             </button>
           ) : (
             <button
@@ -300,44 +313,91 @@ export default function VoiceSettingsPage() {
 
   // Call state
   const [showModal, setShowModal] = useState(false)
-  const [isBrowserCalling, setIsBrowserCalling] = useState(false)
+  const [callStatus, setCallStatus] = useState<CallStatus>('idle')
   const [callSeconds, setCallSeconds] = useState(0)
   const [transcript, setTranscript] = useState<TranscriptLine[]>([])
   const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const connectionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const vapiRef = useRef<import('@vapi-ai/web').default | null>(null)
   const intentionalStopRef = useRef(false)
 
   // Rebuild
   const [rebuilding, setRebuilding] = useState(false)
 
+  const clearTimers = () => {
+    if (callTimerRef.current) { clearInterval(callTimerRef.current); callTimerRef.current = null }
+    if (connectionTimeoutRef.current) { clearTimeout(connectionTimeoutRef.current); connectionTimeoutRef.current = null }
+  }
+
   const stopBrowserCall = () => {
     intentionalStopRef.current = true
-    vapiRef.current?.stop()
+    clearTimers()
+    const vapi = vapiRef.current
     vapiRef.current = null
-    if (callTimerRef.current) clearInterval(callTimerRef.current)
-    setIsBrowserCalling(false)
+    vapi?.stop()
+    setCallStatus('ended')
     setCallSeconds(0)
   }
 
   const startBrowserCall = async () => {
     if (!company?.vapi_assistant_id) return
     intentionalStopRef.current = false
-    setIsBrowserCalling(true)
+    setCallStatus('connecting')
     setCallSeconds(0)
-    if (!freeTestUsed) { localStorage.setItem('vapi_free_test_used', '1'); setFreeTestUsed(true) }
+    setTranscript([])
+
     try {
+      // Check mic permission before initialising SDK — gives a clear error message
+      await navigator.mediaDevices.getUserMedia({ audio: true })
+
       const Vapi = (await import('@vapi-ai/web')).default
       const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY!)
       vapiRef.current = vapi
+
+      // ── call-start: WebRTC is actually live ──
+      vapi.on('call-start', () => {
+        clearTimeout(connectionTimeoutRef.current!)
+        connectionTimeoutRef.current = null
+        setCallStatus('active')
+        // Mark free test used only when call is genuinely live
+        if (!freeTestUsed) { localStorage.setItem('vapi_free_test_used', '1'); setFreeTestUsed(true) }
+        // Start countdown
+        callTimerRef.current = setInterval(() => {
+          setCallSeconds((s) => {
+            if (s >= 119) { stopBrowserCall(); return 0 }
+            return s + 1
+          })
+        }, 1000)
+      })
+
+      // ── call-end: clean up ──
       vapi.on('call-end', () => {
-        if (callTimerRef.current) clearInterval(callTimerRef.current)
-        setIsBrowserCalling(false); setCallSeconds(0); vapiRef.current = null
+        if (intentionalStopRef.current) return // already cleaned up in stopBrowserCall
+        clearTimers()
+        vapiRef.current = null
+        setCallStatus('ended')
+        setCallSeconds(0)
       })
-      vapi.on('error', () => {
-        if (!intentionalStopRef.current) toast.error('Call ended unexpectedly. Please try again.')
-        if (callTimerRef.current) clearInterval(callTimerRef.current)
-        setIsBrowserCalling(false); setCallSeconds(0); vapiRef.current = null
+
+      // ── error: surface meaningful message ──
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vapi.on('error', (err: any) => {
+        clearTimers()
+        vapiRef.current = null
+        setCallStatus('ended')
+        setCallSeconds(0)
+        if (intentionalStopRef.current) return
+        const msg = err?.message || ''
+        if (msg.toLowerCase().includes('permission') || msg.toLowerCase().includes('denied')) {
+          toast.error('Microphone access was denied. Please allow microphone permissions and try again.')
+        } else if (msg.toLowerCase().includes('network') || msg.toLowerCase().includes('ice')) {
+          toast.error('Network error. Check your internet connection and try again.')
+        } else {
+          toast.error('Call ended unexpectedly. Please try again.')
+        }
       })
+
+      // ── transcript ──
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vapi.on('message', (msg: any) => {
         if (msg?.type !== 'transcript') return
@@ -348,23 +408,44 @@ export default function VoiceSettingsPage() {
           if (last && last.role === role && !last.final) {
             return [...prev.slice(0, -1), { ...last, text: msg.transcript, final: isFinal }]
           }
-          return [...prev, { id: `${Date.now()}-${role}`, role, text: msg.transcript, final: isFinal }]
+          return [...prev, { id: `${Date.now()}-${Math.random()}`, role, text: msg.transcript, final: isFinal }]
         })
       })
+
+      // Connection timeout — abort if call-start never fires in 20s
+      connectionTimeoutRef.current = setTimeout(() => {
+        if (!intentionalStopRef.current) {
+          intentionalStopRef.current = true
+          const v = vapiRef.current
+          vapiRef.current = null
+          v?.stop()
+          setCallStatus('ended')
+          toast.error('Connection timed out. Check your microphone and internet connection, then try again.')
+        }
+      }, 20_000)
+
       await vapi.start(company.vapi_assistant_id)
-      callTimerRef.current = setInterval(() => {
-        setCallSeconds((s) => { if (s >= 119) { stopBrowserCall(); return 0 } return s + 1 })
-      }, 1000)
-    } catch {
-      toast.error('Failed to start browser call. Check microphone permissions.')
-      setIsBrowserCalling(false)
+    } catch (err) {
+      clearTimers()
+      vapiRef.current = null
+      setCallStatus('ended')
+      const name = (err as Error)?.name ?? ''
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        toast.error('Microphone access denied. Please allow microphone permissions in your browser and try again.')
+      } else if (name === 'NotFoundError') {
+        toast.error('No microphone found. Please connect a microphone and try again.')
+      } else {
+        toast.error('Failed to start call. Please try again.')
+      }
     }
   }
 
+  // Cleanup on unmount
   useEffect(() => () => {
     intentionalStopRef.current = true
+    clearTimers()
     vapiRef.current?.stop()
-    if (callTimerRef.current) clearInterval(callTimerRef.current)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleSaveAndRebuild = async () => {
@@ -403,8 +484,12 @@ export default function VoiceSettingsPage() {
     }
   }
 
-  const handleOpenModal = () => { setTranscript([]); setShowModal(true); startBrowserCall() }
-  const handleCloseModal = () => { if (isBrowserCalling) stopBrowserCall(); setShowModal(false) }
+  const handleOpenModal = () => { setShowModal(true); startBrowserCall() }
+  const handleCloseModal = () => {
+    if (callStatus === 'connecting' || callStatus === 'active') stopBrowserCall()
+    setShowModal(false)
+    setCallStatus('idle')
+  }
 
   if (isLoading) {
     return (
@@ -428,7 +513,7 @@ export default function VoiceSettingsPage() {
 
       {showModal && (
         <CallModal
-          isActive={isBrowserCalling}
+          callStatus={callStatus}
           callSeconds={callSeconds}
           freeTestUsed={freeTestUsed}
           transcript={transcript}
@@ -579,7 +664,8 @@ export default function VoiceSettingsPage() {
                     {/* Browser call */}
                     <button
                       onClick={handleOpenModal}
-                      className="group relative flex flex-col items-center gap-3 bg-gradient-to-br from-violet-600 to-violet-500 text-white rounded-2xl px-5 py-6 hover:from-violet-700 hover:to-violet-600 transition-all shadow-lg shadow-violet-200"
+                      disabled={callStatus === 'connecting' || callStatus === 'active'}
+                      className="group relative flex flex-col items-center gap-3 bg-gradient-to-br from-violet-600 to-violet-500 text-white rounded-2xl px-5 py-6 hover:from-violet-700 hover:to-violet-600 transition-all shadow-lg shadow-violet-200 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
                         <PhoneCall size={22} className="text-white" />
