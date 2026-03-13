@@ -503,7 +503,7 @@ export default function VoiceSettingsPage() {
   }
 
   const isConfigured = !!company?.vapi_assistant_id && company.vapi_assistant_id !== 'null'
-  const hasVoiceConfig = !!(company?.voice_language && company.voice_language !== 'en-US')
+  const hasVoiceConfig = !!(company?.voice_language || company?.voice_tone)
   const hasPhone = !!company?.vapi_phone_number
   const currentProvider = VAPI_VOICE_PROVIDERS.find((p) => p.id === voiceProvider)
 
