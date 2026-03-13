@@ -46,6 +46,7 @@ export interface Company {
   voice_accent: string | null
   voice_gender: string | null
   voice_tone: string | null
+  voice_provider: string | null
   elevenlabs_voice_id: string | null
   is_active: boolean | null
   created_at: Date | null
