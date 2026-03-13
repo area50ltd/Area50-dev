@@ -55,7 +55,8 @@ async function vapiRequest<T>(path: string, options?: RequestInit): Promise<T> {
 
 export interface VapiPhoneNumber {
   id: string
-  number: string
+  number?: string       // E.164 — present once provisioned
+  phoneNumber?: string  // Vapi API sometimes uses this field name
   country?: string
   areaCode?: string
   provider?: string
@@ -163,6 +164,11 @@ export async function registerTwilioNumber(params: {
       twilioAuthToken,
     }),
   })
+}
+
+/** Fetch a single owned phone number by ID — use as fallback if POST doesn't return number */
+export async function getPhoneNumberById(id: string): Promise<VapiPhoneNumber> {
+  return vapiRequest<VapiPhoneNumber>(`/phone-number/${id}`)
 }
 
 /** Release / delete an owned phone number */
