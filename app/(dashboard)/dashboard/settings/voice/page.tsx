@@ -420,7 +420,6 @@ export default function VoiceSettingsPage() {
   const isConfigured = !!company?.vapi_assistant_id && company.vapi_assistant_id !== 'null'
   const hasVoiceConfig = !!(company?.voice_language && company.voice_language !== 'en-US')
   const hasPhone = !!company?.vapi_phone_number
-  const defaultCountry = (company?.language === 'yo' || company?.language === 'ha' || company?.language === 'ig') ? 'NG' : undefined
   const currentProvider = VAPI_VOICE_PROVIDERS.find((p) => p.id === voiceProvider)
 
   return (
@@ -454,7 +453,7 @@ export default function VoiceSettingsPage() {
                 isBuilding={isAutoBuilding}
               />
 
-              <PhoneNumberManager defaultCountry={defaultCountry} />
+              <PhoneNumberManager />
 
               {/* ── Voice Configuration ── */}
               <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5 sm:p-6 space-y-5">

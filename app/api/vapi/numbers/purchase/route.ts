@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { db } from '@/lib/db'
 import { users, companies } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
-import { purchaseVapiNativeNumber, getPhoneNumberById, registerTwilioNumber, VapiError } from '@/lib/vapi'
+import { purchaseVapiNativeNumber, getPhoneNumberById, deletePhoneNumber, registerTwilioNumber, VapiError } from '@/lib/vapi'
 import { purchaseNumber, TwilioError } from '@/lib/twilio'
 
 const Schema = z.object({
@@ -59,15 +59,27 @@ export async function POST(req: Request) {
         assistantId: company.vapi_assistant_id,
       })
 
-      // Vapi returns the number in `number` or `phoneNumber` depending on version.
-      // If absent in the creation response, fetch the record by ID.
+      // Vapi provisions numbers asynchronously — the `number` field may be null
+      // in the creation response. Poll GET /phone-number/{id} until it appears.
       let actualNumber = vapiNumber.number ?? vapiNumber.phoneNumber
       if (!actualNumber && vapiNumber.id) {
-        const fetched = await getPhoneNumberById(vapiNumber.id)
-        actualNumber = fetched.number ?? fetched.phoneNumber
+        for (let i = 0; i < 6; i++) {
+          await new Promise((r) => setTimeout(r, 2000))
+          const fetched = await getPhoneNumberById(vapiNumber.id)
+          actualNumber = fetched.number ?? fetched.phoneNumber
+          if (actualNumber) break
+        }
       }
+
+      // If still no number after polling, clean up the orphaned Vapi record
       if (!actualNumber) {
-        throw new Error('Vapi provisioned your number but did not return its value. Check your Vapi dashboard.')
+        if (vapiNumber.id) {
+          try { await deletePhoneNumber(vapiNumber.id) } catch { /* best effort cleanup */ }
+        }
+        throw new Error(
+          'Vapi could not provision a phone number. This is usually caused by insufficient Vapi account balance. ' +
+          'Please top up your Vapi account at dashboard.vapi.ai → Billing, then try again.',
+        )
       }
 
       await db.update(companies)

@@ -9,14 +9,10 @@ import {
   Loader2,
   AlertTriangle,
   PhoneOff,
-  Info,
+  Mail,
+  MessageSquare,
 } from 'lucide-react'
 import { useCompany } from '@/hooks/useCompany'
-import { PHONE_COUNTRIES } from '@/lib/constants'
-
-// Countries Vapi's native provider can provision numbers in
-const VAPI_COUNTRIES = new Set(['US', 'CA', 'GB', 'AU'])
-const AREA_CODE_COUNTRIES = new Set(['US', 'CA', 'GB', 'AU'])
 
 // ─── Release Confirmation ──────────────────────────────────────────────────────
 
@@ -60,40 +56,12 @@ function ReleaseConfirmPanel({ onConfirm, onCancel, releasing }: {
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
-export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string }) {
+export function PhoneNumberManager() {
   const { data: company, isLoading } = useCompany()
   const queryClient = useQueryClient()
 
-  const [country, setCountry] = useState(defaultCountry ?? 'US')
-  const [areaCode, setAreaCode] = useState('')
-  const [purchasing, setPurchasing] = useState(false)
-  const [purchaseError, setPurchaseError] = useState('')
   const [showReleaseConfirm, setShowReleaseConfirm] = useState(false)
   const [releasing, setReleasing] = useState(false)
-
-  const handleGetNumber = async () => {
-    setPurchasing(true)
-    setPurchaseError('')
-    try {
-      const res = await fetch('/api/vapi/numbers/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone_number: `__vapi__:${country}:${areaCode.trim()}`,
-          provider: 'vapi',
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed to provision number')
-      if (data.warning) toast.warning(data.warning)
-      else toast.success(`Phone number ${data.phone_number} is now active!`)
-      queryClient.invalidateQueries({ queryKey: ['company'] })
-    } catch (err) {
-      setPurchaseError(err instanceof Error ? err.message : 'Failed to provision number. Please try again.')
-    } finally {
-      setPurchasing(false)
-    }
-  }
 
   const handleRelease = async () => {
     setReleasing(true)
@@ -128,26 +96,6 @@ export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string
   }
 
   const hasNumber = !!company?.vapi_phone_number
-  const hasAssistant = !!company?.vapi_assistant_id && company.vapi_assistant_id !== 'null'
-  const isVapiCountry = VAPI_COUNTRIES.has(country)
-
-  // ── No assistant yet ──
-  if (!hasAssistant) {
-    return (
-      <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5 sm:p-6">
-        <CardHeader />
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-4 mt-4">
-          <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-amber-800">AI assistant not ready yet</p>
-            <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-              Your AI assistant is still being configured. Once it&apos;s ready, you can get a phone number.
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
   // ── Active number ──
   if (hasNumber) {
@@ -192,108 +140,58 @@ export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string
     )
   }
 
-  // ── No number — provision one ──
+  // ── No number — contact us ──
   return (
     <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5 sm:p-6">
       <CardHeader />
       <p className="text-sm text-neutral-500 mt-1 mb-5 leading-relaxed">
-        Get a dedicated phone number. Your AI assistant answers every inbound call automatically.
+        Get a dedicated phone number and let your AI assistant handle every inbound call automatically.
       </p>
 
-      <div className="space-y-4">
-
-        {/* Country + area code */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1.5 block">
-              Country
-            </label>
-            <select
-              value={country}
-              onChange={(e) => { setCountry(e.target.value); setPurchaseError('') }}
-              className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 bg-white focus:outline-none focus:ring-2 focus:ring-violet-600/30 focus:border-violet-600"
-            >
-              {PHONE_COUNTRIES.map((grp) => (
-                <optgroup key={grp.group} label={grp.group}>
-                  {grp.options.map((c) => (
-                    <option key={c.code} value={c.code}>{c.label}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </div>
-
-          {AREA_CODE_COUNTRIES.has(country) && (
-            <div>
-              <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1.5 block">
-                Area Code <span className="font-normal text-neutral-400">(optional)</span>
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                placeholder="e.g. 415"
-                value={areaCode}
-                onChange={(e) => setAreaCode(e.target.value.replace(/\D/g, ''))}
-                maxLength={5}
-                onKeyDown={(e) => e.key === 'Enter' && !purchasing && handleGetNumber()}
-                className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-600/30 focus:border-violet-600"
-              />
-            </div>
-          )}
+      <div className="rounded-xl border border-violet-100 bg-violet-50 px-5 py-5 space-y-4">
+        <div>
+          <p className="text-sm font-semibold text-violet-900">We set it up for you</p>
+          <p className="text-xs text-violet-700 mt-1 leading-relaxed">
+            Our team provisions and connects your dedicated phone number — usually within one business day.
+            Numbers work globally via VoIP, so your customers can call from anywhere.
+          </p>
         </div>
 
-        {/* Vapi-supported → direct provision */}
-        {isVapiCountry ? (
-          <>
-            <div className="flex items-start gap-2 bg-violet-50 border border-violet-100 rounded-lg px-3 py-2.5">
-              <Info size={13} className="text-violet-500 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-violet-700 leading-relaxed">
-                Vapi will instantly assign you a real phone number
-                {areaCode.trim() ? ` with area code ${areaCode.trim()}` : ` in ${country}`}.
-                It connects to your AI assistant immediately.
-              </p>
-            </div>
+        <ul className="space-y-2">
+          {[
+            'US, UK, Canadian, and Australian numbers available',
+            'Instantly connected to your AI assistant',
+            'Inbound calls answered 24/7 automatically',
+          ].map((item) => (
+            <li key={item} className="flex items-start gap-2 text-xs text-violet-800">
+              <CheckCircle2 size={13} className="text-violet-500 flex-shrink-0 mt-0.5" />
+              {item}
+            </li>
+          ))}
+        </ul>
 
-            {purchaseError && (
-              <div className="flex items-start gap-2 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
-                <AlertTriangle size={14} className="text-red-500 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-red-600 leading-relaxed">{purchaseError}</p>
-              </div>
-            )}
+        <div className="flex flex-col sm:flex-row gap-2 pt-1">
+          <a
+            href="mailto:support@zentativ.com?subject=Phone%20Number%20Setup%20Request"
+            className="flex-1 flex items-center justify-center gap-2 bg-violet-600 text-white py-2.5 rounded-full text-xs font-semibold hover:bg-violet-700 transition-colors"
+          >
+            <Mail size={13} />
+            Email Us to Get Started
+          </a>
+          <a
+            href="https://wa.me/message/XXXXXXXXX"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-2 border border-violet-200 text-violet-700 py-2.5 rounded-full text-xs font-semibold hover:bg-violet-100 transition-colors"
+          >
+            <MessageSquare size={13} />
+            Chat on WhatsApp
+          </a>
+        </div>
 
-            <button
-              onClick={handleGetNumber}
-              disabled={purchasing}
-              className="w-full bg-violet-600 text-white py-3 rounded-full text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {purchasing ? (
-                <><Loader2 size={14} className="animate-spin" /> Provisioning your number…</>
-              ) : (
-                <><Phone size={14} /> Get a Phone Number</>
-              )}
-            </button>
-          </>
-        ) : (
-          /* Unsupported country */
-          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-4">
-            <AlertTriangle size={15} className="text-amber-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-semibold text-amber-800">
-                Direct provisioning not available for {country}
-              </p>
-              <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                Vapi&apos;s provider supports <strong>US, CA, GB, and AU</strong> numbers.
-                These work globally via VoIP — your customers can call from anywhere in the world.
-              </p>
-              <button
-                onClick={() => { setCountry('US'); setPurchaseError('') }}
-                className="mt-2.5 text-xs font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 transition-colors px-3 py-1.5 rounded-lg"
-              >
-                Switch to US →
-              </button>
-            </div>
-          </div>
-        )}
+        <p className="text-[10px] text-violet-500 text-center">
+          Typically activated within 1 business day · No extra charge on Growth &amp; Business plans
+        </p>
       </div>
     </div>
   )
