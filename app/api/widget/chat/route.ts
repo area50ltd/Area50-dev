@@ -64,13 +64,26 @@ export async function POST(req: Request) {
     content: message,
   })
 
-  // 3. Call n8n for AI response
+  // 3. Call n8n for AI response (25s timeout — keeps us within Vercel's serverless limit)
   let result: ChatResponse
   try {
-    result = await callN8n<ChatResponse>('/webhook/ai/chat', parsed.data)
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 25_000)
+    let raw: unknown
+    try {
+      raw = await callN8n<unknown>('/webhook/ai/chat', parsed.data)
+    } finally {
+      clearTimeout(timeout)
+    }
+    // n8n sometimes wraps the response in an array — normalise it
+    result = (Array.isArray(raw) ? raw[0] : raw) as ChatResponse
   } catch (err) {
     console.error('[api/widget/chat] n8n error:', err)
-    return NextResponse.json({ error: 'AI service unavailable' }, { status: 503 })
+    const isTimeout = err instanceof Error && err.name === 'AbortError'
+    return NextResponse.json(
+      { error: isTimeout ? 'AI response timed out' : 'AI service unavailable' },
+      { status: 503 },
+    )
   }
 
   // Handle insufficient credits — WF13 tells us credits ran out
@@ -79,7 +92,8 @@ export async function POST(req: Request) {
   }
 
   // 4. Persist the AI response (if present)
-  const responseText = result.response || (result as unknown as Record<string, unknown>).output as string | undefined
+  const r = result as unknown as Record<string, unknown>
+  const responseText = (result.response || r.output || r.reply || r.message || r.text || r.answer) as string | undefined
   if (responseText) {
     await db.insert(messages).values({
       ticket_id,
@@ -105,5 +119,6 @@ export async function POST(req: Request) {
     // Non-fatal — enrichment is best-effort
   }
 
-  return NextResponse.json(result)
+  // Always return `response` at the top level so the widget can reliably access it
+  return NextResponse.json({ ...result, response: responseText ?? null })
 }

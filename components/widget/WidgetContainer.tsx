@@ -1,9 +1,8 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Phone, PhoneOff } from 'lucide-react'
-import { toast } from 'sonner'
 import { WidgetHeader } from './WidgetHeader'
 import { MessageBubble } from './MessageBubble'
 import { WidgetInput } from './WidgetInput'
@@ -34,11 +33,20 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
     }
   }, [messages, isOpen, isSending])
 
+  // Add an AI-style error bubble into the chat (visible inside iframe, unlike toasts)
+  const addErrorMessage = useCallback((text: string) => {
+    addMessage({
+      ticket_id: ticketId,
+      company_id: company.id,
+      sender_type: 'ai',
+      sender_id: null,
+      content: text,
+      is_helpful: null,
+    })
+  }, [addMessage, ticketId, company.id])
+
   const handleVoiceCall = async () => {
-    if (!company.vapi_assistant_id) {
-      toast.error('Voice assistant not configured yet')
-      return
-    }
+    if (!company.vapi_assistant_id) return
     if (isCallActive) {
       vapiRef.current?.stop()
       setIsCallActive(false)
@@ -47,14 +55,14 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
     try {
       const { default: Vapi } = await import('@vapi-ai/web')
       const key = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY
-      if (!key) { toast.error('Voice not configured'); return }
+      if (!key) return
       vapiRef.current = new Vapi(key)
       vapiRef.current.on('call-end', () => setIsCallActive(false))
-      vapiRef.current.on('error', () => { toast.error('Call error'); setIsCallActive(false) })
+      vapiRef.current.on('error', () => setIsCallActive(false))
       await vapiRef.current.start(company.vapi_assistant_id)
       setIsCallActive(true)
     } catch {
-      toast.error('Failed to start voice call')
+      // Voice call failures are non-critical — chat still works
     }
   }
 
@@ -86,20 +94,9 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
       })
 
       if (!res.ok) {
-        const err = await res.json()
-        if (res.status === 402) {
-          // Insufficient credits — show as AI message so customer isn't alarmed
-          addMessage({
-            ticket_id: ticketId,
-            company_id: company.id,
-            sender_type: 'ai',
-            sender_id: null,
-            content: 'Our support service is temporarily unavailable. Please try again later or contact us directly.',
-            is_helpful: null,
-          })
-          return
-        }
-        throw new Error(err.error ?? 'Failed to get response')
+        // Show the error inside the chat — toasts are invisible inside an iframe
+        addErrorMessage('Sorry, our support is temporarily unavailable. Please try again in a moment.')
+        return
       }
 
       const data = await res.json()
@@ -109,7 +106,7 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
         setTicketId(data.ticket_id)
       }
 
-      // n8n may return the text under different field names depending on workflow config
+      // Route returns response normalised to `data.response`
       const responseText = data.response || data.output || data.message || data.reply || data.text
 
       if (responseText) {
@@ -122,15 +119,15 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
           is_helpful: null,
         })
       } else if (!data.escalate) {
-        // n8n returned 200 but no text — surface it so it's not a silent failure
-        toast.error('No response from AI. Check your n8n workflow is active and returning a response field.')
+        // n8n returned 200 but no text — visible in-chat fallback
+        addErrorMessage("I didn't quite get that. Could you rephrase your question?")
       }
 
       if (data.escalate) {
         setView('handoff')
       }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to send message. Please try again.')
+    } catch {
+      addErrorMessage('Connection error. Please check your internet and try again.')
     } finally {
       setSending(false)
     }
@@ -184,7 +181,7 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
                     message={msg}
                     widgetColor={widgetColor}
                     onTalkToHuman={handleTalkToHuman}
-                    onCreateTicket={() => toast.info('Ticket created')}
+                    onCreateTicket={() => addErrorMessage('Ticket created! Our team will follow up shortly.')}
                   />
                 ))}
 
