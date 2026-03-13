@@ -67,19 +67,18 @@ export async function POST(req: Request) {
   // 3. Call n8n for AI response (25s timeout — keeps us within Vercel's serverless limit)
   let result: ChatResponse
   try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 25_000)
-    let raw: unknown
-    try {
-      raw = await callN8n<unknown>('/webhook/ai/chat', parsed.data)
-    } finally {
-      clearTimeout(timeout)
-    }
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('n8n timeout')), 25_000),
+    )
+    const raw = await Promise.race([
+      callN8n<unknown>('/webhook/ai/chat', parsed.data),
+      timeoutPromise,
+    ])
     // n8n sometimes wraps the response in an array — normalise it
     result = (Array.isArray(raw) ? raw[0] : raw) as ChatResponse
   } catch (err) {
     console.error('[api/widget/chat] n8n error:', err)
-    const isTimeout = err instanceof Error && err.name === 'AbortError'
+    const isTimeout = err instanceof Error && err.message === 'n8n timeout'
     return NextResponse.json(
       { error: isTimeout ? 'AI response timed out' : 'AI service unavailable' },
       { status: 503 },
