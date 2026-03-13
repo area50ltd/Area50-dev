@@ -26,6 +26,7 @@ export async function GET(req: Request) {
         phone_number: n.phoneNumber,
         friendly_name: n.phoneNumber,
         region: n.region,
+        locality: n.areaCode,   // area code preference shown in UI
         capabilities: { voice: true, SMS: false },
         provider: 'vapi',
       })))

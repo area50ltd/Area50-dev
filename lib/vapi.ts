@@ -71,56 +71,59 @@ export interface AvailablePhoneNumber {
 
 // ─── Available Numbers ────────────────────────────────────────────────────────
 
-export async function searchAvailableNumbers(areaCode?: string): Promise<VapiPhoneNumber[]> {
-  const params = new URLSearchParams({ limit: '10' })
-  if (areaCode) params.set('areaCode', areaCode)
-  return vapiRequest<VapiPhoneNumber[]>(`/phone-number/available?${params}`)
-}
+// Countries Vapi's native provider can provision numbers in.
+// Vapi uses Vonage under the hood; area-code selection is US-centric but other
+// countries can be provisioned by omitting an area code.
+export const VAPI_NATIVE_COUNTRIES = new Set(['US', 'CA', 'GB', 'AU'])
 
+/**
+ * Vapi has NO search/available endpoint.  Instead we return a virtual
+ * placeholder for supported countries — the real number is assigned by Vapi
+ * at purchase time via POST /phone-number with numberDesiredAreaCode.
+ *
+ * Placeholder format: `__vapi__:<COUNTRY>:<AREA_CODE>`
+ */
 export async function searchAvailableByCountry(
   country: string,
   areaCode?: string,
 ): Promise<AvailablePhoneNumber[]> {
-  const params = new URLSearchParams({ country, limit: '10' })
-  if (areaCode) params.set('areaCode', areaCode)
+  const key = process.env.VAPI_API_KEY
+  if (!key) throw new VapiError('VAPI_API_KEY is not configured', undefined, 'not_configured')
 
-  // The Vapi API may return numbers with different field names depending on version.
-  // Normalise to our AvailablePhoneNumber shape.
-  const raw = await vapiRequest<Record<string, unknown>[]>(`/phone-number/available?${params}`)
+  if (!VAPI_NATIVE_COUNTRIES.has(country.toUpperCase())) {
+    return [] // unsupported country — caller will fall through to Twilio
+  }
 
-  return raw
-    .map((item) => ({
-      phoneNumber: (item.phoneNumber ?? item.number ?? item.phone_number ?? '') as string,
-      areaCode: (item.areaCode ?? item.area_code ?? areaCode) as string | undefined,
-      region: (item.region ?? item.locality ?? item.state ?? '') as string | undefined,
-    }))
-    .filter((n) => Boolean(n.phoneNumber))
+  return [{
+    phoneNumber: `__vapi__:${country.toUpperCase()}:${areaCode ?? ''}`,
+    areaCode,
+    region: country.toUpperCase(),
+  }]
 }
 
 // ─── Purchase / Release ───────────────────────────────────────────────────────
 
-/** Purchase using a phoneNumberId (simple setup wizard flow) */
-export async function purchasePhoneNumber(phoneNumberId: string): Promise<VapiPhoneNumber> {
-  return vapiRequest<VapiPhoneNumber>('/phone-number', {
-    method: 'POST',
-    body: JSON.stringify({ phoneNumberId }),
-  })
-}
-
-/** Purchase a number directly through Vapi's own phone number provider (no Twilio creds needed) */
+/**
+ * Provision a number through Vapi's own provider (Vonage-backed).
+ * Vapi assigns the actual number — no explicit number is specified.
+ * `numberDesiredAreaCode` is an optional US area code preference.
+ */
 export async function purchaseVapiNativeNumber(params: {
-  number: string
+  numberDesiredAreaCode?: string
   name: string
   assistantId: string
 }): Promise<VapiPhoneNumber> {
+  const body: Record<string, unknown> = {
+    provider: 'vapi',
+    name: params.name,
+    assistantId: params.assistantId,
+  }
+  if (params.numberDesiredAreaCode) {
+    body.numberDesiredAreaCode = params.numberDesiredAreaCode
+  }
   return vapiRequest<VapiPhoneNumber>('/phone-number', {
     method: 'POST',
-    body: JSON.stringify({
-      provider: 'vapi',
-      number: params.number,
-      name: params.name,
-      assistantId: params.assistantId,
-    }),
+    body: JSON.stringify(body),
   })
 }
 

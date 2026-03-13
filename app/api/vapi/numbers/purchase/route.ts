@@ -8,8 +8,9 @@ import { purchaseVapiNativeNumber, registerTwilioNumber, VapiError } from '@/lib
 import { purchaseNumber, TwilioError } from '@/lib/twilio'
 
 const Schema = z.object({
-  phone_number: z.string().min(7, 'Invalid phone number'),
-  // 'vapi' = Vapi-native provider (default), 'twilio' = BYO Twilio
+  // For Vapi-native: placeholder format `__vapi__:<COUNTRY>:<AREA_CODE>`
+  // For Twilio: a real E.164 phone number
+  phone_number: z.string().min(1),
   provider: z.enum(['vapi', 'twilio']).default('vapi'),
 })
 
@@ -45,21 +46,32 @@ export async function POST(req: Request) {
   const { phone_number, provider } = parsed.data
   const numberName = `${company.name} Main Line`
 
-  // ── Path A: Vapi-native (preferred) ───────────────────────────────────────
+  // ── Path A: Vapi-native ────────────────────────────────────────────────────
+  // phone_number is the placeholder `__vapi__:<COUNTRY>:<AREA_CODE>` from search.
+  // Vapi assigns the actual number on purchase; we store what Vapi returns.
   if (provider === 'vapi') {
+    const isVapiPlaceholder = phone_number.startsWith('__vapi__')
+    const [, , areaCode] = isVapiPlaceholder ? phone_number.split(':') : []
     try {
       const vapiNumber = await purchaseVapiNativeNumber({
-        number: phone_number,
+        numberDesiredAreaCode: areaCode || undefined,
         name: numberName,
         assistantId: company.vapi_assistant_id,
       })
+      const actualNumber = vapiNumber.number
+      if (!actualNumber) throw new Error('Vapi did not return a phone number')
       await db.update(companies)
-        .set({ vapi_phone_number: phone_number, vapi_phone_number_id: vapiNumber.id })
+        .set({ vapi_phone_number: actualNumber, vapi_phone_number_id: vapiNumber.id })
         .where(eq(companies.id, dbUser.company_id))
-      return NextResponse.json({ success: true, phone_number, provider: 'vapi' })
+      return NextResponse.json({ success: true, phone_number: actualNumber, provider: 'vapi' })
     } catch (err) {
-      console.error('[api/vapi/numbers/purchase] Vapi-native purchase failed, falling back to Twilio:', err)
-      // Fall through to Twilio path
+      console.error('[api/vapi/numbers/purchase] Vapi-native purchase failed:', err)
+      if (isVapiPlaceholder) {
+        // Placeholder numbers can't be purchased via Twilio — surface the real error
+        const msg = err instanceof Error ? err.message : 'Failed to provision number via Vapi.'
+        return NextResponse.json({ error: msg }, { status: 502 })
+      }
+      // Real number + Vapi failed → fall through to Twilio
     }
   }
 

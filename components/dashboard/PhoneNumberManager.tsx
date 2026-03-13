@@ -94,7 +94,11 @@ export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string
       if (!res.ok) throw new Error(data.error ?? 'Failed to fetch numbers')
       const list: AvailableNumber[] = Array.isArray(data) ? data : []
       if (list.length === 0) {
-        setSearchError('No numbers available for this selection. Try a different country or area code.')
+        setSearchError(
+          ['US', 'CA', 'GB', 'AU'].includes(country)
+            ? 'No numbers available for this area code. Try removing the area code filter.'
+            : 'Numbers for this country aren\'t available through Vapi\'s provider. Use US, CA, GB, or AU — VoIP numbers work globally for inbound/outbound calls.'
+        )
       }
       setAvailableNumbers(list)
     } catch (err) {
@@ -331,11 +335,26 @@ export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string
                 className="accent-violet-600"
               />
               <div className="flex-1">
-                <p className="text-sm font-semibold text-neutral-900">{n.friendly_name}</p>
-                {(n.locality || n.region) && (
-                  <p className="text-xs text-neutral-400">
-                    {[n.locality, n.region].filter(Boolean).join(', ')}
-                  </p>
+                {n.phone_number.startsWith('__vapi__') ? (
+                  <>
+                    <p className="text-sm font-semibold text-neutral-900">
+                      Vapi will assign you a number
+                    </p>
+                    <p className="text-xs text-neutral-400">
+                      {n.region ? `Country: ${n.region}` : ''}
+                      {n.locality ? ` · Preferred area code: ${n.locality}` : ''}
+                      {' · Actual number shown after purchase'}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-neutral-900">{n.friendly_name}</p>
+                    {(n.locality || n.region) && (
+                      <p className="text-xs text-neutral-400">
+                        {[n.locality, n.region].filter(Boolean).join(', ')}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
               {selectedNumber === n.phone_number && (
