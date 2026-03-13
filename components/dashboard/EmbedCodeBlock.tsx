@@ -21,7 +21,7 @@ export function EmbedCodeBlock({ companyId, appUrl = PRODUCTION_URL }: EmbedCode
   const [copied, setCopied] = useState(false)
 
   const code = `<!-- Zentativ Support Widget -->
-<script>window.AREA50_COMPANY_ID = '${companyId}';</script>
+<script>window.ZENTATIV_COMPANY_ID = '${companyId}';</script>
 <script src="${appUrl}/embed.js" async></script>`
 
   const handleCopy = async () => {

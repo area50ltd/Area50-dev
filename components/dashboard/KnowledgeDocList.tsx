@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { File, FileText, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, Clock, Trash2, ExternalLink } from 'lucide-react'
+import { File, FileText, FileSpreadsheet, Loader2, CheckCircle2, AlertCircle, Clock, Trash2, ExternalLink, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatDate, formatFileSize } from '@/lib/utils'
 import { Skeleton } from '@/components/shared/LoadingSkeleton'
@@ -41,9 +41,40 @@ function useDeleteDocument() {
   })
 }
 
+function useRetryDocument() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/knowledge/${id}/retry`, { method: 'POST' })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error ?? 'Retry failed')
+      }
+      return res.json()
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['knowledge'] }),
+  })
+}
+
 export function KnowledgeDocList({ docs, isLoading }: KnowledgeDocListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [retryingId, setRetryingId] = useState<string | null>(null)
   const { mutate: deleteDoc } = useDeleteDocument()
+  const { mutate: retryDoc } = useRetryDocument()
+
+  const handleRetry = (doc: KnowledgeDocument) => {
+    setRetryingId(doc.id)
+    retryDoc(doc.id, {
+      onSuccess: () => {
+        toast.success(`"${doc.filename}" re-embedded successfully`)
+        setRetryingId(null)
+      },
+      onError: (err) => {
+        toast.error(`Retry failed: ${err.message}`)
+        setRetryingId(null)
+      },
+    })
+  }
 
   const handleDelete = (doc: KnowledgeDocument) => {
     setDeletingId(doc.id)
@@ -101,6 +132,8 @@ export function KnowledgeDocList({ docs, isLoading }: KnowledgeDocListProps) {
           {docs.map((doc) => {
             const status = statusConfig[doc.embedding_status ?? 'pending']
             const isDeleting = deletingId === doc.id
+            const isRetrying = retryingId === doc.id
+            const canRetry = doc.embedding_status === 'error' || doc.embedding_status === 'processing'
             return (
               <tr key={doc.id} className="hover:bg-neutral-50/60 transition-colors group">
                 <td className="px-5 py-3.5">
@@ -126,6 +159,16 @@ export function KnowledgeDocList({ docs, isLoading }: KnowledgeDocListProps) {
                 </td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {canRetry && (
+                      <button
+                        onClick={() => handleRetry(doc)}
+                        disabled={isRetrying}
+                        title="Retry embedding"
+                        className="p-1.5 hover:bg-violet-50 rounded-lg text-neutral-400 hover:text-violet-600 disabled:opacity-40"
+                      >
+                        {isRetrying ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} />}
+                      </button>
+                    )}
                     {doc.r2_url && (
                       <a href={doc.r2_url} target="_blank" rel="noreferrer" className="p-1.5 hover:bg-neutral-100 rounded-lg text-neutral-400 hover:text-neutral-700">
                         <ExternalLink size={13} />

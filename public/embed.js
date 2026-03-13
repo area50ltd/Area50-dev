@@ -1,6 +1,8 @@
 (function () {
-  if (!window.AREA50_COMPANY_ID) {
-    console.warn('Zentativ: AREA50_COMPANY_ID not set');
+  // Support both new and legacy variable names
+  var companyId = window.ZENTATIV_COMPANY_ID || window.AREA50_COMPANY_ID;
+  if (!companyId) {
+    console.warn('Zentativ: ZENTATIV_COMPANY_ID not set');
     return;
   }
   var existing = document.getElementById('zentativ-widget');
@@ -10,9 +12,9 @@
   var iframe = document.createElement('iframe');
   iframe.id = 'zentativ-widget';
   iframe.src =
-    (window.AREA50_APP_URL || 'https://zentativ.com') +
+    (window.ZENTATIV_APP_URL || window.AREA50_APP_URL || 'https://zentativ.com') +
     '/widget?company_id=' +
-    encodeURIComponent(window.AREA50_COMPANY_ID);
+    encodeURIComponent(companyId);
 
   iframe.style.cssText = [
     'position:fixed',

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { TopBar } from '@/components/dashboard/TopBar'
 import { CreditMeter } from '@/components/dashboard/CreditMeter'
@@ -149,9 +150,41 @@ export default function BillingPage() {
   const [loading, setLoading] = useState<string | null>(null)
   const [txPage, setTxPage] = useState(1)
   const [txType, setTxType] = useState('')
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const queryClient = useQueryClient()
   const { data, isLoading } = useBilling()
   const { data: usageData, isLoading: usageLoading } = useUsage()
   const { data: txData, isLoading: txLoading } = useTransactions(txPage, txType)
+
+  // Handle Paystack redirect callback: /dashboard/billing?payment=verify&reference=xxx
+  useEffect(() => {
+    const payment = searchParams.get('payment')
+    const reference = searchParams.get('reference') ?? searchParams.get('trxref')
+    if (payment !== 'verify' || !reference) return
+
+    // Clean the URL immediately so refresh doesn't re-trigger
+    router.replace('/dashboard/billing')
+
+    fetch('/api/payment/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reference }),
+    })
+      .then((r) => r.json())
+      .then((result) => {
+        if (result.success) {
+          toast.success(`Payment verified! ${result.credits_added?.toLocaleString() ?? ''} credits added.`)
+          queryClient.invalidateQueries({ queryKey: ['billing'] })
+          queryClient.invalidateQueries({ queryKey: ['billing-transactions'] })
+          queryClient.invalidateQueries({ queryKey: ['billing-usage'] })
+        } else {
+          toast.error(result.message ?? 'Payment could not be verified. Contact support if credits were deducted.')
+        }
+      })
+      .catch(() => toast.error('Verification request failed. Please contact support.'))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const currentPlanKey = data?.plan ?? 'starter'
   const currentCredits = data?.credits ?? 0

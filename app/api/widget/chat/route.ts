@@ -14,9 +14,11 @@ import { z } from 'zod'
 import { NextResponse } from 'next/server'
 import { callN8n } from '@/lib/n8n'
 import { db } from '@/lib/db'
-import { companies, tickets, messages } from '@/lib/schema'
-import { eq } from 'drizzle-orm'
+import { companies, tickets, messages, credit_transactions } from '@/lib/schema'
+import { eq, sql } from 'drizzle-orm'
 import type { ChatResponse } from '@/lib/types'
+
+const AI_MESSAGE_COST = 1 // credits per AI response
 
 const Schema = z.object({
   company_id: z.string().uuid(),
@@ -42,6 +44,14 @@ export async function POST(req: Request) {
   })
   if (!company || !company.is_active) {
     return NextResponse.json({ error: 'Invalid company' }, { status: 404 })
+  }
+
+  // Reject immediately if company has no credits (fast path — no n8n call)
+  if ((company.credits ?? 0) <= 0) {
+    return NextResponse.json(
+      { error: 'Service temporarily unavailable. Please try again later.' },
+      { status: 402 },
+    )
   }
 
   // 1. Ensure ticket exists — create on first message, ignore on subsequent ones
@@ -85,10 +95,11 @@ export async function POST(req: Request) {
     )
   }
 
-  // Handle insufficient credits — WF13 tells us credits ran out
+  // Handle insufficient credits flag from n8n (belt-and-suspenders)
   if (result.insufficient) {
     return NextResponse.json({ error: 'Service temporarily unavailable. Please try again later.' }, { status: 402 })
   }
+
 
   // 4. Persist the AI response (if present)
   const r = result as unknown as Record<string, unknown>
@@ -116,6 +127,27 @@ export async function POST(req: Request) {
     await db.update(tickets).set(ticketUpdates).where(eq(tickets.id, ticket_id))
   } catch {
     // Non-fatal — enrichment is best-effort
+  }
+
+  // Deduct 1 credit for the AI response — direct DB + log (reliable on Vercel serverless)
+  if (responseText) {
+    try {
+      await Promise.all([
+        db.update(companies)
+          .set({ credits: sql`GREATEST(credits - ${AI_MESSAGE_COST}, 0)` })
+          .where(eq(companies.id, company_id)),
+        db.insert(credit_transactions).values({
+          company_id,
+          type: 'ai_message',
+          amount: -AI_MESSAGE_COST,
+          reference: ticket_id,
+          description: `AI response — ticket ${ticket_id.slice(0, 8)}`,
+        }),
+      ])
+    } catch (err) {
+      // Non-fatal — credit tracking failure must not break the chat experience
+      console.error('[widget/chat] credit deduction failed:', err)
+    }
   }
 
   // Always return `response` at the top level so the widget can reliably access it

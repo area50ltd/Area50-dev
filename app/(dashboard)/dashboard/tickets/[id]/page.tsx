@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import {
   ArrowLeft, Bot, User, MessageSquare, Globe, Phone, ChevronDown,
   ChevronUp, Download, CheckCircle2, ArrowUpCircle, RefreshCw,
-  StickyNote, Mail, Ticket,
+  StickyNote, Mail, Ticket, Loader2, X,
 } from 'lucide-react'
 import { TopBar } from '@/components/dashboard/TopBar'
 import { StatusBadge, PriorityBadge, SentimentBadge } from '@/components/shared/StatusBadge'
@@ -113,6 +113,10 @@ export default function TicketDetailPage() {
   const { data, isLoading, error } = useTicket(id)
   const { mutate: updateTicket, isPending } = useUpdateTicket()
   const [summaryOpen, setSummaryOpen] = useState(false)
+  const [showNoteForm, setShowNoteForm] = useState(false)
+  const [noteText, setNoteText] = useState('')
+  const [savingNote, setSavingNote] = useState(false)
+  const noteRef = useRef<HTMLTextAreaElement>(null)
 
   // Real-time: refresh messages instantly when widget customer or agent sends
   useRealtimeMessages(id)
@@ -147,6 +151,57 @@ export default function TicketDetailPage() {
   const handleResolve = () => {
     handleStatusChange('resolved')
     toast.success('Ticket resolved!')
+  }
+
+  const handleSaveNote = async () => {
+    const note = noteText.trim()
+    if (!note) return
+    setSavingNote(true)
+    try {
+      const res = await fetch(`/api/tickets/${id}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: `📝 Note: ${note}` }),
+      })
+      if (!res.ok) throw new Error('Failed to save note')
+      toast.success('Note added')
+      setNoteText('')
+      setShowNoteForm(false)
+    } catch {
+      toast.error('Failed to save note')
+    } finally {
+      setSavingNote(false)
+    }
+  }
+
+  const handleDownloadTranscript = () => {
+    if (!data) return
+    const { ticket, messages: msgs, customer } = data
+    const lines: string[] = [
+      `Zentativ — Ticket Transcript`,
+      `Ticket ID: ${ticket.id}`,
+      `Status: ${ticket.status ?? 'open'}`,
+      `Channel: ${ticket.channel ?? 'web_widget'}`,
+      `Customer: ${customer?.name ?? 'Unknown'} (${customer?.email ?? 'no email'})`,
+      `Created: ${new Date(ticket.created_at ?? '').toLocaleString()}`,
+      `─────────────────────────────────────────`,
+      '',
+    ]
+    for (const msg of msgs) {
+      const sender = msg.sender_type === 'ai' ? 'AI Assistant' : msg.sender_type === 'agent' ? 'Agent' : 'Customer'
+      const time = new Date(msg.created_at ?? '').toLocaleString()
+      lines.push(`[${time}] ${sender}:`)
+      lines.push(msg.content)
+      lines.push('')
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ticket-${ticket.id.slice(0, 8)}.txt`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Transcript downloaded')
   }
 
   return (
@@ -335,6 +390,7 @@ export default function TicketDetailPage() {
               </Button>
 
               <Button
+                onClick={() => { setShowNoteForm((v) => !v); setTimeout(() => noteRef.current?.focus(), 50) }}
                 variant="ghost"
                 className="w-full rounded-lg gap-2 text-neutral-600"
                 size="sm"
@@ -342,7 +398,50 @@ export default function TicketDetailPage() {
                 <StickyNote size={14} /> Add Note
               </Button>
 
+              {/* Inline note form */}
+              <AnimatePresence>
+                {showNoteForm && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-1 pb-0.5 space-y-2">
+                      <textarea
+                        ref={noteRef}
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        placeholder="Type your internal note…"
+                        rows={3}
+                        className="w-full text-xs border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 resize-none"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={handleSaveNote}
+                          disabled={savingNote || !noteText.trim()}
+                          className="flex-1 rounded-lg gap-1.5 text-xs h-8 bg-violet-600 hover:bg-violet-700"
+                        >
+                          {savingNote ? <Loader2 size={12} className="animate-spin" /> : <StickyNote size={12} />}
+                          Save Note
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => { setShowNoteForm(false); setNoteText('') }}
+                          className="h-8 px-2 rounded-lg text-neutral-400 hover:text-neutral-600"
+                        >
+                          <X size={13} />
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <Button
+                onClick={handleDownloadTranscript}
                 variant="ghost"
                 className="w-full rounded-lg gap-2 text-neutral-600"
                 size="sm"

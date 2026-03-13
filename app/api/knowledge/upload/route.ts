@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       contentType
     )
 
-    // Save to DB as processing — return 200 immediately, embed in background
+    // Save to DB as processing
     await db.insert(knowledge_documents).values({
       id: documentId,
       company_id: currentUser.company_id,
@@ -47,28 +47,27 @@ export async function POST(req: Request) {
       embedding_status: 'processing',
     })
 
-    // Fire n8n ingestion without awaiting — embedding takes 10-30s
-    // Update DB status when it completes in the background
-    void callN8n('/webhook/knowledge/ingest', {
-      company_id: currentUser.company_id,
-      document_id: documentId,
-      file_url: url,
-      file_type: fileExt,
-      filename: file.name,
-    })
-      .then(async () => {
-        await db
-          .update(knowledge_documents)
-          .set({ embedding_status: 'completed' })
-          .where(eq(knowledge_documents.id, documentId))
+    // Await n8n synchronously — background void tasks are killed by Vercel
+    // after the response is sent. Embedding takes 10-30s; Vercel Pro allows 60s.
+    try {
+      await callN8n('/webhook/knowledge/ingest', {
+        company_id: currentUser.company_id,
+        document_id: documentId,
+        file_url: url,
+        file_type: fileExt,
+        filename: file.name,
       })
-      .catch(async (err) => {
-        console.error('[knowledge/ingest background]', err)
-        await db
-          .update(knowledge_documents)
-          .set({ embedding_status: 'error' })
-          .where(eq(knowledge_documents.id, documentId))
-      })
+      await db
+        .update(knowledge_documents)
+        .set({ embedding_status: 'completed' })
+        .where(eq(knowledge_documents.id, documentId))
+    } catch (err) {
+      console.error('[knowledge/ingest]', err)
+      await db
+        .update(knowledge_documents)
+        .set({ embedding_status: 'error' })
+        .where(eq(knowledge_documents.id, documentId))
+    }
 
     // Deduct 5 credits per KB document embed (fire-and-forget)
     void deductCredits({

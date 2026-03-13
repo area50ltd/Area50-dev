@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
-import { companies } from '@/lib/schema'
+import { companies, credit_transactions } from '@/lib/schema'
 import { eq, sql } from 'drizzle-orm'
 import { requireRole } from '@/lib/auth'
 
@@ -31,11 +31,23 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         .update(companies)
         .set({ credits: 0 })
         .where(eq(companies.id, params.id))
+      await db.insert(credit_transactions).values({
+        company_id: params.id,
+        type: 'admin_reset',
+        amount: 0,
+        description: 'Credits reset to 0 by super admin',
+      })
     } else {
       await db
         .update(companies)
         .set({ credits: sql`credits + ${amount}` })
         .where(eq(companies.id, params.id))
+      await db.insert(credit_transactions).values({
+        company_id: params.id,
+        type: 'top_up',
+        amount: amount!,
+        description: `Manual top-up by super admin`,
+      })
     }
 
     // Read back the new balance
