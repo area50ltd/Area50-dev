@@ -107,15 +107,44 @@ export async function purchasePhoneNumber(phoneNumberId: string): Promise<VapiPh
   })
 }
 
-/** Register a Twilio-purchased number with Vapi using the platform's Twilio credentials */
+/** Purchase a number directly through Vapi's own phone number provider (no Twilio creds needed) */
+export async function purchaseVapiNativeNumber(params: {
+  number: string
+  name: string
+  assistantId: string
+}): Promise<VapiPhoneNumber> {
+  return vapiRequest<VapiPhoneNumber>('/phone-number', {
+    method: 'POST',
+    body: JSON.stringify({
+      provider: 'vapi',
+      number: params.number,
+      name: params.name,
+      assistantId: params.assistantId,
+    }),
+  })
+}
+
+/** Register a Twilio-purchased number with Vapi (fallback path — reads creds from DB then env) */
 export async function registerTwilioNumber(params: {
   number: string
   name: string
   assistantId: string
   serverUrl: string
 }): Promise<VapiPhoneNumber> {
-  const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID
-  const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN
+  // Read from DB first (super admin settings), fall back to env vars
+  let twilioAccountSid = process.env.TWILIO_ACCOUNT_SID
+  let twilioAuthToken = process.env.TWILIO_AUTH_TOKEN
+  try {
+    const { db } = await import('@/lib/db')
+    const { platform_settings } = await import('@/lib/schema')
+    const { inArray } = await import('drizzle-orm')
+    const rows = await db.select().from(platform_settings)
+      .where(inArray(platform_settings.key, ['twilio_account_sid', 'twilio_auth_token']))
+    for (const row of rows) {
+      if (row.key === 'twilio_account_sid' && row.value) twilioAccountSid = row.value
+      if (row.key === 'twilio_auth_token' && row.value) twilioAuthToken = row.value
+    }
+  } catch { /* ignore — fall back to env vars */ }
   if (!twilioAccountSid || !twilioAuthToken) {
     throw new VapiError('Twilio credentials not configured', undefined, 'not_configured')
   }

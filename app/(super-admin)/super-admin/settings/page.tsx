@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { Pencil, Save, Loader2, AlertTriangle, Cpu, Webhook, Mail } from 'lucide-react'
+import { Pencil, Save, Loader2, AlertTriangle, Cpu, Webhook, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
@@ -22,6 +22,11 @@ const PAYSTACK_KEYS = [
 const N8N_KEYS = [
   { key: 'n8n_webhook_base_url', label: 'Webhook Base URL', placeholder: 'https://n8n.example.com', masked: false },
   { key: 'n8n_secret', label: 'Shared Secret', placeholder: 'area50_sk_...', masked: true },
+]
+
+const TWILIO_KEYS = [
+  { key: 'twilio_account_sid', label: 'Account SID', placeholder: 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', masked: true },
+  { key: 'twilio_auth_token', label: 'Auth Token', placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', masked: true },
 ]
 
 const EMAIL_KEYS = [
@@ -252,6 +257,38 @@ export default function SettingsPage() {
               />
             )
           )}
+        </div>
+      </section>
+
+      {/* ─── Twilio ─── */}
+      <section className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 rounded-lg bg-red-500/20 flex items-center justify-center">
+            <Phone size={16} className="text-red-400" />
+          </div>
+          <div>
+            <h2 className="font-heading text-lg font-bold text-white">Twilio — Phone Numbers</h2>
+            <p className="text-xs text-neutral-500">Credentials for purchasing & managing business phone numbers</p>
+          </div>
+        </div>
+
+        <div className="bg-yellow-900/20 border border-yellow-700/40 rounded-lg p-3 mb-5 flex items-start gap-2">
+          <AlertTriangle size={14} className="text-yellow-500 mt-0.5 shrink-0" />
+          <p className="text-xs text-yellow-400">These credentials are used for phone number search and purchase. Get them from <strong>console.twilio.com</strong> → Account Info.</p>
+        </div>
+
+        <div className="space-y-4">
+          {TWILIO_KEYS.map((field) => (
+            <MaskedField
+              key={field.key}
+              label={field.label}
+              settingKey={field.key}
+              placeholder={field.placeholder}
+              currentMasked={settings[field.key] ?? ''}
+              onSave={handleSave}
+              saving={saveSetting.isPending}
+            />
+          ))}
         </div>
       </section>
 

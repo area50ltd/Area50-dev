@@ -5,7 +5,10 @@ import { platform_settings } from '@/lib/schema'
 import { requireRole } from '@/lib/auth'
 import { eq } from 'drizzle-orm'
 
-const MASKED_KEYS = ['paystack_secret_key', 'paystack_public_key', 'paystack_webhook_secret', 'n8n_secret']
+const MASKED_KEYS = [
+  'paystack_secret_key', 'paystack_public_key', 'paystack_webhook_secret', 'n8n_secret',
+  'twilio_account_sid', 'twilio_auth_token',
+]
 
 function maskValue(key: string, value: string | null): string {
   if (!value) return ''
@@ -49,9 +52,9 @@ export async function PATCH(req: Request) {
   const { key, value } = parsed.data
 
   await db
-    .update(platform_settings)
-    .set({ value, updated_at: new Date() })
-    .where(eq(platform_settings.key, key))
+    .insert(platform_settings)
+    .values({ key, value })
+    .onConflictDoUpdate({ target: platform_settings.key, set: { value, updated_at: new Date() } })
 
   return NextResponse.json({ success: true })
 }

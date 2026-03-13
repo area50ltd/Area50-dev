@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { searchAvailableByCountry, VapiError } from '@/lib/vapi'
 import { searchAvailableNumbers, TwilioError } from '@/lib/twilio'
 import { db } from '@/lib/db'
 import { users } from '@/lib/schema'
@@ -17,11 +18,30 @@ export async function GET(req: Request) {
   const country = (searchParams.get('country') ?? 'US').toUpperCase()
   const areaCode = searchParams.get('area_code') ?? undefined
 
+  // ── Try Vapi-native provider first ────────────────────────────────────────
+  try {
+    const numbers = await searchAvailableByCountry(country, areaCode)
+    if (numbers.length > 0) {
+      return NextResponse.json(numbers.map((n) => ({
+        phone_number: n.phoneNumber,
+        friendly_name: n.phoneNumber,
+        region: n.region,
+        capabilities: { voice: true, SMS: false },
+        provider: 'vapi',
+      })))
+    }
+  } catch (err) {
+    if (!(err instanceof VapiError && err.code === 'not_configured')) {
+      console.warn('[api/vapi/numbers] Vapi search failed, trying Twilio:', err)
+    }
+  }
+
+  // ── Fallback to Twilio ─────────────────────────────────────────────────────
   try {
     const numbers = await searchAvailableNumbers(country, areaCode)
-    return NextResponse.json(numbers)
+    return NextResponse.json(numbers.map((n) => ({ ...n, provider: 'twilio' })))
   } catch (err) {
-    console.error('[api/vapi/numbers]', err)
+    console.error('[api/vapi/numbers] Twilio fallback failed:', err)
     if (err instanceof TwilioError && err.code === 'not_configured') {
       return NextResponse.json(
         { error: 'Phone number purchasing is not configured. Please contact support.', code: 'not_configured' },

@@ -30,7 +30,9 @@ const RebuildSchema = z.object({
   force_rebuild: z.boolean().default(true),
   voice_language: z.string().optional(),
   voice_tone: z.string().optional(),
-  elevenlabs_voice_id: z.string().optional(),
+  voice_provider: z.string().optional(),
+  voice_id: z.string().optional(),           // generic voice ID for any provider
+  elevenlabs_voice_id: z.string().optional(), // kept for backward compat
 })
 
 export async function POST(req: Request) {
@@ -46,13 +48,16 @@ export async function POST(req: Request) {
   const parsed = RebuildSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
-  const { voice_language, voice_tone, elevenlabs_voice_id } = parsed.data
+  const { voice_language, voice_tone, voice_provider, voice_id, elevenlabs_voice_id } = parsed.data
 
   // Persist voice config changes to DB if provided
-  const updatePayload: Record<string, string> = {}
+  // voice_id is stored in elevenlabs_voice_id column (generic voice ID regardless of provider)
+  const updatePayload: Record<string, string | null> = {}
   if (voice_language) updatePayload.voice_language = voice_language
   if (voice_tone) updatePayload.voice_tone = voice_tone
-  if (elevenlabs_voice_id !== undefined) updatePayload.elevenlabs_voice_id = elevenlabs_voice_id
+  if (voice_provider) updatePayload.voice_provider = voice_provider
+  if (voice_id !== undefined) updatePayload.elevenlabs_voice_id = voice_id || null
+  else if (elevenlabs_voice_id !== undefined) updatePayload.elevenlabs_voice_id = elevenlabs_voice_id || null
 
   if (Object.keys(updatePayload).length > 0) {
     await db.update(companies)

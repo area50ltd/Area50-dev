@@ -2,6 +2,10 @@
 // Used for searching and purchasing phone numbers.
 // After purchase, numbers are registered with Vapi via registerTwilioNumber().
 
+import { db } from '@/lib/db'
+import { platform_settings } from '@/lib/schema'
+import { inArray } from 'drizzle-orm'
+
 const TWILIO_BASE = 'https://api.twilio.com/2010-04-01'
 
 export class TwilioError extends Error {
@@ -15,15 +19,24 @@ export class TwilioError extends Error {
   }
 }
 
-function getCredentials() {
-  const sid = process.env.TWILIO_ACCOUNT_SID
-  const token = process.env.TWILIO_AUTH_TOKEN
+async function getCredentials() {
+  // Try DB first (super admin settings), fall back to env vars
+  let sid = process.env.TWILIO_ACCOUNT_SID
+  let token = process.env.TWILIO_AUTH_TOKEN
+  try {
+    const rows = await db.select().from(platform_settings)
+      .where(inArray(platform_settings.key, ['twilio_account_sid', 'twilio_auth_token']))
+    for (const row of rows) {
+      if (row.key === 'twilio_account_sid' && row.value) sid = row.value
+      if (row.key === 'twilio_auth_token' && row.value) token = row.value
+    }
+  } catch { /* ignore DB errors — fall back to env vars */ }
   if (!sid || !token) throw new TwilioError('Twilio credentials not configured', undefined, 'not_configured')
   return { sid, token, auth: Buffer.from(`${sid}:${token}`).toString('base64') }
 }
 
 async function twilioGet<T>(path: string): Promise<T> {
-  const { sid, auth } = getCredentials()
+  const { sid, auth } = await getCredentials()
   const res = await fetch(`${TWILIO_BASE}/Accounts/${sid}${path}`, {
     headers: { Authorization: `Basic ${auth}` },
     cache: 'no-store',
@@ -37,7 +50,7 @@ async function twilioGet<T>(path: string): Promise<T> {
 }
 
 async function twilioPost<T>(path: string, body: Record<string, string>): Promise<T> {
-  const { sid, auth } = getCredentials()
+  const { sid, auth } = await getCredentials()
   const res = await fetch(`${TWILIO_BASE}/Accounts/${sid}${path}`, {
     method: 'POST',
     headers: {
@@ -56,7 +69,7 @@ async function twilioPost<T>(path: string, body: Record<string, string>): Promis
 }
 
 async function twilioDelete(path: string): Promise<void> {
-  const { sid, auth } = getCredentials()
+  const { sid, auth } = await getCredentials()
   const res = await fetch(`${TWILIO_BASE}/Accounts/${sid}${path}`, {
     method: 'DELETE',
     headers: { Authorization: `Basic ${auth}` },

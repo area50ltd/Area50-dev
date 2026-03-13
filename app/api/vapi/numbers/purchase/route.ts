@@ -4,11 +4,13 @@ import { z } from 'zod'
 import { db } from '@/lib/db'
 import { users, companies } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
+import { purchaseVapiNativeNumber, registerTwilioNumber, VapiError } from '@/lib/vapi'
 import { purchaseNumber, TwilioError } from '@/lib/twilio'
-import { registerTwilioNumber, VapiError } from '@/lib/vapi'
 
 const Schema = z.object({
   phone_number: z.string().min(7, 'Invalid phone number'),
+  // 'vapi' = Vapi-native provider (default), 'twilio' = BYO Twilio
+  provider: z.enum(['vapi', 'twilio']).default('vapi'),
 })
 
 export async function POST(req: Request) {
@@ -33,17 +35,38 @@ export async function POST(req: Request) {
     )
   }
 
-  if (!company.vapi_assistant_id) {
+  if (!company.vapi_assistant_id || company.vapi_assistant_id === 'null') {
     return NextResponse.json(
       { error: 'AI assistant must be configured before purchasing a phone number.' },
       { status: 422 },
     )
   }
 
-  // Step 1: Purchase from Twilio
+  const { phone_number, provider } = parsed.data
+  const numberName = `${company.name} Main Line`
+
+  // ── Path A: Vapi-native (preferred) ───────────────────────────────────────
+  if (provider === 'vapi') {
+    try {
+      const vapiNumber = await purchaseVapiNativeNumber({
+        number: phone_number,
+        name: numberName,
+        assistantId: company.vapi_assistant_id,
+      })
+      await db.update(companies)
+        .set({ vapi_phone_number: phone_number, vapi_phone_number_id: vapiNumber.id })
+        .where(eq(companies.id, dbUser.company_id))
+      return NextResponse.json({ success: true, phone_number, provider: 'vapi' })
+    } catch (err) {
+      console.error('[api/vapi/numbers/purchase] Vapi-native purchase failed, falling back to Twilio:', err)
+      // Fall through to Twilio path
+    }
+  }
+
+  // ── Path B: Twilio (fallback or explicit) ─────────────────────────────────
   let purchased
   try {
-    purchased = await purchaseNumber(parsed.data.phone_number)
+    purchased = await purchaseNumber(phone_number)
   } catch (err) {
     console.error('[api/vapi/numbers/purchase] Twilio purchase failed:', err)
     if (err instanceof TwilioError) {
@@ -58,47 +81,41 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to purchase phone number. Please try again.' }, { status: 500 })
   }
 
-  // Step 2: Register the purchased number with Vapi
+  // Register the Twilio-purchased number with Vapi
   const serverUrl = `${process.env.N8N_WEBHOOK_BASE_URL}/webhook/vapi/inbound`
   let vapiNumber
   try {
     vapiNumber = await registerTwilioNumber({
       number: purchased.phone_number,
-      name: `${company.name} Main Line`,
+      name: numberName,
       assistantId: company.vapi_assistant_id,
       serverUrl,
     })
   } catch (err) {
     console.error('[api/vapi/numbers/purchase] Vapi registration failed:', err)
-    // Number was purchased in Twilio but Vapi failed — save it anyway, admin can fix in Vapi
+    // Number purchased in Twilio but Vapi registration failed — save anyway
     await db.update(companies)
       .set({ vapi_phone_number: purchased.phone_number, vapi_phone_number_id: null })
       .where(eq(companies.id, dbUser.company_id))
-
     if (err instanceof VapiError) {
       return NextResponse.json({
         success: true,
         phone_number: purchased.phone_number,
+        provider: 'twilio',
         warning: 'Number purchased but AI assistant connection failed. Please contact support.',
       })
     }
     return NextResponse.json({
       success: true,
       phone_number: purchased.phone_number,
+      provider: 'twilio',
       warning: 'Number purchased but AI setup incomplete. Please contact support.',
     })
   }
 
-  // Step 3: Save to DB
   await db.update(companies)
-    .set({
-      vapi_phone_number: purchased.phone_number,
-      vapi_phone_number_id: vapiNumber.id,
-    })
+    .set({ vapi_phone_number: purchased.phone_number, vapi_phone_number_id: vapiNumber.id })
     .where(eq(companies.id, dbUser.company_id))
 
-  return NextResponse.json({
-    success: true,
-    phone_number: purchased.phone_number,
-  })
+  return NextResponse.json({ success: true, phone_number: purchased.phone_number, provider: 'twilio' })
 }

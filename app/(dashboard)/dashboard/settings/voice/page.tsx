@@ -21,7 +21,7 @@ import {
   Volume2,
 } from 'lucide-react'
 import { useCompany, useUpdateCompany } from '@/hooks/useCompany'
-import { VOICE_LANGUAGES, VOICE_TONES } from '@/lib/constants'
+import { VOICE_LANGUAGES, VOICE_TONES, VAPI_VOICE_PROVIDERS } from '@/lib/constants'
 import { PhoneNumberManager } from '@/components/dashboard/PhoneNumberManager'
 import { TopBar } from '@/components/dashboard/TopBar'
 
@@ -281,16 +281,21 @@ export default function VoiceSettingsPage() {
   const updateCompany = useUpdateCompany()
 
   // Voice config form state
-  const [voiceLanguage, setVoiceLanguage] = useState('')
-  const [voiceTone, setVoiceTone] = useState('')
-  const [elevenlabsId, setElevenlabsId] = useState('')
+  const [voiceLanguage, setVoiceLanguage] = useState('en-US')
+  const [voiceTone, setVoiceTone] = useState('professional')
+  const [voiceProvider, setVoiceProvider] = useState('openai')
+  const [voiceId, setVoiceId] = useState('nova')
   const [savingVoice, setSavingVoice] = useState(false)
 
   const [hydrated, setHydrated] = useState(false)
   if (company && !hydrated) {
     setVoiceLanguage(company.voice_language ?? 'en-US')
     setVoiceTone(company.voice_tone ?? 'professional')
-    setElevenlabsId(company.elevenlabs_voice_id ?? '')
+    const p = company.voice_provider ?? 'openai'
+    setVoiceProvider(p)
+    // Default voice ID per provider if none saved
+    const savedId = company.elevenlabs_voice_id ?? ''
+    setVoiceId(savedId || (p === 'openai' ? 'nova' : p === 'deepgram' ? 'aura-asteria-en' : ''))
     setHydrated(true)
   }
 
@@ -342,15 +347,16 @@ export default function VoiceSettingsPage() {
   const handleSaveAndRebuild = async () => {
     setSavingVoice(true)
     try {
-      await updateCompany.mutateAsync({
-        voice_language: voiceLanguage,
-        voice_tone: voiceTone,
-        elevenlabs_voice_id: elevenlabsId || null,
-      })
       const res = await fetch('/api/vapi/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force_rebuild: true }),
+        body: JSON.stringify({
+          force_rebuild: true,
+          voice_language: voiceLanguage,
+          voice_tone: voiceTone,
+          voice_provider: voiceProvider,
+          voice_id: voiceId || null,
+        }),
       })
       if (!res.ok) throw new Error('Rebuild failed')
       qc.invalidateQueries({ queryKey: ['company'] })
@@ -527,25 +533,108 @@ export default function VoiceSettingsPage() {
             {/* Voice Configuration */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-6">
               <h2 className="font-heading font-bold text-neutral-900 mb-4">Voice Configuration</h2>
-              <div className="space-y-4">
+              <div className="space-y-5">
+
+                {/* Provider picker */}
                 <div>
-                  <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5 block">Voice Language</label>
-                  <select value={voiceLanguage} onChange={(e) => setVoiceLanguage(e.target.value)} className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500">
-                    {VOICE_LANGUAGES.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+                  <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-2 block">Voice Provider</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {VAPI_VOICE_PROVIDERS.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => {
+                          setVoiceProvider(p.id)
+                          setVoiceId(p.voices[0]?.id ?? '')
+                        }}
+                        className={`text-left px-3 py-2.5 rounded-xl border text-xs transition-all ${
+                          voiceProvider === p.id
+                            ? 'border-violet-600 bg-violet-50'
+                            : 'border-neutral-200 hover:border-neutral-300'
+                        }`}
+                      >
+                        <p className={`font-semibold ${voiceProvider === p.id ? 'text-violet-700' : 'text-neutral-800'}`}>{p.label}</p>
+                        <p className="text-neutral-400 mt-0.5 leading-tight">{p.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Voice picker — presets or custom ID */}
+                {(() => {
+                  const prov = VAPI_VOICE_PROVIDERS.find((p) => p.id === voiceProvider)
+                  if (!prov) return null
+                  if (prov.customId) {
+                    return (
+                      <div>
+                        <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5 block">
+                          ElevenLabs Voice ID
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. 21m00Tcm4TlvDq8ikWAM"
+                          value={voiceId}
+                          onChange={(e) => setVoiceId(e.target.value)}
+                          className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                        />
+                        <p className="text-xs text-neutral-400 mt-1">Find your voice ID in the ElevenLabs dashboard → Voices</p>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div>
+                      <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-2 block">Voice</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {prov.voices.map((v) => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => setVoiceId(v.id)}
+                            className={`text-left px-3 py-2.5 rounded-xl border text-xs transition-all ${
+                              voiceId === v.id
+                                ? 'border-violet-600 bg-violet-50'
+                                : 'border-neutral-200 hover:border-neutral-300'
+                            }`}
+                          >
+                            <p className={`font-semibold ${voiceId === v.id ? 'text-violet-700' : 'text-neutral-800'}`}>{v.label}</p>
+                            <p className="text-neutral-400 mt-0.5">{v.tags}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {/* Language */}
+                <div>
+                  <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5 block">Language</label>
+                  <select
+                    value={voiceLanguage}
+                    onChange={(e) => setVoiceLanguage(e.target.value)}
+                    className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500"
+                  >
+                    {Object.entries(
+                      VOICE_LANGUAGES.reduce<Record<string, typeof VOICE_LANGUAGES>>((acc, l) => {
+                        const g = l.group ?? 'Other'
+                        ;(acc[g] = acc[g] ?? []).push(l)
+                        return acc
+                      }, {})
+                    ).map(([group, langs]) => (
+                      <optgroup key={group} label={group}>
+                        {langs.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
+
+                {/* Tone */}
                 <div>
-                  <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5 block">Voice Tone</label>
+                  <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5 block">Tone</label>
                   <select value={voiceTone} onChange={(e) => setVoiceTone(e.target.value)} className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500">
                     {VOICE_TONES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wide mb-1.5 block">
-                    Custom Voice ID <span className="text-neutral-400 font-normal">(optional)</span>
-                  </label>
-                  <input type="text" placeholder="e.g. 21m00Tcm4TlvDq8ikWAM" value={elevenlabsId} onChange={(e) => setElevenlabsId(e.target.value)} className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500" />
-                </div>
+
                 <button onClick={handleSaveAndRebuild} disabled={savingVoice} className="flex items-center gap-2 bg-violet-600 text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-violet-700 transition-colors disabled:opacity-50">
                   {savingVoice ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                   Save & Rebuild Assistant

@@ -13,19 +13,17 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { useCompany } from '@/hooks/useCompany'
-import type { TwilioAvailableNumber } from '@/lib/twilio'
+import { PHONE_COUNTRIES } from '@/lib/constants'
 
-// ─── Country options ──────────────────────────────────────────────────────────
+interface AvailableNumber {
+  phone_number: string
+  friendly_name: string
+  region?: string
+  locality?: string
+  capabilities: { voice: boolean; SMS: boolean }
+  provider: 'vapi' | 'twilio'
+}
 
-const COUNTRIES = [
-  { code: 'US', label: '🇺🇸 United States' },
-  { code: 'GB', label: '🇬🇧 United Kingdom' },
-  { code: 'CA', label: '🇨🇦 Canada' },
-  { code: 'ZA', label: '🇿🇦 South Africa' },
-  { code: 'KE', label: '🇰🇪 Kenya' },
-  { code: 'GH', label: '🇬🇭 Ghana' },
-  { code: 'NG', label: '🇳🇬 Nigeria' },
-] as const
 
 // ─── Release Confirmation ─────────────────────────────────────────────────────
 
@@ -76,7 +74,7 @@ export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string
   const [country, setCountry] = useState(defaultCountry ?? 'US')
   const [areaCode, setAreaCode] = useState('')
   const [searching, setSearching] = useState(false)
-  const [availableNumbers, setAvailableNumbers] = useState<TwilioAvailableNumber[]>([])
+  const [availableNumbers, setAvailableNumbers] = useState<AvailableNumber[]>([])
   const [selectedNumber, setSelectedNumber] = useState('')
   const [searchError, setSearchError] = useState('')
   const [purchasing, setPurchasing] = useState(false)
@@ -94,7 +92,7 @@ export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string
       const res = await fetch(`/api/vapi/numbers/available?${params}`)
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to fetch numbers')
-      const list: TwilioAvailableNumber[] = Array.isArray(data) ? data : []
+      const list: AvailableNumber[] = Array.isArray(data) ? data : []
       if (list.length === 0) {
         setSearchError('No numbers available for this selection. Try a different country or area code.')
       }
@@ -108,12 +106,14 @@ export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string
 
   const handlePurchase = async () => {
     if (!selectedNumber) return
+    const selectedEntry = availableNumbers.find((n) => n.phone_number === selectedNumber)
+    const provider = selectedEntry?.provider ?? 'vapi'
     setPurchasing(true)
     try {
       const res = await fetch('/api/vapi/numbers/purchase', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone_number: selectedNumber }),
+        body: JSON.stringify({ phone_number: selectedNumber, provider }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Failed to purchase number')
@@ -254,13 +254,17 @@ export function PhoneNumberManager({ defaultCountry }: { defaultCountry?: string
             onChange={(e) => { setCountry(e.target.value); setAvailableNumbers([]); setSelectedNumber('') }}
             className="w-full border border-neutral-200 rounded-lg px-3 py-2.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-violet-600/30 focus:border-violet-600"
           >
-            {COUNTRIES.map((c) => (
-              <option key={c.code} value={c.code}>{c.label}</option>
+            {PHONE_COUNTRIES.map((grp) => (
+              <optgroup key={grp.group} label={grp.group}>
+                {grp.options.map((c) => (
+                  <option key={c.code} value={c.code}>{c.label}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
 
-        {country === 'US' && (
+        {['US', 'CA', 'GB', 'AU'].includes(country) && (
           <div className="w-36">
             <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wide mb-1.5 block">
               Area Code <span className="text-neutral-400 font-normal">(optional)</span>
