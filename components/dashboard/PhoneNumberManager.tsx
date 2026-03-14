@@ -82,15 +82,9 @@ export function PhoneNumberManager() {
   // ── Loading skeleton ──
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5 sm:p-6 animate-pulse">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-neutral-100 flex-shrink-0" />
-          <div className="space-y-2 flex-1">
-            <div className="w-32 h-4 rounded bg-neutral-100" />
-            <div className="w-48 h-3 rounded bg-neutral-100" />
-          </div>
-        </div>
-        <div className="w-full h-20 rounded-lg bg-neutral-100" />
+      <div className="animate-pulse space-y-3">
+        <div className="w-full h-16 rounded-xl bg-neutral-100" />
+        <div className="w-full h-20 rounded-xl bg-neutral-100" />
       </div>
     )
   }
@@ -100,9 +94,8 @@ export function PhoneNumberManager() {
   // ── Active number ──
   if (hasNumber) {
     return (
-      <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5 sm:p-6">
-        <CardHeader />
-        <div className="mt-4 flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-4">
+      <div>
+        <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-4">
           <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
             <Phone size={18} className="text-green-600" />
           </div>
@@ -142,12 +135,7 @@ export function PhoneNumberManager() {
 
   // ── No number — contact us ──
   return (
-    <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5 sm:p-6">
-      <CardHeader />
-      <p className="text-sm text-neutral-500 mt-1 mb-5 leading-relaxed">
-        Get a dedicated phone number and let your AI assistant handle every inbound call automatically.
-      </p>
-
+    <div>
       <div className="rounded-xl border border-violet-100 bg-violet-50 px-5 py-5 space-y-4">
         <div>
           <p className="text-sm font-semibold text-violet-900">We set it up for you</p>
