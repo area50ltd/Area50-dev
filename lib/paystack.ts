@@ -4,7 +4,8 @@ const SECRET = process.env.PAYSTACK_SECRET_KEY
 
 export async function initializeTransaction(params: {
   email: string
-  amount: number // kobo (NGN * 100)
+  amount: number // smallest currency unit (cents for USD)
+  currency?: string
   metadata?: Record<string, unknown>
   callback_url?: string
 }) {
@@ -14,9 +15,11 @@ export async function initializeTransaction(params: {
       Authorization: `Bearer ${SECRET}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(params),
+    body: JSON.stringify({ currency: process.env.PAYSTACK_CURRENCY ?? 'NGN', ...params }),
   })
-  return res.json()
+  const data = await res.json()
+  if (!res.ok) throw new Error(data?.message ?? `Paystack error: ${res.status}`)
+  return data
 }
 
 export async function verifyTransaction(reference: string) {

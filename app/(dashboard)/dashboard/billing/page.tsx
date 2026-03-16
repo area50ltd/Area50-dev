@@ -271,10 +271,10 @@ export default function BillingPage() {
       if (data.data?.authorization_url) {
         window.location.href = data.data.authorization_url
       } else {
-        toast.error('Failed to initialize payment')
+        toast.error(data.error ?? data.message ?? 'Failed to initialize payment')
       }
-    } catch {
-      toast.error('Payment error')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Payment error')
     } finally {
       setLoading(null)
     }

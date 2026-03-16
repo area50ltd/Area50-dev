@@ -37,8 +37,7 @@ export async function POST(req: Request) {
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?payment=verify`,
     })
 
-    if (result.status) {
-      // Save pending transaction
+    if (result.status && result.data?.reference) {
       await db.insert(payment_transactions).values({
         company_id: user.company_id,
         paystack_reference: result.data.reference,
@@ -50,7 +49,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result)
   } catch (err) {
-    console.error('[api/payment/initialize]', err)
-    return NextResponse.json({ error: 'Payment initialization failed' }, { status: 500 })
+    const message = err instanceof Error ? err.message : 'Payment initialization failed'
+    console.error('[api/payment/initialize]', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
