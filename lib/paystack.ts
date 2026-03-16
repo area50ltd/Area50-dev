@@ -1,3 +1,5 @@
+import crypto from 'crypto'
+
 const SECRET = process.env.PAYSTACK_SECRET_KEY
 
 export async function initializeTransaction(params: {
@@ -18,7 +20,7 @@ export async function initializeTransaction(params: {
 }
 
 export async function verifyTransaction(reference: string) {
-  const res = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+  const res = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
     headers: {
       Authorization: `Bearer ${SECRET}`,
     },
@@ -27,9 +29,8 @@ export async function verifyTransaction(reference: string) {
 }
 
 export function verifyWebhookSignature(body: string, signature: string): boolean {
-  const crypto = require('crypto')
   const hash = crypto
-    .createHmac('sha512', SECRET)
+    .createHmac('sha512', SECRET!)
     .update(body)
     .digest('hex')
   return hash === signature

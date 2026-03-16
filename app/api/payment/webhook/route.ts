@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { verifyWebhookSignature } from '@/lib/paystack'
 import { db } from '@/lib/db'
-import { payment_transactions, companies } from '@/lib/schema'
+import { payment_transactions, companies, credit_transactions } from '@/lib/schema'
 import { eq, sql } from 'drizzle-orm'
 
 export async function POST(req: Request) {
@@ -16,20 +16,41 @@ export async function POST(req: Request) {
 
   if (event.event === 'charge.success') {
     const { reference, metadata } = event.data
-    const credits = metadata?.credits ?? 0
-    const companyId = metadata?.company_id
+    const credits: number = metadata?.credits ?? 0
+    const companyId: string | undefined = metadata?.company_id
 
-    if (companyId && credits > 0) {
-      await db
+    if (!companyId || credits <= 0) {
+      return NextResponse.json({ received: true })
+    }
+
+    // Idempotency: skip if already processed
+    const existing = await db.query.payment_transactions.findFirst({
+      where: eq(payment_transactions.paystack_reference, reference),
+    })
+
+    if (existing?.status === 'success') {
+      return NextResponse.json({ received: true })
+    }
+
+    await Promise.all([
+      db
         .update(payment_transactions)
         .set({ status: 'success' })
-        .where(eq(payment_transactions.paystack_reference, reference))
+        .where(eq(payment_transactions.paystack_reference, reference)),
 
-      await db
+      db
         .update(companies)
         .set({ credits: sql`credits + ${credits}` })
-        .where(eq(companies.id, companyId))
-    }
+        .where(eq(companies.id, companyId)),
+
+      db.insert(credit_transactions).values({
+        company_id: companyId,
+        type: 'top_up',
+        amount: credits,
+        reference,
+        description: `Paystack webhook — ${credits.toLocaleString()} credits`,
+      }),
+    ])
   }
 
   return NextResponse.json({ received: true })

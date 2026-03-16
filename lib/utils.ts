@@ -37,6 +37,15 @@ export function formatNaira(kobo: number): string {
   }).format(naira)
 }
 
+export function formatUSD(cents: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(cents / 100)
+}
+
 export function formatCredits(credits: number): string {
   return new Intl.NumberFormat('en').format(credits)
 }

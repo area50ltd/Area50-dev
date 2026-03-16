@@ -8,20 +8,21 @@ export const CREDIT_COSTS = {
   kb_embed: 5,
 } as const
 
-// ─── Plans ────────────────────────────────────────────────────────────────────
+// ─── Plans (prices in USD cents) ─────────────────────────────────────────────
 
 export const PLANS = {
-  starter: { price_kobo: 1_500_000, credits: 5_000, name: 'Starter' },
-  growth: { price_kobo: 3_500_000, credits: 15_000, name: 'Growth' },
-  business: { price_kobo: 8_000_000, credits: 40_000, name: 'Business' },
+  starter:  { price_kobo: 4_900,  credits: 5_000,  name: 'Starter'  },
+  growth:   { price_kobo: 9_900,  credits: 15_000, name: 'Growth'   },
+  business: { price_kobo: 19_900, credits: 40_000, name: 'Business' },
+  agency:   { price_kobo: 29_900, credits: 50_000, name: 'Agency'   },
 } as const
 
-// ─── Credit Top-up Packs ──────────────────────────────────────────────────────
+// ─── Credit Top-up Packs (prices in USD cents) ───────────────────────────────
 
 export const CREDIT_PACKS = [
-  { price_kobo: 500_000, credits: 1_500, label: 'Small' },
-  { price_kobo: 1_000_000, credits: 3_500, label: 'Medium' },
-  { price_kobo: 2_000_000, credits: 8_000, label: 'Large' },
+  { price_kobo:  500, credits: 1_500, label: 'Small'  },
+  { price_kobo: 1_000, credits: 3_500, label: 'Medium' },
+  { price_kobo: 2_000, credits: 8_000, label: 'Large'  },
 ] as const
 
 // ─── Status Colors ────────────────────────────────────────────────────────────

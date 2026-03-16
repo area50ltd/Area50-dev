@@ -48,8 +48,8 @@ function statusBadge(status: string) {
   return `text-xs px-2 py-0.5 rounded-full font-medium ${map[status] ?? 'bg-neutral-700 text-neutral-400'}`
 }
 
-function formatNaira(kobo: number) {
-  return `₦${(kobo / 100).toLocaleString('en-NG')}`
+function formatUSD(cents: number) {
+  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
 export default function TransactionsPage() {
@@ -74,7 +74,7 @@ export default function TransactionsPage() {
   const summaryCards = [
     {
       label: 'Total Revenue',
-      value: stats ? formatNaira(stats.total_revenue) : '—',
+      value: stats ? formatUSD(stats.total_revenue) : '—',
       icon: TrendingUp,
       color: 'text-violet-600',
       bg: 'bg-violet-600/10',
@@ -170,7 +170,7 @@ export default function TransactionsPage() {
                   <td className="px-4 py-3 text-neutral-400 font-mono text-xs">
                     {tx.paystack_reference ? tx.paystack_reference.slice(0, 20) + '...' : '—'}
                   </td>
-                  <td className="px-4 py-3 text-white font-medium">{formatNaira(tx.amount_kobo)}</td>
+                  <td className="px-4 py-3 text-white font-medium">{formatUSD(tx.amount_kobo)}</td>
                   <td className="px-4 py-3 text-white">{tx.credits_purchased.toLocaleString()}</td>
                   <td className="px-4 py-3">
                     <span className={statusBadge(tx.status)}>{tx.status}</span>

@@ -193,7 +193,7 @@ export default function SettingsPage() {
       <section className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-9 h-9 rounded-lg bg-violet-600/20 flex items-center justify-center">
-            <span className="text-violet-600 font-bold text-sm">₦</span>
+            <span className="text-violet-600 font-bold text-sm">$</span>
           </div>
           <div>
             <h2 className="font-heading text-lg font-bold text-white">Paystack Integration</h2>

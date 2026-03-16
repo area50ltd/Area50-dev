@@ -27,8 +27,8 @@ interface CreditPack {
   sort_order: number
 }
 
-function formatNaira(kobo: number) {
-  return `₦${(kobo / 100).toLocaleString('en-NG')}`
+function formatUSD(cents: number) {
+  return `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
 }
 
 // ─── Plan Modal ───────────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ function PlanModal({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-neutral-400 mb-1">Price (₦)</label>
+              <label className="block text-sm text-neutral-400 mb-1">Price ($)</label>
               <Input
                 type="number"
                 value={priceKobo}
@@ -175,7 +175,7 @@ function PackModal({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-neutral-400 mb-1">Price (₦)</label>
+              <label className="block text-sm text-neutral-400 mb-1">Price ($)</label>
               <Input
                 type="number"
                 value={priceKobo}
@@ -337,7 +337,7 @@ export default function PlansPage() {
                   >
                     <td className="px-4 py-3 text-white font-medium">{plan.name}</td>
                     <td className="px-4 py-3 text-neutral-400 font-mono text-xs">{plan.key}</td>
-                    <td className="px-4 py-3 text-white">{formatNaira(plan.price_kobo)}</td>
+                    <td className="px-4 py-3 text-white">{formatUSD(plan.price_kobo)}</td>
                     <td className="px-4 py-3 text-white">{plan.credits.toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${plan.is_active ? 'bg-green-900/40 text-green-400' : 'bg-neutral-700 text-neutral-400'}`}>
@@ -414,7 +414,7 @@ export default function PlansPage() {
                     className="border-b border-neutral-700/50 hover:bg-neutral-700/30 transition-colors"
                   >
                     <td className="px-4 py-3 text-white font-medium">{pack.label}</td>
-                    <td className="px-4 py-3 text-white">{formatNaira(pack.price_kobo)}</td>
+                    <td className="px-4 py-3 text-white">{formatUSD(pack.price_kobo)}</td>
                     <td className="px-4 py-3 text-white">{pack.credits.toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${pack.is_active ? 'bg-green-900/40 text-green-400' : 'bg-neutral-700 text-neutral-400'}`}>

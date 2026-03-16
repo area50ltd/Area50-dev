@@ -4,7 +4,7 @@ import { count, sum, eq, sql } from 'drizzle-orm'
 import { type LucideIcon, Building2, Ticket, Users, CreditCard, TrendingUp, Activity, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { requireRole } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { formatNaira } from '@/lib/utils'
+import { formatUSD } from "@/lib/utils"
 
 function StatCard({ label, value, icon: Icon, color }: {
   label: string
@@ -77,7 +77,7 @@ export default async function SuperAdminOverviewPage() {
         <StatCard label="Total Users" value={totalUsers} icon={Users} color="bg-purple-600" />
         <StatCard
           label="Total Revenue"
-          value={formatNaira(Number(totalRevenue ?? 0) / 100)}
+          value={formatUSD(Number(totalRevenue ?? 0))}
           icon={CreditCard}
           color="bg-green-600"
         />
