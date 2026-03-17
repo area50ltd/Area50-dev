@@ -423,11 +423,11 @@ export default function BillingPage() {
               </thead>
               <tbody className="divide-y divide-neutral-50">
                 {[
-                  { op: 'AI message reply', cost: '1 credit', note: 'Each AI response to a customer.' },
-                  { op: 'Human agent message', cost: '3 credits', note: 'Agent responses cost 3× AI. Encourage AI resolution.' },
-                  { op: 'Voice call', cost: '10 credits/min', note: 'A 5-min call = 50 credits.' },
-                  { op: 'Knowledge base embedding', cost: '5 credits', note: 'One-time per document upload. Not charged per query.' },
-                  { op: 'Outbound call (flat fee)', cost: '5 credits', note: 'Flat per outbound call, regardless of duration.' },
+                  { op: 'AI message reply', cost: '2 credits', note: 'Each AI response to a customer.' },
+                  { op: 'Human agent message', cost: '5 credits', note: 'Human responses cost more — AI resolution saves credits.' },
+                  { op: 'Voice call', cost: '45 credits/min', note: 'A 5-min call = 225 credits. Billed per minute.' },
+                  { op: 'Knowledge base embedding', cost: '2 credits', note: 'One-time per document upload. Not charged per query.' },
+                  { op: 'Outbound call (flat fee)', cost: '5 credits', note: 'Flat per outbound call initiated, regardless of duration.' },
                 ].map((row) => (
                   <tr key={row.op}>
                     <td className="px-5 py-3 font-medium text-neutral-800 text-xs">{row.op}</td>

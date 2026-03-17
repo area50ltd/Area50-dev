@@ -17,8 +17,9 @@ import { db } from '@/lib/db'
 import { companies, tickets, messages, credit_transactions } from '@/lib/schema'
 import { eq, sql } from 'drizzle-orm'
 import type { ChatResponse } from '@/lib/types'
+import { CREDIT_COSTS } from '@/lib/constants'
 
-const AI_MESSAGE_COST = 1 // credits per AI response
+const AI_MESSAGE_COST = CREDIT_COSTS.ai_message
 
 const Schema = z.object({
   company_id: z.string().uuid(),

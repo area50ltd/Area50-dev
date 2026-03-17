@@ -12,6 +12,8 @@ const PUBLIC_PATHS = [
   '/auth/redirect',
   '/auth/callback',
   '/widget',
+  '/privacy',
+  '/terms',
 ]
 
 // API routes that don't need Clerk/Supabase session protection at the middleware level

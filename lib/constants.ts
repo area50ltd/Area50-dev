@@ -1,11 +1,11 @@
 // ─── Credit Costs ─────────────────────────────────────────────────────────────
 
 export const CREDIT_COSTS = {
-  ai_message: 1,
-  human_message: 3,
-  voice_minute: 10,
+  ai_message: 2,
+  human_message: 5,
+  voice_minute: 45,
   outbound_call_flat: 5,
-  kb_embed: 5,
+  kb_embed: 2,
 } as const
 
 // ─── Plans (prices in USD cents) ─────────────────────────────────────────────

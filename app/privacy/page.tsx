@@ -1,346 +1,343 @@
-import Link from 'next/link'
-import { Navbar } from '@/components/landing/Navbar'
-import { Footer } from '@/components/landing/Footer'
+import type { Metadata } from 'next'
 
-export const metadata = {
-  title: 'Privacy Policy',
-  description: 'Zentativ Privacy Policy',
+export const metadata: Metadata = {
+  title: 'Privacy Policy - Zentativ',
+  description: 'Zentativ Privacy Policy - how we collect, use, store, and protect your data.',
 }
-
-interface SectionProps {
-  id: string
-  title: string
-  children: React.ReactNode
-}
-
-function Section({ id, title, children }: SectionProps) {
-  return (
-    <section id={id} className="mb-10 scroll-mt-24">
-      <h2 className="font-heading font-bold text-xl text-violet-600 mb-4 pb-2 border-b border-neutral-100">
-        {title}
-      </h2>
-      <div className="space-y-3 text-neutral-600 leading-relaxed text-[15px]">{children}</div>
-    </section>
-  )
-}
-
-const tocItems = [
-  { id: 'introduction', label: 'Introduction' },
-  { id: 'information-collected', label: 'Information We Collect' },
-  { id: 'how-we-use', label: 'How We Use Your Information' },
-  { id: 'data-storage', label: 'Data Storage and Security' },
-  { id: 'third-party', label: 'Third-Party Services' },
-  { id: 'retention', label: 'Data Retention' },
-  { id: 'your-rights', label: 'Your Rights' },
-  { id: 'cookies', label: 'Cookies' },
-  { id: 'childrens', label: "Children's Privacy" },
-  { id: 'changes', label: 'Changes to This Policy' },
-  { id: 'contact', label: 'Contact Us' },
-]
 
 export default function PrivacyPage() {
+  const year = new Date().getFullYear()
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <Navbar />
-
-      {/* Page header */}
-      <div className="bg-[#0A0010] pt-28 pb-14 px-4 md:px-6">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-violet-400 text-sm font-medium mb-3">Legal</p>
-          <h1 className="font-heading font-bold text-3xl md:text-5xl text-white mb-4">
-            Privacy Policy
-          </h1>
-          <p className="text-white/40 text-sm">
-            Last updated:{' '}
-            <time dateTime="2026-03-01">March 2026</time>
-          </p>
+    <div className="min-h-screen bg-white">
+      <header className="border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+          <a href="/" className="text-xl font-bold text-[#1B2A4A]">Zentativ</a>
+          <a href="/" className="text-sm text-gray-500 hover:text-gray-800 transition-colors">
+            Back to Home
+          </a>
         </div>
-      </div>
+      </header>
 
-      {/* Content */}
-      <div className="max-w-3xl mx-auto px-4 md:px-6 py-14">
+      <main className="max-w-4xl mx-auto px-6 py-12">
+        <h1 className="text-4xl font-bold text-[#1B2A4A] mb-2">Privacy Policy</h1>
+        <p className="text-sm text-gray-500 mb-10">Last updated: March 17, 2026</p>
 
-        {/* Table of Contents */}
-        <div className="bg-white border border-neutral-100 rounded-2xl p-6 mb-10 shadow-sm">
-          <p className="font-heading font-semibold text-neutral-900 text-sm mb-4">Table of Contents</p>
-          <ol className="space-y-1.5">
-            {tocItems.map((item, i) => (
-              <li key={item.id}>
-                <Link
-                  href={`#${item.id}`}
-                  className="text-sm text-violet-600 hover:text-violet-800 transition-colors flex items-start gap-2"
-                >
-                  <span className="text-neutral-400 tabular-nums w-5 shrink-0">{i + 1}.</span>
-                  {item.label}
-                </Link>
+        <div className="space-y-10 text-gray-700 leading-relaxed">
+
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">1. Introduction</h2>
+            <p>
+              Zentativ operates a multi-tenant Hybrid AI + Human Customer Care SaaS platform at
+              zentativ.com. This Privacy Policy explains how we collect, use, store, share, and
+              protect information &mdash; including Google user data obtained through OAuth &mdash; when
+              you use our services.
+            </p>
+            <p className="mt-3">
+              By accessing or using Zentativ, you agree to the practices described in this policy.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">2. Data We Collect</h2>
+
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">2.1 Account and Profile Data</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Full name and email address (from sign-up or Google OAuth)</li>
+              <li>Company / organisation name</li>
+              <li>Phone number (optional, for voice integrations)</li>
+              <li>Profile avatar (optional upload)</li>
+              <li>Role within your organisation (admin, agent, etc.)</li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-gray-800 mt-5 mb-2">2.2 Google User Data (OAuth)</h3>
+            <p>When you sign in via Google OAuth, we request the following scopes:</p>
+            <ul className="list-disc pl-6 space-y-1 mt-2">
+              <li>
+                <strong>openid</strong> &mdash; to verify your identity via Google OpenID Connect.
               </li>
-            ))}
-          </ol>
-        </div>
-
-        {/* Sections */}
-        <div className="bg-white border border-neutral-100 rounded-2xl p-8 md:p-12 shadow-sm">
-
-          <Section id="introduction" title="1. Introduction">
-            <p>
-              Welcome to Zentativ (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;our&rdquo;). Zentativ is a Hybrid AI + Human
-              Customer Care SaaS platform operated by Area50/Webtonics. We are committed to protecting
-              the personal information of our users, their customers, and anyone who interacts with
-              our platform.
-            </p>
-            <p>
-              This Privacy Policy explains how we collect, use, store, share, and protect your
-              information when you use Zentativ&apos;s services, including our web application, API,
-              embeddable chat widget, and related services (collectively, the &ldquo;Service&rdquo;).
-            </p>
-            <p>
-              By accessing or using the Service, you agree to the collection and use of information
-              in accordance with this policy. If you do not agree, please discontinue use of our Service.
-            </p>
-          </Section>
-
-          <Section id="information-collected" title="2. Information We Collect">
-            <p>We collect information you provide directly and information generated through your use of the Service:</p>
-
-            <p className="font-semibold text-neutral-800 mt-4">Account Information</p>
-            <p>
-              When you register, we collect your name, email address, company name, phone number,
-              and the password you create. Business subscription admins also provide billing contact details.
-            </p>
-
-            <p className="font-semibold text-neutral-800 mt-4">Usage Data</p>
-            <p>
-              We automatically collect information about how you interact with the Service, including
-              IP addresses, browser type, pages visited, features used, timestamps, and support
-              ticket content (messages exchanged between customers and your agents or our AI).
-            </p>
-
-            <p className="font-semibold text-neutral-800 mt-4">Payment Information</p>
-            <p>
-              Billing details (card number, expiry, CVV) are collected and processed directly by our
-              payment provider, Paystack. We store only non-sensitive transaction metadata such as
-              payment references, amounts, and dates — never raw card data.
-            </p>
-
-            <p className="font-semibold text-neutral-800 mt-4">Customer Data</p>
-            <p>
-              When your customers interact through the Zentativ widget, we collect their messages,
-              session identifiers, and any contact information they voluntarily share. You, as the
-              platform subscriber, are the data controller for your customers&apos; data; Zentativ
-              acts as data processor.
-            </p>
-
-            <p className="font-semibold text-neutral-800 mt-4">Uploaded Files</p>
-            <p>
-              Documents you upload to the Knowledge Base (PDFs, DOCX, CSVs, etc.) are stored securely
-              and used solely for AI knowledge retrieval within your account.
-            </p>
-          </Section>
-
-          <Section id="how-we-use" title="3. How We Use Your Information">
-            <p>We use the information we collect to:</p>
-            <ul className="list-disc list-inside space-y-1.5 ml-2">
-              <li>Provide, operate, and maintain the Zentativ platform and its features</li>
-              <li>Process payments and manage your subscription and credit balance</li>
-              <li>Authenticate users and enforce access controls across multi-tenant accounts</li>
-              <li>Power AI-driven support responses via our n8n workflow engine and integrated LLMs</li>
-              <li>Improve the accuracy and performance of AI models through anonymised analytics</li>
-              <li>Send transactional emails (billing receipts, password resets, credit alerts)</li>
-              <li>Respond to your support requests, questions, and feedback</li>
-              <li>Monitor for abuse, fraud, or violations of our Terms of Service</li>
-              <li>Comply with legal obligations applicable to our operations in Nigeria</li>
+              <li>
+                <strong>email</strong> &mdash; to retrieve your Google account email for account
+                creation and login identification.
+              </li>
+              <li>
+                <strong>profile</strong> &mdash; to retrieve your display name and profile picture
+                to pre-fill your Zentativ profile.
+              </li>
             </ul>
-            <p>
-              We do not sell your personal information or your customers&apos; personal information to
-              third parties, ever.
+            <p className="mt-3">
+              We do <strong>NOT</strong> request access to Gmail, Google Drive, Google Calendar,
+              Google Contacts, or any other Google service beyond the three scopes listed above.
             </p>
-          </Section>
 
-          <Section id="data-storage" title="4. Data Storage and Security">
-            <p>
-              Your data is stored in Supabase (cloud-hosted PostgreSQL) with servers located in the
-              EU (West region). All data in transit is encrypted using TLS 1.2 or higher. Data at
-              rest is encrypted by the storage provider using AES-256.
-            </p>
-            <p>
-              Uploaded files are stored in Supabase Storage with bucket-level access controls.
-              Sensitive credentials (API keys, payment keys) are stored as server-side environment
-              variables and are never exposed to the client browser.
-            </p>
-            <p>We implement the following security controls:</p>
-            <ul className="list-disc list-inside space-y-1.5 ml-2">
-              <li>Role-based access control — users can only access data belonging to their company</li>
-              <li>Company-scoped database queries — every query includes a <code className="bg-neutral-100 px-1 rounded text-violet-700 text-xs">company_id</code> filter</li>
-              <li>Server-side authentication verification on every protected API route</li>
-              <li>Signed URLs for file downloads with short expiry windows</li>
-              <li>n8n workflows running on a private VPS with secret-header authentication</li>
+            <h3 className="text-lg font-semibold text-gray-800 mt-5 mb-2">2.3 Usage and Platform Data</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Support ticket content (messages between customers and AI / agents)</li>
+              <li>Knowledge base documents uploaded by your organisation</li>
+              <li>Widget configuration settings (colours, welcome messages)</li>
+              <li>Credit usage and payment transaction records</li>
+              <li>Agent status events and queue activity</li>
+              <li>API request logs and error logs</li>
+              <li>IP address, browser type, and device metadata</li>
             </ul>
-            <p>
-              While we implement industry-standard safeguards, no method of transmission over the
-              internet is 100% secure. We encourage you to use a strong password and protect your
-              account credentials.
-            </p>
-          </Section>
+          </section>
 
-          <Section id="third-party" title="5. Third-Party Services">
-            <p>
-              Zentativ integrates with third-party services to deliver its functionality.
-              Each operates under its own privacy policy:
-            </p>
-            <ul className="space-y-3 mt-2">
-              {[
-                {
-                  name: 'Supabase',
-                  url: 'https://supabase.com/privacy',
-                  desc: 'Database and file storage provider. Your data resides on Supabase-managed infrastructure.',
-                },
-                {
-                  name: 'Paystack',
-                  url: 'https://paystack.com/privacy',
-                  desc: 'Payment processing. Handles card data securely and returns only transaction references to us.',
-                },
-                {
-                  name: 'Vapi',
-                  url: 'https://vapi.ai/privacy',
-                  desc: 'Voice AI infrastructure for inbound and outbound call handling.',
-                },
-                {
-                  name: 'n8n (self-hosted)',
-                  url: 'https://n8n.io/privacy',
-                  desc: 'Workflow automation engine running on our private VPS. Handles AI routing, escalation, and knowledge base workflows.',
-                },
-                {
-                  name: 'Vercel',
-                  url: 'https://vercel.com/legal/privacy-policy',
-                  desc: 'Frontend hosting and serverless API functions.',
-                },
-              ].map((svc) => (
-                <li key={svc.name} className="flex gap-3">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />
-                  <span>
-                    <a
-                      href={svc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold text-violet-600 hover:underline"
-                    >
-                      {svc.name}
-                    </a>{' '}
-                    — {svc.desc}
-                  </span>
-                </li>
-              ))}
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">3. How We Use Your Data</h2>
+
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">3.1 Google User Data &mdash; Specific Use</h3>
+            <p>Google user data (name, email, profile picture) is used exclusively to:</p>
+            <ul className="list-disc pl-6 space-y-1 mt-2">
+              <li>Authenticate you and create or link your Zentativ account.</li>
+              <li>Pre-populate your account profile to reduce manual entry.</li>
+              <li>Send transactional notifications (credit alerts, ticket escalations) to your email.</li>
             </ul>
-          </Section>
-
-          <Section id="retention" title="6. Data Retention">
-            <p>
-              We retain your account data for as long as your account remains active. If you close your
-              account or your subscription lapses, we will retain your data for a further 90 days to
-              allow for account reinstatement, after which it will be permanently deleted.
-            </p>
-            <p>
-              Payment transaction records are retained for 7 years in compliance with Nigerian financial
-              regulations. Anonymised aggregate analytics data may be retained indefinitely for product
-              improvement purposes.
-            </p>
-            <p>
-              Your customers&apos; conversation history (ticket messages) is retained for the duration of your
-              active subscription. You may delete individual tickets or bulk-export and delete data at any time
-              from the dashboard.
-            </p>
-          </Section>
-
-          <Section id="your-rights" title="7. Your Rights">
-            <p>Subject to applicable law, you have the following rights regarding your personal data:</p>
-            <ul className="space-y-2 mt-2">
-              {[
-                { right: 'Access', desc: 'Request a copy of the personal data we hold about you.' },
-                { right: 'Rectification', desc: 'Ask us to correct inaccurate or incomplete data.' },
-                { right: 'Erasure', desc: 'Request deletion of your personal data ("right to be forgotten").' },
-                { right: 'Portability', desc: 'Receive your data in a machine-readable format (CSV/JSON).' },
-                { right: 'Objection', desc: 'Object to certain types of processing, including marketing.' },
-                { right: 'Restriction', desc: 'Ask us to restrict processing in certain circumstances.' },
-              ].map((item) => (
-                <li key={item.right} className="flex gap-2">
-                  <span className="font-semibold text-neutral-800 shrink-0">{item.right}:</span>
-                  <span>{item.desc}</span>
-                </li>
-              ))}
-            </ul>
-            <p>
-              To exercise any of these rights, contact us at{' '}
-              <a href="mailto:hello@zentativ.com" className="text-violet-600 hover:underline">
-                hello@zentativ.com
+            <p className="mt-3">
+              We do <strong>NOT</strong> use Google user data to serve advertising, train AI models,
+              build behavioural profiles, or sell to third parties. Our use of Google API data
+              complies fully with the{' '}
+              <a
+                href="https://developers.google.com/terms/api-services-user-data-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-violet-600 underline"
+              >
+                Google API Services User Data Policy
               </a>
-              . We will respond within 30 days.
+              , including the Limited Use requirements.
             </p>
-          </Section>
 
-          <Section id="cookies" title="8. Cookies">
-            <p>
-              Zentativ uses cookies and similar technologies to maintain user sessions, remember
-              preferences, and collect anonymous usage analytics. Specifically:
-            </p>
-            <ul className="list-disc list-inside space-y-1.5 ml-2">
-              <li><strong>Session cookies</strong> — required for authentication; deleted when you close your browser</li>
-              <li><strong>Persistent cookies</strong> — remember your login state across sessions</li>
-              <li><strong>Analytics cookies</strong> — anonymous product usage data to help us improve</li>
+            <h3 className="text-lg font-semibold text-gray-800 mt-5 mb-2">3.2 General Platform Data</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>Provide and operate the Zentativ platform</li>
+              <li>Process AI-powered and human-agent customer support conversations</li>
+              <li>Route, escalate, and resolve support tickets</li>
+              <li>Generate analytics and usage reports for your organisation</li>
+              <li>Process payments and manage credit balances</li>
+              <li>Send service notifications, security alerts, and billing updates</li>
+              <li>Investigate fraud, enforce our Terms of Service, and comply with law</li>
             </ul>
-            <p>
-              You can control cookies through your browser settings. Disabling essential cookies will
-              prevent you from logging in to the platform.
-            </p>
-          </Section>
+          </section>
 
-          <Section id="childrens" title="9. Children's Privacy">
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">4. Data Sharing with Third Parties</h2>
             <p>
-              Zentativ is a business-to-business platform intended for use by companies and their
-              employees. We do not knowingly collect personal information from children under the age
-              of 18. If you believe a child has provided us with personal information, please contact
-              us at{' '}
-              <a href="mailto:hello@zentativ.com" className="text-violet-600 hover:underline">
-                hello@zentativ.com
+              We do <strong>NOT</strong> sell, rent, or trade your personal data or Google user data.
+              We share data only with the following service providers:
+            </p>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-sm border-collapse border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Third Party</th>
+                    <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Purpose</th>
+                    <th className="text-left px-4 py-2 border border-gray-200 font-semibold">Data Shared</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="px-4 py-2 border border-gray-200">Supabase</td>
+                    <td className="px-4 py-2 border border-gray-200">Database and authentication hosting</td>
+                    <td className="px-4 py-2 border border-gray-200">All structured user and platform data</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="px-4 py-2 border border-gray-200">Vercel</td>
+                    <td className="px-4 py-2 border border-gray-200">Application hosting and CDN</td>
+                    <td className="px-4 py-2 border border-gray-200">Request logs, IP addresses</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 border border-gray-200">Supabase Storage</td>
+                    <td className="px-4 py-2 border border-gray-200">File storage (documents, avatars)</td>
+                    <td className="px-4 py-2 border border-gray-200">Uploaded documents and images</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="px-4 py-2 border border-gray-200">Paystack</td>
+                    <td className="px-4 py-2 border border-gray-200">Payment processing</td>
+                    <td className="px-4 py-2 border border-gray-200">Email, payment amount and reference</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 border border-gray-200">Vapi</td>
+                    <td className="px-4 py-2 border border-gray-200">AI voice call infrastructure</td>
+                    <td className="px-4 py-2 border border-gray-200">Phone numbers, voice session data</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="px-4 py-2 border border-gray-200">n8n (self-hosted VPS)</td>
+                    <td className="px-4 py-2 border border-gray-200">AI workflow orchestration</td>
+                    <td className="px-4 py-2 border border-gray-200">Ticket and message content for AI processing</td>
+                  </tr>
+                  <tr>
+                    <td className="px-4 py-2 border border-gray-200">Law enforcement / courts</td>
+                    <td className="px-4 py-2 border border-gray-200">Legal obligation or valid legal process</td>
+                    <td className="px-4 py-2 border border-gray-200">Minimum required by law</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-4">
+              All sub-processors are contractually required to maintain data confidentiality and
+              handle data only as instructed by Zentativ.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">5. Data Storage and Protection</h2>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>
+                All data is stored in <strong>Supabase (PostgreSQL)</strong> on AWS EU (eu-west-1),
+                protected by TLS in transit and AES-256 encryption at rest.
+              </li>
+              <li>
+                Google OAuth tokens are handled by Supabase Auth as encrypted session cookies;
+                we do not store raw OAuth refresh tokens in our own database.
+              </li>
+              <li>
+                Production data access is restricted to authorised Zentativ engineers via
+                role-based access controls and enforced MFA.
+              </li>
+              <li>
+                API keys and secrets are stored in environment variables, never in source code
+                or client-side bundles.
+              </li>
+              <li>
+                We conduct periodic security reviews and promptly address discovered vulnerabilities.
+              </li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">6. Data Retention and Deletion</h2>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>
+                <strong>Account data</strong> &mdash; retained for your active subscription, deleted
+                within 30 days of account closure.
+              </li>
+              <li>
+                <strong>Support ticket and message data</strong> &mdash; retained for 24 months for
+                audit and analytics. Admins may request earlier deletion.
+              </li>
+              <li>
+                <strong>Google user data</strong> (name, email, profile picture) &mdash; deleted when
+                your account is deleted. No Google user data is retained beyond account closure.
+              </li>
+              <li>
+                <strong>Payment records</strong> &mdash; retained for 7 years to comply with financial
+                regulations.
+              </li>
+              <li>
+                <strong>Server/access logs</strong> &mdash; retained for 90 days then automatically purged.
+              </li>
+            </ul>
+
+            <h3 className="text-lg font-semibold text-gray-800 mt-5 mb-2">Requesting Deletion</h3>
+            <p>
+              To request deletion of your personal data or Google user data, email{' '}
+              <a href="mailto:privacy@zentativ.com" className="text-violet-600 underline">
+                privacy@zentativ.com
               </a>{' '}
-              and we will delete it promptly.
+              with subject line <strong>Data Deletion Request</strong>. We will confirm within
+              5 business days and complete deletion within 30 days, providing written confirmation
+              upon completion.
             </p>
-          </Section>
+          </section>
 
-          <Section id="changes" title="10. Changes to This Policy">
-            <p>
-              We may update this Privacy Policy from time to time. When we make material changes, we
-              will update the &ldquo;Last updated&rdquo; date at the top of this page and notify active subscribers
-              via email at least 14 days before the change takes effect.
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">7. Cookies and Tracking</h2>
+            <p>We use strictly necessary cookies only:</p>
+            <ul className="list-disc pl-6 space-y-1 mt-2">
+              <li>
+                <strong>Session cookies</strong> &mdash; managed by Supabase Auth to maintain your
+                authenticated session. These expire when you sign out or after 7 days of inactivity.
+              </li>
+            </ul>
+            <p className="mt-3">
+              We do not use advertising cookies, cross-site tracking, or analytics fingerprinting.
             </p>
-            <p>
-              Continued use of the Service after a policy update constitutes acceptance of the revised
-              policy. We encourage you to review this page periodically.
-            </p>
-          </Section>
+          </section>
 
-          <Section id="contact" title="11. Contact Us">
-            <p>
-              If you have any questions, concerns, or requests regarding this Privacy Policy or our
-              data practices, please reach out to us:
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">8. Your Rights</h2>
+            <p>Depending on your jurisdiction, you may have the right to:</p>
+            <ul className="list-disc pl-6 space-y-1 mt-2">
+              <li><strong>Access</strong> &mdash; request a copy of the personal data we hold about you.</li>
+              <li><strong>Rectification</strong> &mdash; correct inaccurate personal data.</li>
+              <li><strong>Erasure</strong> &mdash; request deletion of your personal data.</li>
+              <li><strong>Portability</strong> &mdash; receive your data in a machine-readable format.</li>
+              <li>
+                <strong>Withdraw consent</strong> &mdash; disconnect Google OAuth at any time via your
+                Google Account settings at{' '}
+                <a
+                  href="https://myaccount.google.com/permissions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-violet-600 underline"
+                >
+                  myaccount.google.com/permissions
+                </a>.
+              </li>
+            </ul>
+            <p className="mt-3">
+              To exercise any right, contact{' '}
+              <a href="mailto:privacy@zentativ.com" className="text-violet-600 underline">
+                privacy@zentativ.com
+              </a>.
             </p>
-            <div className="mt-4 p-5 rounded-xl bg-violet-50 border border-violet-100">
-              <p className="font-semibold text-neutral-900 mb-1">Zentativ (Area50 / Webtonics)</p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">9. Children Privacy</h2>
+            <p>
+              Zentativ is a B2B platform for organisations and their employees. We do not knowingly
+              collect personal data from individuals under 18. Contact us at{' '}
+              <a href="mailto:privacy@zentativ.com" className="text-violet-600 underline">
+                privacy@zentativ.com
+              </a>{' '}
+              if you believe a minor has provided data and we will promptly delete it.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">10. International Data Transfers</h2>
+            <p>
+              Our infrastructure is hosted primarily in the EU. Where data is processed outside
+              your jurisdiction, appropriate safeguards are in place, including Standard Contractual
+              Clauses with EU/EEA sub-processors.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">11. Changes to This Policy</h2>
+            <p>
+              We will notify you of material changes via email or an in-app banner at least 14 days
+              before they take effect. The &quot;Last updated&quot; date at the top reflects the most recent
+              revision.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-semibold text-[#1B2A4A] mb-3">12. Contact Us</h2>
+            <div className="bg-gray-50 rounded-lg p-4 text-sm space-y-1">
+              <p><strong>Zentativ</strong></p>
               <p>
                 Email:{' '}
-                <a href="mailto:hello@zentativ.com" className="text-violet-600 hover:underline font-medium">
-                  hello@zentativ.com
+                <a href="mailto:privacy@zentativ.com" className="text-violet-600 underline">
+                  privacy@zentativ.com
                 </a>
               </p>
-              <p className="text-neutral-500 text-sm mt-1">
-                We aim to respond to all privacy-related inquiries within 5 business days.
-              </p>
+              <p>Website: www.zentativ.com</p>
             </div>
-          </Section>
+          </section>
 
         </div>
-      </div>
+      </main>
 
-      <Footer />
+      <footer className="border-t border-gray-200 mt-16">
+        <div className="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between text-sm text-gray-400">
+          <span>&copy; {year} Zentativ. All rights reserved.</span>
+          <div className="flex gap-6">
+            <a href="/privacy" className="text-violet-600 font-medium">Privacy Policy</a>
+            <a href="/terms" className="hover:text-gray-600 transition-colors">Terms of Service</a>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
