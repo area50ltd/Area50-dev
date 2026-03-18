@@ -259,13 +259,13 @@ export default function BillingPage() {
   const maxCredits = currentPlanObj?.credits ?? 5000
   const payments = data?.payments ?? []
 
-  const handleTopUp = async (amountCents: number, credits: number, label: string) => {
+  const handleTopUp = async (packId: string, type: 'plan' | 'topup', label: string) => {
     setLoading(label)
     try {
       const res = await fetch('/api/payment/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount_kobo: amountCents, credits, type: 'topup' }),
+        body: JSON.stringify({ pack_id: packId, type }),
       })
       const data = await res.json()
       if (data.data?.authorization_url) {
@@ -295,7 +295,7 @@ export default function BillingPage() {
     <div className="flex flex-col flex-1">
       <TopBar title="Credits & Billing" credits={currentCredits} />
 
-      <main className="flex-1 p-6 space-y-8 max-w-5xl">
+      <main className="flex-1 p-4 sm:p-6 space-y-6 sm:space-y-8 max-w-5xl w-full">
 
         {/* ── Current plan + credit meter ── */}
         <div className="grid md:grid-cols-2 gap-5">
@@ -393,7 +393,7 @@ export default function BillingPage() {
                         disabled={isCurrent || loading === plan.name}
                         className="w-full rounded-lg text-xs"
                         variant={isCurrent ? 'secondary' : 'default'}
-                        onClick={() => !isCurrent && handleTopUp(plan.price_kobo, plan.credits, plan.name)}
+                        onClick={() => !isCurrent && handleTopUp(plan.id, 'plan', plan.name)}
                       >
                         {loading === plan.name
                           ? <Loader2 size={13} className="animate-spin" />
@@ -457,7 +457,7 @@ export default function BillingPage() {
               {dbPacks.map((pack) => (
                 <button
                   key={pack.id}
-                  onClick={() => handleTopUp(pack.price_kobo, pack.credits, pack.label)}
+                  onClick={() => handleTopUp(pack.id, 'topup', pack.label)}
                   disabled={loading === pack.label}
                   className="flex items-center gap-3 bg-white border border-neutral-200 hover:border-violet-400 hover:bg-violet-50/30 rounded-xl px-5 py-4 transition-all disabled:opacity-50 text-left"
                 >
@@ -484,7 +484,8 @@ export default function BillingPage() {
             {payments.length === 0 ? (
               <div className="py-12 text-center text-sm text-neutral-400">No payments yet</div>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[540px]">
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50">
                     {['Date', 'Reference', 'Amount', 'Credits', 'Status', ''].map((h) => (
@@ -513,6 +514,7 @@ export default function BillingPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </section>
@@ -535,7 +537,8 @@ export default function BillingPage() {
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[420px]">
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50">
                     {['Type', 'Transactions', 'Credits Used', '% of Total'].map((h) => (
@@ -576,23 +579,24 @@ export default function BillingPage() {
                   </tr>
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </section>
 
         {/* ── Credit Transaction History ── */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 className="font-heading text-sm font-bold text-neutral-900">Credit Transaction History</h3>
               <p className="text-xs text-neutral-400 mt-0.5">All credit deductions and top-ups</p>
             </div>
             <div className="flex items-center gap-2">
-              <Filter size={13} className="text-neutral-400" />
+              <Filter size={13} className="text-neutral-400 flex-shrink-0" />
               <select
                 value={txType}
                 onChange={(e) => { setTxType(e.target.value); setTxPage(1) }}
-                className="text-xs border border-neutral-200 rounded-lg px-3 py-1.5 text-neutral-700 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30"
+                className="text-xs border border-neutral-200 rounded-lg px-3 py-1.5 text-neutral-700 bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30 w-full sm:w-auto"
               >
                 <option value="">All Types</option>
                 {Object.entries(TYPE_LABELS).map(([v, l]) => (
@@ -613,7 +617,8 @@ export default function BillingPage() {
           ) : (
             <>
               <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[420px] text-sm">
                   <thead>
                     <tr className="border-b border-neutral-100 bg-neutral-50">
                       {['Date', 'Type', 'Reference', 'Credits'].map((h) => (
@@ -643,6 +648,7 @@ export default function BillingPage() {
                     })}
                   </tbody>
                 </table>
+              </div>
               </div>
 
               {(txData.pages ?? 1) > 1 && (

@@ -296,7 +296,7 @@ export default function PlansPage() {
     updatePack.mutate({ id: pack.id, is_active: !pack.is_active })
 
   return (
-    <div className="p-8 space-y-10">
+    <div className="p-4 sm:p-8 space-y-10">
       {/* ─── Subscription Plans ─── */}
       <section>
         <div className="flex items-center justify-between mb-4">

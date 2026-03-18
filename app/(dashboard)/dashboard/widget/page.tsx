@@ -88,7 +88,7 @@ export default function WidgetCustomizerPage() {
     <div className="flex flex-col flex-1">
       <TopBar title="Widget Customizer" />
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 sm:p-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 size={24} className="animate-spin text-neutral-400" />

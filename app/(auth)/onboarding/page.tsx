@@ -170,7 +170,7 @@ function complexityLabel(v: number): { text: string; color: string } {
 
 function ProgressBar({ currentStep }: { currentStep: number }) {
   return (
-    <div className="w-full max-w-2xl mx-auto mb-10">
+    <div className="w-full max-w-2xl mx-auto mb-6 sm:mb-10">
       <div className="flex items-center justify-between relative">
         <div className="absolute top-4 left-8 right-8 h-0.5 bg-neutral-200">
           <motion.div
@@ -569,8 +569,8 @@ function Step2({
         </div>
       </div>
 
-      <div className="flex gap-3 mt-8">
-        <Button variant="secondary" size="lg" onClick={onBack} className="rounded-full">
+      <div className="flex flex-col-reverse sm:flex-row gap-3 mt-8">
+        <Button variant="secondary" size="lg" onClick={onBack} className="rounded-full sm:w-auto w-full">
           <ArrowLeft size={16} /> Back
         </Button>
         <Button size="lg" onClick={handleNext} className="flex-1 rounded-full">
@@ -733,8 +733,8 @@ function Step3({
           />
         </div>
 
-        <div className="flex gap-3">
-          <Button variant="secondary" size="lg" onClick={onBack} className="rounded-full">
+        <div className="flex flex-col-reverse sm:flex-row gap-3">
+          <Button variant="secondary" size="lg" onClick={onBack} className="rounded-full sm:w-auto w-full">
             <ArrowLeft size={16} /> Back
           </Button>
           <Button size="lg" onClick={handleNext} className="flex-1 rounded-full">
@@ -887,8 +887,8 @@ function Step4({
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <Button variant="secondary" size="lg" onClick={onBack} className="rounded-full">
+        <div className="flex flex-col-reverse sm:flex-row gap-3">
+          <Button variant="secondary" size="lg" onClick={onBack} className="rounded-full sm:w-auto w-full">
             <ArrowLeft size={16} /> Back
           </Button>
           <Button size="lg" onClick={onNext} className="flex-1 rounded-full">
@@ -966,15 +966,15 @@ function Step5({
         </div>
       )}
 
-      <div className="flex gap-3">
-        <Button variant="secondary" size="lg" onClick={onBack} className="rounded-full">
+      <div className="flex flex-col-reverse sm:flex-row gap-3">
+        <Button variant="secondary" size="lg" onClick={onBack} className="rounded-full sm:w-auto w-full">
           <ArrowLeft size={16} /> Back
         </Button>
         <Button
           variant="ghost"
           size="lg"
           onClick={onNext}
-          className="rounded-full text-neutral-500"
+          className="rounded-full text-neutral-500 sm:w-auto w-full"
         >
           Skip for now
         </Button>
@@ -983,8 +983,7 @@ function Step5({
           onClick={handleContinue}
           className="flex-1 rounded-full"
         >
-          {file ? 'Continue' : 'Continue'}
-          <ArrowRight size={16} />
+          Continue <ArrowRight size={16} />
         </Button>
       </div>
     </StepContainer>
@@ -1181,13 +1180,13 @@ function Step6({
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-col-reverse sm:flex-row gap-3">
         <Button
           variant="secondary"
           size="lg"
           onClick={onBack}
           disabled={loading}
-          className="rounded-full"
+          className="rounded-full sm:w-auto w-full"
         >
           <ArrowLeft size={16} /> Back
         </Button>
@@ -1195,7 +1194,7 @@ function Step6({
           size="lg"
           onClick={handleLaunch}
           disabled={loading}
-          className="flex-1 rounded-full shadow-lg shadow-violet-600/25"
+          className="flex-1 rounded-full shadow-lg shadow-violet-600/25 text-base py-4"
         >
           {loading ? (
             <><Loader2 size={16} className="animate-spin" /> Setting up…</>
@@ -1307,10 +1306,10 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-neutral-50 flex flex-col items-center justify-center p-4 sm:p-6">
       <div className="w-full max-w-2xl">
         {/* Logo */}
-        <div className="flex items-center justify-center mb-10 overflow-hidden" style={{ height: '40px' }}>
+        <div className="flex items-center justify-center mb-6 sm:mb-10 overflow-hidden" style={{ height: '40px' }}>
           <Image
             src="/images/logo/logo-dark.png"
             alt="Zentativ"
@@ -1323,7 +1322,7 @@ export default function OnboardingPage() {
 
         <ProgressBar currentStep={currentStep} />
 
-        <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 p-8 md:p-10">
+        <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 p-5 sm:p-8 md:p-10">
           <AnimatePresence mode="wait">
             {currentStep === 1 && (
               <Step1 key="s1" data={formData} setData={setFormData} onNext={next} />

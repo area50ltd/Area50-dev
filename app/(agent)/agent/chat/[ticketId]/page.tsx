@@ -125,7 +125,7 @@ export default function AgentChatPage() {
       </header>
 
       {/* Split view */}
-      <div className="flex-1 grid lg:grid-cols-5 overflow-hidden h-[calc(100vh-56px)]">
+      <div className="flex-1 grid lg:grid-cols-5 overflow-hidden lg:h-[calc(100vh-56px)]">
         {/* Left — Chat (60%) */}
         <div className="lg:col-span-3 flex flex-col bg-white border-r border-neutral-200">
           {/* Messages */}

@@ -20,7 +20,7 @@ export default function KnowledgePage() {
     <div className="flex flex-col flex-1">
       <TopBar title="AI Knowledge Base" />
 
-      <main className="flex-1 p-6 space-y-5">
+      <main className="flex-1 p-4 sm:p-6 space-y-5">
         {/* Storage bar */}
         <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">

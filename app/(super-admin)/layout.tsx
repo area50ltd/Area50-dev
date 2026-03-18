@@ -20,7 +20,7 @@ export default async function SuperAdminLayout({ children }: { children: React.R
   return (
     <div className="dark flex min-h-screen bg-neutral-950">
       {/* Sidebar */}
-      <aside className="w-56 bg-neutral-900 border-r border-neutral-800 flex flex-col fixed inset-y-0 left-0 z-30">
+      <aside className="w-56 bg-neutral-900 border-r border-neutral-800 hidden md:flex flex-col fixed inset-y-0 left-0 z-30">
         {/* Logo */}
         <div className="px-5 py-4 border-b border-neutral-800">
           <div className="overflow-hidden" style={{ height: '36px' }}>
@@ -64,7 +64,20 @@ export default async function SuperAdminLayout({ children }: { children: React.R
       </aside>
 
       {/* Content */}
-      <div className="flex-1 ml-56 flex flex-col min-h-screen">
+      <div className="flex-1 ml-0 md:ml-56 flex flex-col min-h-screen">
+        {/* Mobile top nav */}
+        <nav className="md:hidden bg-neutral-900 border-b border-neutral-800 flex overflow-x-auto gap-1 px-3 py-2 shrink-0">
+          {NAV_ITEMS.map(({ label, href, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-all shrink-0"
+            >
+              <Icon size={15} />
+              <span className="text-[10px] whitespace-nowrap">{label}</span>
+            </Link>
+          ))}
+        </nav>
         {children}
       </div>
     </div>

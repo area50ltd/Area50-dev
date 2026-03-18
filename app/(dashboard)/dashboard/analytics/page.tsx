@@ -59,7 +59,7 @@ export default function AnalyticsPage() {
     <div className="flex flex-col flex-1">
       <TopBar title="Analytics" />
 
-      <main className="flex-1 p-6 space-y-5">
+      <main className="flex-1 p-4 sm:p-6 space-y-5">
         {/* Date range picker */}
         <div className="flex items-center gap-2">
           {DATE_RANGES.map((r) => (

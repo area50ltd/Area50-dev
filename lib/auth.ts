@@ -21,7 +21,8 @@ export const getCurrentUser = cache(async function getCurrentUser() {
       .limit(1)
     if (existing) return existing
 
-    // First login — auto-create user row
+    // First login — auto-create user row with no role.
+    // Role must be explicitly assigned by a super_admin or via the onboarding flow.
     const name = (authUser.user_metadata?.full_name as string | undefined)
       ?? (authUser.user_metadata?.name as string | undefined)
       ?? null
@@ -32,7 +33,7 @@ export const getCurrentUser = cache(async function getCurrentUser() {
         clerk_id: authUser.id,
         email: authUser.email ?? '',
         name,
-        role: 'admin',
+        role: 'pending',
       })
       .onConflictDoUpdate({
         target: users.clerk_id,

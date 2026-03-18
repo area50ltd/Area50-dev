@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { verifyTransaction } from '@/lib/paystack'
 import { db } from '@/lib/db'
 import { payment_transactions, companies, credit_transactions } from '@/lib/schema'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
 
 const Schema = z.object({ reference: z.string() })
@@ -20,12 +20,17 @@ export async function POST(req: Request) {
   const { reference } = parsed.data
 
   try {
-    // Idempotency: check if we already processed this reference
+    // Idempotency: verify reference exists AND belongs to this company
     const existing = await db.query.payment_transactions.findFirst({
-      where: eq(payment_transactions.paystack_reference, reference),
+      where: and(
+        eq(payment_transactions.paystack_reference, reference),
+        eq(payment_transactions.company_id, currentUser.company_id),
+      ),
     })
 
-    if (existing?.status === 'success') {
+    if (!existing) return NextResponse.json({ error: 'Reference not found' }, { status: 404 })
+
+    if (existing.status === 'success') {
       return NextResponse.json({ success: true, credits_added: existing.credits_purchased, already_processed: true })
     }
 
@@ -35,7 +40,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: 'Payment not successful' })
     }
 
-    const credits = result.data.metadata?.credits ?? existing?.credits_purchased ?? 0
+    // Use credits_purchased recorded server-side at initialization — never Paystack metadata
+    const credits = existing.credits_purchased ?? 0
 
     await Promise.all([
       db

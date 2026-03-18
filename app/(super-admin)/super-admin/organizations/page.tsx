@@ -183,8 +183,8 @@ export default function OrganizationsPage() {
   })
 
   return (
-    <main className="flex-1 p-8">
-      <div className="flex items-center justify-between mb-8">
+    <main className="flex-1 p-4 sm:p-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="font-heading text-2xl font-bold text-white mb-1">Organizations</h1>
           <p className="text-neutral-500 text-sm">{orgs.length} companies on the platform</p>
@@ -213,7 +213,8 @@ export default function OrganizationsPage() {
             <span className="text-neutral-500 text-sm">Loading organizations...</span>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-neutral-800">
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Organization</th>
@@ -352,6 +353,7 @@ export default function OrganizationsPage() {
               </AnimatePresence>
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

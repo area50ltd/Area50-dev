@@ -208,9 +208,9 @@ export default function TicketDetailPage() {
     <div className="flex flex-col flex-1">
       <TopBar title="Ticket Detail" />
 
-      <main className="flex-1 p-6 overflow-hidden">
+      <main className="flex-1 p-4 sm:p-6 overflow-hidden">
         {/* Back + header */}
-        <div className="flex items-center gap-3 mb-5">
+        <div className="flex items-center flex-wrap gap-2 sm:gap-3 mb-5">
           <Link href="/dashboard/tickets">
             <button className="flex items-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-900 transition-colors">
               <ArrowLeft size={15} /> Back
@@ -223,7 +223,7 @@ export default function TicketDetailPage() {
         </div>
 
         {/* Split layout */}
-        <div className="grid lg:grid-cols-5 gap-5 h-[calc(100vh-220px)]">
+        <div className="grid lg:grid-cols-5 gap-5 lg:h-[calc(100vh-220px)]">
           {/* Left — Chat history (60%) */}
           <div className="lg:col-span-3 flex flex-col bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
             {/* Chat header */}

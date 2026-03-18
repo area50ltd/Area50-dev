@@ -145,8 +145,8 @@ export function WidgetContainer({ company }: WidgetContainerProps) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="fixed bottom-24 right-5 z-[2147483646] w-[380px] bg-white rounded-2xl shadow-2xl overflow-hidden border border-neutral-100"
-          style={{ height: '560px', display: 'flex', flexDirection: 'column' }}
+          className="fixed bottom-24 right-5 z-[2147483646] w-[calc(100vw-40px)] max-w-[380px] bg-white rounded-2xl shadow-2xl overflow-hidden border border-neutral-100"
+          style={{ height: 'min(560px, calc(100vh - 120px))', display: 'flex', flexDirection: 'column' }}
         >
           <WidgetHeader
             companyName={company.name}

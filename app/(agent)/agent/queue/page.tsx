@@ -37,9 +37,9 @@ export default function AgentQueuePage() {
         <AgentStatusToggle />
       </header>
 
-      <main className="p-6">
+      <main className="p-4 sm:p-6">
         {/* Queue stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
           {[
             { label: 'Queue Depth', value: queue.length, icon: Inbox, color: 'text-blue-400' },
             { label: 'Urgent', value: urgent.length, icon: Clock, color: 'text-red-400' },

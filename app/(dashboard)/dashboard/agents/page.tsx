@@ -199,10 +199,10 @@ export default function AgentsPage() {
     <div className="flex flex-col flex-1">
       <TopBar title="Human Agents" />
 
-      <main className="flex-1 p-6 space-y-5">
+      <main className="flex-1 p-4 sm:p-6 space-y-5">
         {/* Page controls */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2.5">
               <button
                 onClick={() => {

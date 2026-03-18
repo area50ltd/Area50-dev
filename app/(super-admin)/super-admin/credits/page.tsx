@@ -83,14 +83,14 @@ export default function SuperAdminCreditsPage() {
   })
 
   return (
-    <main className="flex-1 p-8">
+    <main className="flex-1 p-4 sm:p-8">
       <div className="mb-8">
         <h1 className="font-heading text-2xl font-bold text-white mb-1">Credit Ledger</h1>
         <p className="text-neutral-500 text-sm">Manage credit balances across all organizations.</p>
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
         <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-5">
           <p className="text-neutral-400 text-sm mb-3">Total Credits in Platform</p>
           <p className="font-heading text-3xl font-bold text-white">

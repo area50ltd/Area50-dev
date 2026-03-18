@@ -103,7 +103,7 @@ export default function TransactionsPage() {
   ]
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 sm:p-8 space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryCards.map((card) => (
@@ -144,7 +144,8 @@ export default function TransactionsPage() {
 
       {/* Table */}
       <div className="bg-neutral-800 rounded-xl border border-neutral-700 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[560px] text-sm">
           <thead>
             <tr className="border-b border-neutral-700">
               <th className="text-left px-4 py-3 text-neutral-400 font-medium">Date</th>
@@ -180,6 +181,7 @@ export default function TransactionsPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Pagination */}

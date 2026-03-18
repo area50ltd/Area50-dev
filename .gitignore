@@ -39,3 +39,10 @@ next-env.d.ts
 # drizzle
 /drizzle/migrations/meta
 .github/secrets.local
+
+# skills (vibe-security and other npx-installed agent skills)
+.agent/
+.agents/
+.claude/skills/
+.windsurf/
+skills-lock.json

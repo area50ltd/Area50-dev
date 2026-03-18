@@ -74,7 +74,7 @@ export default function TicketsPage() {
     <div className="flex flex-col flex-1">
       <TopBar title="Tickets" />
 
-      <main className="flex-1 p-6 space-y-4">
+      <main className="flex-1 p-4 sm:p-6 space-y-4">
         {/* Action bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <Button size="sm" className="rounded-full gap-2" onClick={() => setShowCreate(true)}>

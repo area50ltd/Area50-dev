@@ -1,36 +1,52 @@
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { NextResponse } from 'next/server'
 import { initializeTransaction } from '@/lib/paystack'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { payment_transactions } from '@/lib/schema'
+import { payment_transactions, credit_packs, plans } from '@/lib/schema'
+import { eq } from 'drizzle-orm'
 
 const Schema = z.object({
-  amount_kobo: z.number().int().positive(),
-  credits: z.number().int().positive(),
+  pack_id: z.string().uuid(),
   type: z.enum(['plan', 'topup']),
 })
 
 export async function POST(req: Request) {
-  const supabase = createClient()
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
   const user = await getCurrentUser()
-  if (!user?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!user.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
 
   const body = await req.json()
   const parsed = Schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
+  // Look up price and credits server-side — never trust client-submitted amounts
+  let amount_kobo: number
+  let credits: number
+
+  if (parsed.data.type === 'topup') {
+    const pack = await db.query.credit_packs.findFirst({
+      where: eq(credit_packs.id, parsed.data.pack_id),
+    })
+    if (!pack || !pack.is_active) return NextResponse.json({ error: 'Invalid credit pack' }, { status: 400 })
+    amount_kobo = pack.price_kobo
+    credits = pack.credits
+  } else {
+    const plan = await db.query.plans.findFirst({
+      where: eq(plans.id, parsed.data.pack_id),
+    })
+    if (!plan || !plan.is_active) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    amount_kobo = plan.price_kobo
+    credits = plan.credits
+  }
+
   try {
     const result = await initializeTransaction({
       email: user.email,
-      amount: parsed.data.amount_kobo,
+      amount: amount_kobo,
       metadata: {
         company_id: user.company_id,
-        credits: parsed.data.credits,
+        credits,
         type: parsed.data.type,
         user_id: user.id,
       },
@@ -41,8 +57,8 @@ export async function POST(req: Request) {
       await db.insert(payment_transactions).values({
         company_id: user.company_id,
         paystack_reference: result.data.reference,
-        amount_kobo: parsed.data.amount_kobo,
-        credits_purchased: parsed.data.credits,
+        amount_kobo,
+        credits_purchased: credits,
         status: 'pending',
       })
     }

@@ -163,10 +163,10 @@ export default function UsersPage() {
     <div className="flex flex-col flex-1">
       <TopBar title="Users & Roles" />
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 sm:p-6">
         <div className="max-w-4xl">
           {/* Actions bar */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
             <div className="flex items-center gap-2">
               <Button size="sm" className="rounded-full gap-2" onClick={() => setShowInviteModal(true)}>
                 <UserPlus size={15} />
@@ -178,19 +178,19 @@ export default function UsersPage() {
               </Button>
             </div>
 
-            <div className="relative">
+            <div className="relative w-full sm:w-56">
               <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
               <Input
                 placeholder="Search users..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 w-56 text-sm"
+                className="pl-9 w-full text-sm"
               />
             </div>
           </div>
 
           {/* Stats summary */}
-          <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             {(['admin', 'agent', 'maintenance', 'customer'] as UserRole[]).map((role) => {
               const roleCount = users.filter((u) => u.role === role).length
               const Icon = ROLE_ICONS[role]
@@ -218,7 +218,8 @@ export default function UsersPage() {
                 <span className="text-neutral-400 text-sm">Loading users...</span>
               </div>
             ) : (
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px] text-sm">
                 <thead>
                   <tr className="border-b border-neutral-100 bg-neutral-50">
                     <th className="text-left px-5 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">User</th>
@@ -363,6 +364,7 @@ export default function UsersPage() {
                   </AnimatePresence>
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         </div>

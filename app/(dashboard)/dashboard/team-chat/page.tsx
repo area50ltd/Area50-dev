@@ -165,7 +165,7 @@ export default function TeamChatPage() {
 
       <main className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-56 bg-[#0A0A10] flex flex-col shrink-0">
+        <aside className={`bg-[#0A0A10] flex flex-col shrink-0 w-full md:w-56 ${activeId ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-3">
             <div className="relative">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40" />
@@ -216,7 +216,7 @@ export default function TeamChatPage() {
 
         {/* Chat area */}
         {!activeChannel ? (
-          <div className="flex-1 flex items-center justify-center bg-white">
+          <div className="hidden md:flex flex-1 items-center justify-center bg-white">
             <div className="text-center">
               <MessageSquare size={32} className="mx-auto mb-3 text-neutral-200" />
               <p className="text-neutral-400 text-sm">
@@ -229,6 +229,9 @@ export default function TeamChatPage() {
             {/* Channel header */}
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-100">
               <div className="flex items-center gap-2">
+                <button onClick={() => setActiveId(null)} className="md:hidden p-1 -ml-1 text-neutral-400 hover:text-neutral-700 transition-colors" aria-label="Back to channels">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                </button>
                 <Hash size={18} className="text-neutral-400" />
                 <span className="font-medium text-neutral-900">{activeChannel.name}</span>
                 {activeChannel.description && (

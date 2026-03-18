@@ -143,7 +143,7 @@ export default function IntegrationsPage() {
     <div className="flex flex-col flex-1">
       <TopBar title="Integrations" />
 
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4 sm:p-6">
 
         {/* Coming Soon Banner */}
         <div className="mb-6 flex items-center justify-between gap-4 bg-violet-50 border border-violet-200 rounded-xl px-5 py-4">
@@ -168,22 +168,22 @@ export default function IntegrationsPage() {
         </div>
 
         {/* Third-party integrations */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <p className="text-sm font-semibold text-neutral-700">App Marketplace</p>
-          <div className="relative">
+          <div className="relative w-full sm:w-56">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <Input
               placeholder="Search integrations..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 w-56 text-sm"
+              className="pl-9 w-full text-sm"
             />
           </div>
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex flex-col md:flex-row gap-6">
           {/* Category sidebar */}
-          <div className="w-44 shrink-0">
+          <div className="md:w-44 shrink-0">
             <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 px-2">Categories</p>
             <nav className="space-y-0.5">
               {CATEGORIES.map((cat) => (

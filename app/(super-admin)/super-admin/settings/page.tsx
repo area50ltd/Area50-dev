@@ -179,7 +179,7 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
+      <div className="p-4 sm:p-8 space-y-6">
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-40 bg-neutral-800 rounded-xl animate-pulse border border-neutral-700" />
         ))}
@@ -188,7 +188,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-8 space-y-8">
       {/* ─── Paystack ─── */}
       <section className="bg-neutral-800 rounded-xl border border-neutral-700 p-6">
         <div className="flex items-center gap-3 mb-5">
