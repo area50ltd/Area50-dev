@@ -15,6 +15,12 @@ export const companies = pgTable('companies', {
   name: varchar('name', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }).unique().notNull(),
   plan: varchar('plan', { length: 50 }).default('starter'),
+  plan_status: varchar('plan_status', { length: 20 }).default('free'), // free | active | past_due | cancelled
+  plan_started_at: timestamp('plan_started_at'),
+  plan_expires_at: timestamp('plan_expires_at'),
+  paystack_customer_code: varchar('paystack_customer_code', { length: 100 }),
+  paystack_subscription_code: varchar('paystack_subscription_code', { length: 100 }),
+  paystack_authorization_code: varchar('paystack_authorization_code', { length: 100 }),
   credits: integer('credits').default(0),
   language: varchar('language', { length: 10 }).default('en'),
   ai_personality: text('ai_personality'),
@@ -165,6 +171,9 @@ export const payment_transactions = pgTable('payment_transactions', {
   amount_kobo: integer('amount_kobo').notNull(),
   credits_purchased: integer('credits_purchased').notNull(),
   status: varchar('status', { length: 20 }).default('pending'), // pending | success | failed
+  payment_type: varchar('payment_type', { length: 20 }).default('topup'), // topup | plan | plan_renewal
+  plan_key: varchar('plan_key', { length: 50 }),
+  subscription_code: varchar('subscription_code', { length: 100 }),
   created_at: timestamp('created_at').defaultNow(),
 })
 
@@ -183,6 +192,18 @@ export const plans = pgTable('plans', {
   credits: integer('credits').notNull().default(0),
   is_active: boolean('is_active').default(true),
   sort_order: integer('sort_order').default(0),
+  // Paystack
+  paystack_plan_code: varchar('paystack_plan_code', { length: 100 }),
+  // Feature limits (-1 = unlimited)
+  max_agents: integer('max_agents').default(1),
+  max_kb_docs: integer('max_kb_docs').default(10),
+  has_voice: boolean('has_voice').default(false),
+  has_whatsapp: boolean('has_whatsapp').default(false),
+  has_custom_personality: boolean('has_custom_personality').default(false),
+  has_advanced_analytics: boolean('has_advanced_analytics').default(false),
+  has_api_access: boolean('has_api_access').default(false),
+  has_multi_account: boolean('has_multi_account').default(false),
+  support_tier: varchar('support_tier', { length: 30 }).default('email'), // email | priority_email | dedicated
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 })

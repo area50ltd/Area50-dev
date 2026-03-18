@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
 import { db } from '@/lib/db'
-import { agents, users } from '@/lib/schema'
-import { eq } from 'drizzle-orm'
+import { agents, users, companies, plans } from '@/lib/schema'
+import { eq, count } from 'drizzle-orm'
 import { getCurrentUser } from '@/lib/auth'
+import { limitsFromDbRow, getPlanLimits, withinLimit } from '@/lib/plan-limits'
 
 export async function GET() {
   const currentUser = await getCurrentUser()
@@ -37,6 +38,23 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
   const { name, email, max_concurrent_chats, specializations } = parsed.data
+
+  // ── Plan limit: max_agents ───────────────────────────────────────────────────
+  const [company, agentCountResult] = await Promise.all([
+    db.query.companies.findFirst({ where: eq(companies.id, currentUser.company_id) }),
+    db.select({ count: count() }).from(agents).where(eq(agents.company_id, currentUser.company_id)),
+  ])
+  const planRow = company?.plan
+    ? await db.query.plans.findFirst({ where: eq(plans.key, company.plan) })
+    : null
+  const limits = planRow ? limitsFromDbRow({ ...planRow }) : getPlanLimits(company?.plan ?? 'starter')
+  const agentCount = agentCountResult[0]?.count ?? 0
+  if (!withinLimit(agentCount, limits.max_agents)) {
+    return NextResponse.json(
+      { error: 'Agent seat limit reached for your plan.', upgrade_required: true, required_plan: 'growth' },
+      { status: 403 },
+    )
+  }
 
   // Check if email already exists
   const existing = await db.query.users.findFirst({ where: eq(users.email, email) })

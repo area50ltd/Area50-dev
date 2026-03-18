@@ -16,6 +16,16 @@ interface Plan {
   credits: number
   is_active: boolean
   sort_order: number
+  paystack_plan_code: string | null
+  max_agents: number
+  max_kb_docs: number
+  has_voice: boolean
+  has_whatsapp: boolean
+  has_custom_personality: boolean
+  has_advanced_analytics: boolean
+  has_api_access: boolean
+  has_multi_account: boolean
+  support_tier: string
 }
 
 interface CreditPack {
@@ -32,6 +42,21 @@ function formatUSD(cents: number) {
 }
 
 // ─── Plan Modal ───────────────────────────────────────────────────────────────
+function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label className="flex items-center justify-between cursor-pointer">
+      <span className="text-xs text-neutral-400">{label}</span>
+      <button
+        type="button"
+        onClick={() => onChange(!checked)}
+        className={`w-9 h-5 rounded-full transition-colors relative ${checked ? 'bg-violet-600' : 'bg-neutral-600'}`}
+      >
+        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${checked ? 'left-4' : 'left-0.5'}`} />
+      </button>
+    </label>
+  )
+}
+
 function PlanModal({
   plan,
   onClose,
@@ -48,6 +73,16 @@ function PlanModal({
   const [priceKobo, setPriceKobo] = useState(plan ? plan.price_kobo / 100 : 0)
   const [credits, setCredits] = useState(plan?.credits ?? 0)
   const [sortOrder, setSortOrder] = useState(plan?.sort_order ?? 0)
+  const [paystackCode, setPaystackCode] = useState(plan?.paystack_plan_code ?? '')
+  const [maxAgents, setMaxAgents] = useState(plan?.max_agents ?? 1)
+  const [maxKbDocs, setMaxKbDocs] = useState(plan?.max_kb_docs ?? 10)
+  const [hasVoice, setHasVoice] = useState(plan?.has_voice ?? false)
+  const [hasWhatsapp, setHasWhatsapp] = useState(plan?.has_whatsapp ?? false)
+  const [hasPersonality, setHasPersonality] = useState(plan?.has_custom_personality ?? false)
+  const [hasAnalytics, setHasAnalytics] = useState(plan?.has_advanced_analytics ?? false)
+  const [hasApi, setHasApi] = useState(plan?.has_api_access ?? false)
+  const [hasMulti, setHasMulti] = useState(plan?.has_multi_account ?? false)
+  const [supportTier, setSupportTier] = useState(plan?.support_tier ?? 'email')
   const isEdit = !!plan
 
   return (
@@ -56,72 +91,101 @@ function PlanModal({
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="bg-neutral-800 rounded-2xl p-6 w-full max-w-md border border-neutral-700"
+        className="bg-neutral-800 rounded-2xl p-6 w-full max-w-lg border border-neutral-700 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="font-heading text-lg font-bold text-white mb-5">
           {isEdit ? 'Edit Plan' : 'Add Plan'}
         </h3>
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm text-neutral-400 mb-1">Key (unique slug)</label>
-            <Input
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              placeholder="starter"
-              disabled={isEdit}
-              className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-neutral-400 mb-1">Display Name</label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Starter"
-              className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-500"
-            />
-          </div>
+          {/* Basic */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-neutral-400 mb-1">Price ($)</label>
-              <Input
-                type="number"
-                value={priceKobo}
-                onChange={(e) => setPriceKobo(Number(e.target.value))}
-                min={0}
-                className="bg-neutral-700 border-neutral-600 text-white"
-              />
+              <label className="block text-xs text-neutral-400 mb-1">Key (unique slug)</label>
+              <Input value={key} onChange={(e) => setKey(e.target.value)} placeholder="starter" disabled={isEdit}
+                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-500 text-sm" />
             </div>
             <div>
-              <label className="block text-sm text-neutral-400 mb-1">Credits</label>
-              <Input
-                type="number"
-                value={credits}
-                onChange={(e) => setCredits(Number(e.target.value))}
-                min={0}
-                className="bg-neutral-700 border-neutral-600 text-white"
-              />
+              <label className="block text-xs text-neutral-400 mb-1">Display Name</label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Starter"
+                className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-500 text-sm" />
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs text-neutral-400 mb-1">Price ($)</label>
+              <Input type="number" value={priceKobo} onChange={(e) => setPriceKobo(Number(e.target.value))} min={0}
+                className="bg-neutral-700 border-neutral-600 text-white text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-neutral-400 mb-1">Credits/mo</label>
+              <Input type="number" value={credits} onChange={(e) => setCredits(Number(e.target.value))} min={0}
+                className="bg-neutral-700 border-neutral-600 text-white text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs text-neutral-400 mb-1">Sort Order</label>
+              <Input type="number" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} min={0}
+                className="bg-neutral-700 border-neutral-600 text-white text-sm" />
+            </div>
+          </div>
+
+          {/* Paystack */}
           <div>
-            <label className="block text-sm text-neutral-400 mb-1">Sort Order</label>
-            <Input
-              type="number"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(Number(e.target.value))}
-              min={0}
-              className="bg-neutral-700 border-neutral-600 text-white"
-            />
+            <label className="block text-xs text-neutral-400 mb-1">Paystack Plan Code <span className="text-neutral-600">(PLN_xxxx — from Paystack dashboard)</span></label>
+            <Input value={paystackCode} onChange={(e) => setPaystackCode(e.target.value)} placeholder="PLN_xxxxxxxxxxxxxxxx"
+              className="bg-neutral-700 border-neutral-600 text-white placeholder:text-neutral-500 font-mono text-xs" />
+          </div>
+
+          {/* Limits */}
+          <div className="border-t border-neutral-700 pt-4">
+            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-3">Feature Limits</p>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Max Agents <span className="text-neutral-600">(-1 = unlimited)</span></label>
+                <Input type="number" value={maxAgents} onChange={(e) => setMaxAgents(Number(e.target.value))} min={-1}
+                  className="bg-neutral-700 border-neutral-600 text-white text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-1">Max KB Docs <span className="text-neutral-600">(-1 = unlimited)</span></label>
+                <Input type="number" value={maxKbDocs} onChange={(e) => setMaxKbDocs(Number(e.target.value))} min={-1}
+                  className="bg-neutral-700 border-neutral-600 text-white text-sm" />
+              </div>
+            </div>
+            <div className="space-y-2.5">
+              <Toggle checked={hasVoice} onChange={setHasVoice} label="Voice Calls" />
+              <Toggle checked={hasWhatsapp} onChange={setHasWhatsapp} label="WhatsApp" />
+              <Toggle checked={hasPersonality} onChange={setHasPersonality} label="Custom AI Personality" />
+              <Toggle checked={hasAnalytics} onChange={setHasAnalytics} label="Advanced Analytics" />
+              <Toggle checked={hasApi} onChange={setHasApi} label="API Access" />
+              <Toggle checked={hasMulti} onChange={setHasMulti} label="Multi-Account Management" />
+            </div>
+            <div className="mt-3">
+              <label className="block text-xs text-neutral-400 mb-1">Support Tier</label>
+              <select value={supportTier} onChange={(e) => setSupportTier(e.target.value)}
+                className="w-full bg-neutral-700 border border-neutral-600 text-white text-sm rounded-lg px-3 py-2">
+                <option value="email">Email</option>
+                <option value="priority_email">Priority Email</option>
+                <option value="dedicated">Dedicated</option>
+              </select>
+            </div>
           </div>
         </div>
+
         <div className="flex gap-3 mt-6">
           <Button variant="secondary" className="flex-1 rounded-full bg-neutral-700 text-white hover:bg-neutral-600" onClick={onClose}>
             Cancel
           </Button>
           <Button
             className="flex-1 rounded-full gap-2"
-            onClick={() => onSave({ key, name, price_kobo: priceKobo * 100, credits, sort_order: sortOrder })}
+            onClick={() => onSave({
+              key, name, price_kobo: priceKobo * 100, credits, sort_order: sortOrder,
+              paystack_plan_code: paystackCode || null,
+              max_agents: maxAgents, max_kb_docs: maxKbDocs,
+              has_voice: hasVoice, has_whatsapp: hasWhatsapp,
+              has_custom_personality: hasPersonality, has_advanced_analytics: hasAnalytics,
+              has_api_access: hasApi, has_multi_account: hasMulti,
+              support_tier: supportTier,
+            })}
             disabled={loading || !key || !name}
           >
             {loading && <Loader2 size={14} className="animate-spin" />}
@@ -310,15 +374,16 @@ export default function PlansPage() {
         </div>
 
         <div className="bg-neutral-800 rounded-xl border border-neutral-700 overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-neutral-700">
                 <th className="text-left px-4 py-3 text-neutral-400 font-medium">Name</th>
                 <th className="text-left px-4 py-3 text-neutral-400 font-medium">Key</th>
                 <th className="text-left px-4 py-3 text-neutral-400 font-medium">Price</th>
                 <th className="text-left px-4 py-3 text-neutral-400 font-medium">Credits</th>
+                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Paystack</th>
                 <th className="text-left px-4 py-3 text-neutral-400 font-medium">Status</th>
-                <th className="text-left px-4 py-3 text-neutral-400 font-medium">Sort</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -340,11 +405,23 @@ export default function PlansPage() {
                     <td className="px-4 py-3 text-white">{formatUSD(plan.price_kobo)}</td>
                     <td className="px-4 py-3 text-white">{plan.credits.toLocaleString()}</td>
                     <td className="px-4 py-3">
+                      {plan.paystack_plan_code ? (
+                        <span className="flex items-center gap-1.5 text-xs text-green-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                          <span className="font-mono truncate max-w-[80px]">{plan.paystack_plan_code}</span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1.5 text-xs text-neutral-500">
+                          <span className="w-1.5 h-1.5 rounded-full bg-neutral-600" />
+                          Not linked
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${plan.is_active ? 'bg-green-900/40 text-green-400' : 'bg-neutral-700 text-neutral-400'}`}>
                         {plan.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-neutral-400">{plan.sort_order}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 justify-end">
                         <button
@@ -373,6 +450,7 @@ export default function PlansPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </section>
 
@@ -389,7 +467,8 @@ export default function PlansPage() {
         </div>
 
         <div className="bg-neutral-800 rounded-xl border border-neutral-700 overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[480px] text-sm">
             <thead>
               <tr className="border-b border-neutral-700">
                 <th className="text-left px-4 py-3 text-neutral-400 font-medium">Label</th>
@@ -449,6 +528,7 @@ export default function PlansPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </section>
 

@@ -38,6 +38,7 @@ interface DbPlan {
   credits: number
   is_active: boolean
   sort_order: number
+  paystack_plan_code: string | null
 }
 
 interface DbCreditPack {
@@ -51,6 +52,8 @@ interface DbCreditPack {
 
 interface BillingData {
   plan: string
+  plan_status: string
+  plan_expires_at: string | null
   credits: number
   payments: {
     id: string
@@ -259,6 +262,25 @@ export default function BillingPage() {
   const maxCredits = currentPlanObj?.credits ?? 5000
   const payments = data?.payments ?? []
 
+  const handleCancelSubscription = async () => {
+    if (!confirm('Are you sure you want to cancel your subscription? Your plan stays active until the end of the current billing period.')) return
+    setLoading('cancel')
+    try {
+      const res = await fetch('/api/payment/subscription/cancel', { method: 'POST' })
+      const result = await res.json()
+      if (res.ok) {
+        toast.success(result.message ?? 'Subscription cancelled.')
+        queryClient.invalidateQueries({ queryKey: ['billing'] })
+      } else {
+        toast.error(result.error ?? 'Failed to cancel subscription')
+      }
+    } catch {
+      toast.error('Request failed. Please try again.')
+    } finally {
+      setLoading(null)
+    }
+  }
+
   const handleTopUp = async (packId: string, type: 'plan' | 'topup', label: string) => {
     setLoading(label)
     try {
@@ -297,13 +319,45 @@ export default function BillingPage() {
 
       <main className="flex-1 p-4 sm:p-6 space-y-6 sm:space-y-8 max-w-5xl w-full">
 
+        {/* ── Plan status banner (past_due / cancelled) ── */}
+        {data?.plan_status === 'past_due' && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <XCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-red-700">Payment failed — plan suspended</p>
+              <p className="text-xs text-red-500 mt-0.5">Your last renewal charge failed. Please update your payment method with Paystack or re-subscribe to restore access.</p>
+            </div>
+          </div>
+        )}
+        {data?.plan_status === 'cancelled' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
+            <Clock size={18} className="text-yellow-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-yellow-700">Subscription cancelled</p>
+              <p className="text-xs text-yellow-600 mt-0.5">
+                Your plan remains active until{' '}
+                {data.plan_expires_at ? formatDate(data.plan_expires_at) : 'end of billing period'}.
+                Re-subscribe below to continue.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* ── Current plan + credit meter ── */}
         <div className="grid md:grid-cols-2 gap-5">
           <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-heading text-sm font-bold text-neutral-900">Current Plan</h3>
-              <span className="text-xs font-semibold bg-violet-600 text-white px-3 py-1 rounded-full capitalize">
+              <span className={`text-xs font-semibold px-3 py-1 rounded-full capitalize ${
+                data?.plan_status === 'active' ? 'bg-violet-600 text-white' :
+                data?.plan_status === 'past_due' ? 'bg-red-100 text-red-700' :
+                data?.plan_status === 'cancelled' ? 'bg-yellow-100 text-yellow-700' :
+                'bg-neutral-100 text-neutral-600'
+              }`}>
                 {currentPlanKey}
+                {data?.plan_status === 'active' && ' · Active'}
+                {data?.plan_status === 'past_due' && ' · Past Due'}
+                {data?.plan_status === 'cancelled' && ' · Cancelled'}
               </span>
             </div>
             <p className="text-2xl font-heading font-bold text-neutral-900 mb-0.5">
@@ -313,6 +367,20 @@ export default function BillingPage() {
             <p className="text-xs text-neutral-400">
               {(currentPlanObj?.credits ?? maxCredits).toLocaleString()} credits included per month
             </p>
+            {data?.plan_expires_at && data.plan_status === 'active' && (
+              <p className="text-xs text-neutral-400 mt-1">
+                Renews on {formatDate(data.plan_expires_at)}
+              </p>
+            )}
+            {data?.plan_status === 'active' && (
+              <button
+                onClick={handleCancelSubscription}
+                disabled={loading === 'cancel'}
+                className="mt-3 text-xs text-neutral-400 hover:text-red-500 transition-colors disabled:opacity-50"
+              >
+                {loading === 'cancel' ? 'Cancelling…' : 'Cancel subscription'}
+              </button>
+            )}
           </div>
 
           <CreditMeter
@@ -332,7 +400,7 @@ export default function BillingPage() {
           {dbPlans.length === 0 ? (
             <div className="text-sm text-neutral-400 py-4">No plans configured yet.</div>
           ) : (
-            <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-4 pt-4">
               {dbPlans.map((plan) => {
                 const isCurrent = plan.key === currentPlanKey
                 const isHighlighted = PLAN_HIGHLIGHTED[plan.key] ?? false
@@ -388,19 +456,48 @@ export default function BillingPage() {
                     </div>
 
                     <div className="px-5 pb-5">
-                      <Button
-                        size="sm"
-                        disabled={isCurrent || loading === plan.name}
-                        className="w-full rounded-lg text-xs"
-                        variant={isCurrent ? 'secondary' : 'default'}
-                        onClick={() => !isCurrent && handleTopUp(plan.id, 'plan', plan.name)}
-                      >
-                        {loading === plan.name
-                          ? <Loader2 size={13} className="animate-spin" />
-                          : isCurrent
-                            ? 'Current Plan'
-                            : 'Upgrade'}
-                      </Button>
+                      {(() => {
+                        const isLoading = loading === plan.name
+                        const planOrder = ['starter', 'growth', 'business', 'agency']
+                        const currentIdx = planOrder.indexOf(currentPlanKey)
+                        const thisIdx = planOrder.indexOf(plan.key)
+                        const isUpgrade = thisIdx > currentIdx
+                        const isCancelled = data?.plan_status === 'cancelled'
+
+                        if (isCurrent && !isCancelled) {
+                          return (
+                            <Button size="sm" disabled className="w-full rounded-lg text-xs" variant="secondary">
+                              Current Plan
+                            </Button>
+                          )
+                        }
+                        if (isCurrent && isCancelled) {
+                          return (
+                            <Button
+                              size="sm"
+                              disabled={isLoading}
+                              className="w-full rounded-lg text-xs bg-violet-600 hover:bg-violet-700"
+                              onClick={() => handleTopUp(plan.id, 'plan', plan.name)}
+                            >
+                              {isLoading ? <Loader2 size={13} className="animate-spin" /> : 'Re-subscribe'}
+                            </Button>
+                          )
+                        }
+                        return (
+                          <Button
+                            size="sm"
+                            disabled={isLoading || !plan.paystack_plan_code}
+                            className="w-full rounded-lg text-xs"
+                            variant={isUpgrade ? 'default' : 'secondary'}
+                            onClick={() => handleTopUp(plan.id, 'plan', plan.name)}
+                            title={!plan.paystack_plan_code ? 'Plan not yet configured for subscription' : undefined}
+                          >
+                            {isLoading
+                              ? <Loader2 size={13} className="animate-spin" />
+                              : isUpgrade ? 'Upgrade' : 'Downgrade'}
+                          </Button>
+                        )
+                      })()}
                     </div>
                   </div>
                 )
@@ -413,7 +510,8 @@ export default function BillingPage() {
         <section>
           <h3 className="font-heading text-sm font-bold text-neutral-900 mb-3">Credit Cost Reference</h3>
           <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] text-sm">
               <thead>
                 <tr className="border-b border-neutral-100 bg-neutral-50">
                   {['Operation', 'Cost', 'Notes'].map((h) => (
@@ -441,6 +539,7 @@ export default function BillingPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </section>
 
@@ -453,13 +552,13 @@ export default function BillingPage() {
           {dbPacks.length === 0 ? (
             <div className="text-sm text-neutral-400 py-4">No credit packs configured yet.</div>
           ) : (
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {dbPacks.map((pack) => (
                 <button
                   key={pack.id}
                   onClick={() => handleTopUp(pack.id, 'topup', pack.label)}
                   disabled={loading === pack.label}
-                  className="flex items-center gap-3 bg-white border border-neutral-200 hover:border-violet-400 hover:bg-violet-50/30 rounded-xl px-5 py-4 transition-all disabled:opacity-50 text-left"
+                  className="flex items-center gap-3 bg-white border border-neutral-200 hover:border-violet-400 hover:bg-violet-50/30 rounded-xl px-5 py-4 transition-all disabled:opacity-50 text-left w-full"
                 >
                   <div className="w-9 h-9 rounded-lg bg-violet-50 border border-violet-100 flex items-center justify-center flex-shrink-0">
                     {loading === pack.label
@@ -480,43 +579,56 @@ export default function BillingPage() {
         {/* ── Payment history ── */}
         <section>
           <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4">Payment History</h3>
-          <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
-            {payments.length === 0 ? (
-              <div className="py-12 text-center text-sm text-neutral-400">No payments yet</div>
-            ) : (
-              <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[540px]">
-                <thead>
-                  <tr className="border-b border-neutral-100 bg-neutral-50">
-                    {['Date', 'Reference', 'Amount', 'Credits', 'Status', ''].map((h) => (
-                      <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wide">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-50">
-                  {payments.map((p) => (
-                    <tr key={p.id}>
-                      <td className="px-5 py-3 text-neutral-600">{p.created_at ? formatDate(p.created_at) : '—'}</td>
-                      <td className="px-5 py-3 font-mono text-xs text-neutral-500">{p.paystack_reference ?? '—'}</td>
-                      <td className="px-5 py-3 font-medium text-neutral-700">{formatUSD(p.amount_kobo)}</td>
-                      <td className="px-5 py-3 text-violet-600 font-medium">+{p.credits_purchased.toLocaleString()}</td>
-                      <td className="px-5 py-3">
-                        <span className="flex items-center gap-1.5 text-xs">
-                          {statusIcon(p.status)} {statusLabel(p.status)}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <button className="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-700">
-                          <Receipt size={12} /> Invoice
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {payments.length === 0 ? (
+            <div className="bg-white rounded-xl border border-neutral-100 shadow-sm py-12 text-center text-sm text-neutral-400">No payments yet</div>
+          ) : (
+            <>
+              {/* Mobile cards */}
+              <div className="sm:hidden space-y-2">
+                {payments.map((p) => (
+                  <div key={p.id} className="bg-white rounded-xl border border-neutral-100 shadow-sm p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-neutral-400">{p.created_at ? formatDate(p.created_at) : '—'}</span>
+                      <span className="flex items-center gap-1 text-xs">{statusIcon(p.status)} {statusLabel(p.status)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-neutral-800">{formatUSD(p.amount_kobo)}</p>
+                        <p className="text-violet-600 text-xs font-medium">+{p.credits_purchased.toLocaleString()} credits</p>
+                      </div>
+                      <p className="font-mono text-[11px] text-neutral-400 truncate max-w-[120px]">{p.paystack_reference ?? '—'}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+              {/* Desktop table */}
+              <div className="hidden sm:block bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[540px]">
+                    <thead>
+                      <tr className="border-b border-neutral-100 bg-neutral-50">
+                        {['Date', 'Reference', 'Amount', 'Credits', 'Status', ''].map((h) => (
+                          <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wide">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-50">
+                      {payments.map((p) => (
+                        <tr key={p.id}>
+                          <td className="px-5 py-3 text-neutral-600">{p.created_at ? formatDate(p.created_at) : '—'}</td>
+                          <td className="px-5 py-3 font-mono text-xs text-neutral-500">{p.paystack_reference ?? '—'}</td>
+                          <td className="px-5 py-3 font-medium text-neutral-700">{formatUSD(p.amount_kobo)}</td>
+                          <td className="px-5 py-3 text-violet-600 font-medium">+{p.credits_purchased.toLocaleString()}</td>
+                          <td className="px-5 py-3"><span className="flex items-center gap-1.5 text-xs">{statusIcon(p.status)} {statusLabel(p.status)}</span></td>
+                          <td className="px-5 py-3"><button className="flex items-center gap-1 text-xs text-neutral-400 hover:text-neutral-700"><Receipt size={12} /> Invoice</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </section>
 
         {/* ── Usage Breakdown ── */}
@@ -536,51 +648,75 @@ export default function BillingPage() {
               No credit usage this month yet
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[420px]">
-                <thead>
-                  <tr className="border-b border-neutral-100 bg-neutral-50">
-                    {['Type', 'Transactions', 'Credits Used', '% of Total'].map((h) => (
-                      <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wide">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-50">
-                  {usageData.rows.map((row) => {
-                    const pct = usageData.total_used > 0
-                      ? Math.round((row.credits_used / usageData.total_used) * 100)
-                      : 0
-                    return (
-                      <tr key={row.type}>
-                        <td className="px-5 py-3">
-                          <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full', TYPE_COLORS[row.type] ?? 'bg-neutral-100 text-neutral-600')}>
-                            {TYPE_LABELS[row.type] ?? row.type}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 text-neutral-600">{row.transactions.toLocaleString()}</td>
-                        <td className="px-5 py-3 font-medium text-neutral-800">{row.credits_used.toLocaleString()}</td>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="h-1.5 flex-1 bg-neutral-100 rounded-full overflow-hidden max-w-[80px]">
-                              <div className="h-full bg-violet-600 rounded-full" style={{ width: `${pct}%` }} />
-                            </div>
-                            <span className="text-xs text-neutral-500">{pct}%</span>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                  <tr className="border-t border-neutral-200 bg-neutral-50">
-                    <td className="px-5 py-3 text-xs font-bold text-neutral-700">Total</td>
-                    <td className="px-5 py-3" />
-                    <td className="px-5 py-3 font-bold text-neutral-900">{usageData.total_used.toLocaleString()}</td>
-                    <td className="px-5 py-3 text-xs font-semibold text-neutral-500">100%</td>
-                  </tr>
-                </tbody>
-              </table>
+            <>
+              {/* Mobile cards */}
+              <div className="sm:hidden space-y-2">
+                {usageData.rows.map((row) => {
+                  const pct = usageData.total_used > 0 ? Math.round((row.credits_used / usageData.total_used) * 100) : 0
+                  return (
+                    <div key={row.type} className="bg-white rounded-xl border border-neutral-100 shadow-sm p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full', TYPE_COLORS[row.type] ?? 'bg-neutral-100 text-neutral-600')}>
+                          {TYPE_LABELS[row.type] ?? row.type}
+                        </span>
+                        <span className="text-xs text-neutral-500">{pct}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden mb-2">
+                        <div className="h-full bg-violet-600 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <div className="flex justify-between text-xs text-neutral-500">
+                        <span>{row.transactions.toLocaleString()} transactions</span>
+                        <span className="font-semibold text-neutral-800">{row.credits_used.toLocaleString()} credits</span>
+                      </div>
+                    </div>
+                  )
+                })}
+                <div className="bg-neutral-50 rounded-xl border border-neutral-200 px-4 py-3 flex justify-between text-sm">
+                  <span className="font-bold text-neutral-700">Total</span>
+                  <span className="font-bold text-neutral-900">{usageData.total_used.toLocaleString()} credits</span>
+                </div>
               </div>
-            </div>
+              {/* Desktop table */}
+              <div className="hidden sm:block bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm min-w-[420px]">
+                    <thead>
+                      <tr className="border-b border-neutral-100 bg-neutral-50">
+                        {['Type', 'Transactions', 'Credits Used', '% of Total'].map((h) => (
+                          <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wide">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-50">
+                      {usageData.rows.map((row) => {
+                        const pct = usageData.total_used > 0 ? Math.round((row.credits_used / usageData.total_used) * 100) : 0
+                        return (
+                          <tr key={row.type}>
+                            <td className="px-5 py-3"><span className={cn('text-xs font-semibold px-2.5 py-1 rounded-full', TYPE_COLORS[row.type] ?? 'bg-neutral-100 text-neutral-600')}>{TYPE_LABELS[row.type] ?? row.type}</span></td>
+                            <td className="px-5 py-3 text-neutral-600">{row.transactions.toLocaleString()}</td>
+                            <td className="px-5 py-3 font-medium text-neutral-800">{row.credits_used.toLocaleString()}</td>
+                            <td className="px-5 py-3">
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 flex-1 bg-neutral-100 rounded-full overflow-hidden max-w-[80px]">
+                                  <div className="h-full bg-violet-600 rounded-full" style={{ width: `${pct}%` }} />
+                                </div>
+                                <span className="text-xs text-neutral-500">{pct}%</span>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                      <tr className="border-t border-neutral-200 bg-neutral-50">
+                        <td className="px-5 py-3 text-xs font-bold text-neutral-700">Total</td>
+                        <td className="px-5 py-3" />
+                        <td className="px-5 py-3 font-bold text-neutral-900">{usageData.total_used.toLocaleString()}</td>
+                        <td className="px-5 py-3 text-xs font-semibold text-neutral-500">100%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
           )}
         </section>
 
@@ -616,39 +752,54 @@ export default function BillingPage() {
             </div>
           ) : (
             <>
-              <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[420px] text-sm">
-                  <thead>
-                    <tr className="border-b border-neutral-100 bg-neutral-50">
-                      {['Date', 'Type', 'Reference', 'Credits'].map((h) => (
-                        <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wide">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-50">
-                    {txData.transactions.map((tx) => {
-                      const isTopUp = tx.amount > 0
-                      return (
-                        <tr key={tx.id}>
-                          <td className="px-5 py-3 text-neutral-500 text-xs">{tx.created_at ? formatDate(tx.created_at) : '—'}</td>
-                          <td className="px-5 py-3">
-                            <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', TYPE_COLORS[tx.type] ?? 'bg-neutral-100 text-neutral-600')}>
-                              {TYPE_LABELS[tx.type] ?? tx.type}
-                            </span>
-                          </td>
-                          <td className="px-5 py-3 font-mono text-xs text-neutral-400 truncate max-w-[160px]">
-                            {tx.description ?? tx.reference ?? '—'}
-                          </td>
-                          <td className={cn('px-5 py-3 font-semibold text-sm', isTopUp ? 'text-green-600' : 'text-red-500')}>
-                            {isTopUp ? '+' : ''}{tx.amount.toLocaleString()}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+              {/* Mobile cards */}
+              <div className="sm:hidden space-y-2">
+                {txData.transactions.map((tx) => {
+                  const isTopUp = tx.amount > 0
+                  return (
+                    <div key={tx.id} className="bg-white rounded-xl border border-neutral-100 shadow-sm p-4 flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', TYPE_COLORS[tx.type] ?? 'bg-neutral-100 text-neutral-600')}>
+                            {TYPE_LABELS[tx.type] ?? tx.type}
+                          </span>
+                          <span className="text-[11px] text-neutral-400">{tx.created_at ? formatDate(tx.created_at) : '—'}</span>
+                        </div>
+                        <p className="text-xs text-neutral-400 truncate">{tx.description ?? tx.reference ?? '—'}</p>
+                      </div>
+                      <span className={cn('font-semibold text-sm shrink-0', isTopUp ? 'text-green-600' : 'text-red-500')}>
+                        {isTopUp ? '+' : ''}{tx.amount.toLocaleString()}
+                      </span>
+                    </div>
+                  )
+                })}
               </div>
+              {/* Desktop table */}
+              <div className="hidden sm:block bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[420px] text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-100 bg-neutral-50">
+                        {['Date', 'Type', 'Reference', 'Credits'].map((h) => (
+                          <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wide">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-50">
+                      {txData.transactions.map((tx) => {
+                        const isTopUp = tx.amount > 0
+                        return (
+                          <tr key={tx.id}>
+                            <td className="px-5 py-3 text-neutral-500 text-xs">{tx.created_at ? formatDate(tx.created_at) : '—'}</td>
+                            <td className="px-5 py-3"><span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', TYPE_COLORS[tx.type] ?? 'bg-neutral-100 text-neutral-600')}>{TYPE_LABELS[tx.type] ?? tx.type}</span></td>
+                            <td className="px-5 py-3 font-mono text-xs text-neutral-400 truncate max-w-[160px]">{tx.description ?? tx.reference ?? '—'}</td>
+                            <td className={cn('px-5 py-3 font-semibold text-sm', isTopUp ? 'text-green-600' : 'text-red-500')}>{isTopUp ? '+' : ''}{tx.amount.toLocaleString()}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {(txData.pages ?? 1) > 1 && (

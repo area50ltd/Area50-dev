@@ -11,6 +11,16 @@ const PatchSchema = z.object({
   credits: z.number().int().min(0).optional(),
   is_active: z.boolean().optional(),
   sort_order: z.number().int().min(0).optional(),
+  paystack_plan_code: z.string().max(100).nullable().optional(),
+  max_agents: z.number().int().min(-1).optional(),
+  max_kb_docs: z.number().int().min(-1).optional(),
+  has_voice: z.boolean().optional(),
+  has_whatsapp: z.boolean().optional(),
+  has_custom_personality: z.boolean().optional(),
+  has_advanced_analytics: z.boolean().optional(),
+  has_api_access: z.boolean().optional(),
+  has_multi_account: z.boolean().optional(),
+  support_tier: z.enum(['email', 'priority_email', 'dedicated']).optional(),
 })
 
 export async function PATCH(

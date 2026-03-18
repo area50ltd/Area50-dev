@@ -94,7 +94,7 @@ export default function WidgetCustomizerPage() {
             <Loader2 size={24} className="animate-spin text-neutral-400" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 max-w-5xl">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 lg:gap-8 max-w-5xl">
             {/* Left: controls */}
             <div className="space-y-6">
               {/* Appearance */}

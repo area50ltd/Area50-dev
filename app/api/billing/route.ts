@@ -23,6 +23,8 @@ export async function GET() {
 
   return NextResponse.json({
     plan: company?.plan ?? 'starter',
+    plan_status: company?.plan_status ?? 'free',
+    plan_expires_at: company?.plan_expires_at ?? null,
     credits: company?.credits ?? 0,
     payments,
     plans: dbPlans,

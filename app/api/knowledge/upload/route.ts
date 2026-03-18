@@ -1,16 +1,34 @@
 import { NextResponse } from 'next/server'
-import { eq } from 'drizzle-orm'
+import { eq, count } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { knowledge_documents } from '@/lib/schema'
+import { knowledge_documents, companies, plans } from '@/lib/schema'
 import { uploadFile, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '@/lib/r2'
 import { callN8n } from '@/lib/n8n'
 import { getCurrentUser } from '@/lib/auth'
 import { deductCredits } from '@/lib/credits'
+import { limitsFromDbRow, getPlanLimits, withinLimit } from '@/lib/plan-limits'
 
 export async function POST(req: Request) {
   const currentUser = await getCurrentUser()
   if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!currentUser?.company_id) return NextResponse.json({ error: 'No company' }, { status: 403 })
+
+  // ── Plan limit: max_kb_docs ────────────────────────────────────────────────
+  const [company, kbCountResult] = await Promise.all([
+    db.query.companies.findFirst({ where: eq(companies.id, currentUser.company_id) }),
+    db.select({ count: count() }).from(knowledge_documents).where(eq(knowledge_documents.company_id, currentUser.company_id)),
+  ])
+  const planRow = company?.plan
+    ? await db.query.plans.findFirst({ where: eq(plans.key, company.plan) })
+    : null
+  const limits = planRow ? limitsFromDbRow({ ...planRow }) : getPlanLimits(company?.plan ?? 'starter')
+  const kbCount = kbCountResult[0]?.count ?? 0
+  if (!withinLimit(kbCount, limits.max_kb_docs)) {
+    return NextResponse.json(
+      { error: 'Knowledge base document limit reached for your plan.', upgrade_required: true, required_plan: 'growth' },
+      { status: 403 },
+    )
+  }
 
   try {
     const formData = await req.formData()

@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { useAgents, useCreateAgent, useUpdateAgent, useDeleteAgent } from '@/hooks/useAgents'
+import { usePlanLimits } from '@/hooks/usePlanLimits'
+import { UpgradePrompt } from '@/components/shared/UpgradePrompt'
 import type { Agent, User } from '@/lib/types'
 
 const agentSchema = z.object({
@@ -166,6 +168,7 @@ export default function AgentsPage() {
 
   const { data: agentRows = [], isLoading } = useAgents()
   const { mutate: deleteAgent, isPending: deleting } = useDeleteAgent()
+  const { canAddAgent, limits, usage } = usePlanLimits()
 
   const onlineCount = agentRows.filter((r) => r.agent.status === 'online').length
 
@@ -226,9 +229,23 @@ export default function AgentsPage() {
             </div>
           </div>
 
-          <Button size="sm" className="rounded-full gap-2" onClick={handleAddNew}>
-            <UserPlus size={15} /> Add Agent
-          </Button>
+          <div className="flex flex-col items-end gap-1.5">
+            <Button
+              size="sm"
+              className="rounded-full gap-2"
+              onClick={handleAddNew}
+              disabled={!canAddAgent}
+            >
+              <UserPlus size={15} /> Add Agent
+            </Button>
+            {!canAddAgent && (
+              <UpgradePrompt
+                feature={`Agent seats (${usage.agents}/${limits.max_agents === -1 ? '∞' : limits.max_agents})`}
+                requiredPlan="growth"
+                compact
+              />
+            )}
+          </div>
         </div>
 
         {/* Agent cards grid */}

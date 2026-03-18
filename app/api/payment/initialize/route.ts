@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { initializeTransaction } from '@/lib/paystack'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { payment_transactions, credit_packs, plans } from '@/lib/schema'
+import { payment_transactions, credit_packs, plans, companies } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 
 const Schema = z.object({
@@ -20,34 +20,52 @@ export async function POST(req: Request) {
   const parsed = Schema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
+  const { pack_id, type } = parsed.data
+
   // Look up price and credits server-side — never trust client-submitted amounts
   let amount_kobo: number
   let credits: number
+  let planKey: string | undefined
+  let paystackPlanCode: string | undefined
 
-  if (parsed.data.type === 'topup') {
-    const pack = await db.query.credit_packs.findFirst({
-      where: eq(credit_packs.id, parsed.data.pack_id),
-    })
+  if (type === 'topup') {
+    const pack = await db.query.credit_packs.findFirst({ where: eq(credit_packs.id, pack_id) })
     if (!pack || !pack.is_active) return NextResponse.json({ error: 'Invalid credit pack' }, { status: 400 })
     amount_kobo = pack.price_kobo
     credits = pack.credits
   } else {
-    const plan = await db.query.plans.findFirst({
-      where: eq(plans.id, parsed.data.pack_id),
-    })
+    // Plan subscription
+    const plan = await db.query.plans.findFirst({ where: eq(plans.id, pack_id) })
     if (!plan || !plan.is_active) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    if (!plan.paystack_plan_code) {
+      return NextResponse.json(
+        { error: 'This plan is not yet linked to a Paystack subscription. Contact support.' },
+        { status: 400 },
+      )
+    }
     amount_kobo = plan.price_kobo
     credits = plan.credits
+    planKey = plan.key
+    paystackPlanCode = plan.paystack_plan_code
+
+    // Prevent re-subscribing to the same active plan
+    const company = await db.query.companies.findFirst({ where: eq(companies.id, user.company_id) })
+    if (company?.plan === plan.key && company?.plan_status === 'active') {
+      return NextResponse.json({ error: 'You are already on this plan.' }, { status: 409 })
+    }
   }
 
   try {
     const result = await initializeTransaction({
       email: user.email,
       amount: amount_kobo,
+      // Attach the Paystack plan_code — this creates the subscription automatically after payment
+      ...(paystackPlanCode ? { plan: paystackPlanCode } : {}),
       metadata: {
         company_id: user.company_id,
         credits,
-        type: parsed.data.type,
+        type,
+        plan_key: planKey ?? null,
         user_id: user.id,
       },
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?payment=verify`,
@@ -60,6 +78,8 @@ export async function POST(req: Request) {
         amount_kobo,
         credits_purchased: credits,
         status: 'pending',
+        payment_type: type,
+        plan_key: planKey ?? null,
       })
     }
 

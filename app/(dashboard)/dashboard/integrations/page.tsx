@@ -211,7 +211,7 @@ export default function IntegrationsPage() {
                 <p className="text-sm">No integrations found</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {filtered.map((integration) => (
                   <IntegrationCard key={integration.id} integration={integration} />
                 ))}

@@ -105,7 +105,7 @@ export default function SuperAdminSystemPage() {
         <p className="text-neutral-500 text-sm">AI model config, VPS health, and system logs.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 mb-6">
         {/* AI Model Config */}
         <div className="bg-neutral-900 rounded-xl border border-neutral-800 p-5">
           <div className="flex items-center gap-2 mb-5">
@@ -160,7 +160,7 @@ export default function SuperAdminSystemPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2 gap-3 mb-4">
             {serverMetrics.map(({ label, value, icon: Icon, good }) => (
               <div key={label} className="bg-neutral-800 rounded-xl p-3.5">
                 <div className="flex items-center gap-2 mb-1.5">

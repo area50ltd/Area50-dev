@@ -4,12 +4,15 @@ import { TopBar } from '@/components/dashboard/TopBar'
 import { KnowledgeUpload } from '@/components/dashboard/KnowledgeUpload'
 import { KnowledgeDocList } from '@/components/dashboard/KnowledgeDocList'
 import { useKnowledge } from '@/hooks/useKnowledge'
+import { usePlanLimits } from '@/hooks/usePlanLimits'
+import { UpgradePrompt } from '@/components/shared/UpgradePrompt'
 import { formatFileSize } from '@/lib/utils'
 import { HardDrive, RefreshCw, Plus, Database, CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function KnowledgePage() {
   const { data: docs = [], isLoading, refetch } = useKnowledge()
+  const { canUploadDoc, limits, usage } = usePlanLimits()
 
   const totalSize = docs.reduce((sum, d) => sum + (d.file_size ?? 0), 0)
   const completedCount = docs.filter((d) => d.embedding_status === 'completed').length
@@ -63,15 +66,36 @@ export default function KnowledgePage() {
         </div>
 
         {/* Main split layout */}
-        <div className="grid lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Left — Upload + Data Sources */}
           <div className="space-y-5">
             {/* Upload card */}
             <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-5">
-              <h3 className="font-heading text-sm font-bold text-neutral-900 mb-4 flex items-center gap-2">
-                <Plus size={15} className="text-violet-600" /> Upload Documents
-              </h3>
-              <KnowledgeUpload />
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-heading text-sm font-bold text-neutral-900 flex items-center gap-2">
+                  <Plus size={15} className="text-violet-600" /> Upload Documents
+                </h3>
+                {limits.max_kb_docs !== -1 && (
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    !canUploadDoc
+                      ? 'bg-red-100 text-red-600'
+                      : usage.kb_docs >= limits.max_kb_docs * 0.8
+                      ? 'bg-yellow-100 text-yellow-700'
+                      : 'bg-neutral-100 text-neutral-500'
+                  }`}>
+                    {usage.kb_docs}/{limits.max_kb_docs} docs
+                  </span>
+                )}
+              </div>
+              {canUploadDoc ? (
+                <KnowledgeUpload />
+              ) : (
+                <UpgradePrompt
+                  feature="KB document limit reached"
+                  requiredPlan="growth"
+                  description={`Your plan allows ${limits.max_kb_docs} documents. Upgrade to add more.`}
+                />
+              )}
             </div>
 
             {/* Data Sources card */}

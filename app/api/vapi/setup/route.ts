@@ -2,11 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
-import { users, companies } from '@/lib/schema'
+import { users, companies, plans } from '@/lib/schema'
 import { eq } from 'drizzle-orm'
 import { purchaseNumber, TwilioError } from '@/lib/twilio'
 import { registerTwilioNumber, VapiError } from '@/lib/vapi'
 import { callN8n } from '@/lib/n8n'
+import { limitsFromDbRow, getPlanLimits } from '@/lib/plan-limits'
 
 const SetupSchema = z.object({
   phone_number: z.string().min(7),    // E.164 e.g. +14155552671 — selected from search results
@@ -25,6 +26,18 @@ export async function POST(req: Request) {
 
   const company = await db.query.companies.findFirst({ where: eq(companies.id, dbUser.company_id) })
   if (!company) return NextResponse.json({ error: 'Company not found' }, { status: 404 })
+
+  // ── Plan limit: has_voice ──────────────────────────────────────────────────
+  const planRow = company.plan
+    ? await db.query.plans.findFirst({ where: eq(plans.key, company.plan) })
+    : null
+  const limits = planRow ? limitsFromDbRow({ ...planRow }) : getPlanLimits(company.plan ?? 'starter')
+  if (!limits.has_voice) {
+    return NextResponse.json(
+      { error: 'Voice calls are not available on your current plan.', upgrade_required: true, required_plan: 'growth' },
+      { status: 403 },
+    )
+  }
 
   const body = await req.json()
   const parsed = SetupSchema.safeParse(body)

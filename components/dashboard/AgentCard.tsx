@@ -54,7 +54,7 @@ export function AgentCard({ agent, user, onEdit, onRemove, onViewQueue }: AgentC
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-3 gap-3 mb-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
         <div className="text-center bg-neutral-50 rounded-lg py-2">
           <p className="font-heading text-lg font-bold text-neutral-900">
             {agent.active_chats ?? 0}/{agent.max_concurrent_chats ?? 3}

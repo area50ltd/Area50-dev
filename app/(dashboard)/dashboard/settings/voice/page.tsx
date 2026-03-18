@@ -23,6 +23,8 @@ import {
   MessageCircle,
 } from 'lucide-react'
 import { useCompany } from '@/hooks/useCompany'
+import { usePlanLimits } from '@/hooks/usePlanLimits'
+import { UpgradePrompt } from '@/components/shared/UpgradePrompt'
 import { VOICE_LANGUAGES, VOICE_TONES, VAPI_VOICE_PROVIDERS } from '@/lib/constants'
 import { PhoneNumberManager } from '@/components/dashboard/PhoneNumberManager'
 import { TopBar } from '@/components/dashboard/TopBar'
@@ -235,6 +237,7 @@ function CallModal({ callStatus, callSeconds, freeTestUsed, transcript, onEndCal
 export default function VoiceSettingsPage() {
   const qc = useQueryClient()
   const { data: company, isLoading } = useCompany()
+  const { hasVoice, isLoading: limitsLoading } = usePlanLimits()
 
   // Voice config
   const [voiceLanguage, setVoiceLanguage] = useState('en-US')
@@ -481,6 +484,18 @@ export default function VoiceSettingsPage() {
 
       <main className="flex-1 overflow-auto bg-neutral-50">
         <div className="max-w-5xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+          {/* ── Plan gate ── */}
+          {!limitsLoading && !hasVoice && (
+            <UpgradePrompt
+              feature="Voice Calls"
+              requiredPlan="growth"
+              description="Voice calling is available on the Growth plan and above. Upgrade to set up your AI phone assistant."
+            />
+          )}
+
+          {/* ── Page content (dimmed if no voice access) ── */}
+          <div className={!limitsLoading && !hasVoice ? 'pointer-events-none opacity-40 select-none' : undefined}>
 
           {/* ── Page intro ── */}
           <div className="bg-white rounded-xl border border-neutral-100 shadow-sm px-5 py-5">
@@ -991,6 +1006,7 @@ export default function VoiceSettingsPage() {
           {/* Bottom padding */}
           <div className="h-4" />
 
+          </div>{/* end plan-gated wrapper */}
         </div>
       </main>
     </div>

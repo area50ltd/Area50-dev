@@ -6,33 +6,38 @@ import { requireRole } from '@/lib/auth'
 import { asc } from 'drizzle-orm'
 
 export async function GET() {
-  try {
-    await requireRole('super_admin')
-  } catch {
+  try { await requireRole('super_admin') } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-
   const rows = await db.select().from(plans).orderBy(asc(plans.sort_order))
   return NextResponse.json(rows)
 }
 
-const CreateSchema = z.object({
+const PlanSchema = z.object({
   key: z.string().min(1).max(50),
   name: z.string().min(1).max(100),
   price_kobo: z.number().int().min(0),
   credits: z.number().int().min(0),
   sort_order: z.number().int().min(0).default(0),
+  paystack_plan_code: z.string().max(100).nullable().optional(),
+  max_agents: z.number().int().min(-1).default(1),
+  max_kb_docs: z.number().int().min(-1).default(10),
+  has_voice: z.boolean().default(false),
+  has_whatsapp: z.boolean().default(false),
+  has_custom_personality: z.boolean().default(false),
+  has_advanced_analytics: z.boolean().default(false),
+  has_api_access: z.boolean().default(false),
+  has_multi_account: z.boolean().default(false),
+  support_tier: z.enum(['email', 'priority_email', 'dedicated']).default('email'),
 })
 
 export async function POST(req: Request) {
-  try {
-    await requireRole('super_admin')
-  } catch {
+  try { await requireRole('super_admin') } catch {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const body = await req.json()
-  const parsed = CreateSchema.safeParse(body)
+  const parsed = PlanSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
   try {

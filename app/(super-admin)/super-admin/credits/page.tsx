@@ -132,7 +132,8 @@ export default function SuperAdminCreditsPage() {
             <span className="text-neutral-500 text-sm">Loading credit data...</span>
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[400px] text-sm">
             <thead>
               <tr className="border-b border-neutral-800">
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Company</th>
@@ -206,6 +207,7 @@ export default function SuperAdminCreditsPage() {
               )}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 

@@ -210,78 +210,53 @@ export default function UsersPage() {
             })}
           </div>
 
-          {/* Table */}
-          <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-16 gap-3">
-                <Loader2 size={18} className="animate-spin text-neutral-400" />
-                <span className="text-neutral-400 text-sm">Loading users...</span>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-              <table className="w-full min-w-[500px] text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-100 bg-neutral-50">
-                    <th className="text-left px-5 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">User</th>
-                    <th className="text-left px-4 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Role</th>
-                    <th className="text-left px-4 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Status</th>
-                    <th className="text-left px-4 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Joined</th>
-                    <th className="px-4 py-3.5" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-50">
-                  <AnimatePresence>
-                    {filtered.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="py-14 text-center text-neutral-400 text-sm">
-                          {search ? 'No users match your search' : 'No team members yet — invite someone to get started'}
-                        </td>
-                      </tr>
-                    ) : (
-                      filtered.map((user) => {
-                        const Icon = ROLE_ICONS[user.role as UserRole] ?? User
-                        return (
-                          <motion.tr
-                            key={user.id}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="hover:bg-neutral-50 transition-colors"
-                          >
-                            {/* User */}
-                            <td className="px-5 py-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-600 to-violet-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                                  {getInitials(user.name ?? user.email)}
-                                </div>
-                                <div>
-                                  <p className="font-medium text-neutral-900">{user.name ?? '—'}</p>
-                                  <p className="text-xs text-neutral-400">{user.email}</p>
-                                </div>
-                              </div>
-                            </td>
-
-                            {/* Role */}
-                            <td className="px-4 py-4">
-                              <div className="flex items-center gap-2">
-                                <select
-                                  value={user.role}
-                                  onChange={(e) => roleMutation.mutate({ id: user.id, role: e.target.value as UserRole })}
-                                  className={cn(
-                                    'text-xs font-medium border rounded-full px-2.5 py-1 focus:outline-none cursor-pointer',
-                                    ROLE_COLORS[user.role as UserRole] ?? ROLE_COLORS.customer
-                                  )}
-                                >
-                                  {ADD_USER_ROLES.map((r) => (
-                                    <option key={r.value} value={r.value}>{r.label}</option>
-                                  ))}
-                                </select>
-                                <Icon size={13} className="text-neutral-400" />
-                              </div>
-                            </td>
-
-                            {/* Status */}
-                            <td className="px-4 py-4">
+          {/* User list */}
+          {isLoading ? (
+            <div className="bg-white rounded-xl border border-neutral-100 shadow-sm flex items-center justify-center py-16 gap-3">
+              <Loader2 size={18} className="animate-spin text-neutral-400" />
+              <span className="text-neutral-400 text-sm">Loading users...</span>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="bg-white rounded-xl border border-neutral-100 shadow-sm py-14 text-center text-neutral-400 text-sm">
+              {search ? 'No users match your search' : 'No team members yet — invite someone to get started'}
+            </div>
+          ) : (
+            <>
+              {/* ── Mobile card list (< sm) ──────────────────────────────── */}
+              <div className="sm:hidden space-y-2">
+                <AnimatePresence>
+                  {filtered.map((user) => {
+                    const Icon = ROLE_ICONS[user.role as UserRole] ?? User
+                    return (
+                      <motion.div
+                        key={user.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="bg-white rounded-xl border border-neutral-100 shadow-sm p-4"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-violet-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                            {getInitials(user.name ?? user.email)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-neutral-900 truncate">{user.name ?? '—'}</p>
+                            <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              {/* Role selector */}
+                              <select
+                                value={user.role}
+                                onChange={(e) => roleMutation.mutate({ id: user.id, role: e.target.value as UserRole })}
+                                className={cn(
+                                  'text-xs font-medium border rounded-full px-2.5 py-1 focus:outline-none cursor-pointer',
+                                  ROLE_COLORS[user.role as UserRole] ?? ROLE_COLORS.customer
+                                )}
+                              >
+                                {ADD_USER_ROLES.map((r) => (
+                                  <option key={r.value} value={r.value}>{r.label}</option>
+                                ))}
+                              </select>
+                              {/* Status badge */}
                               <span className={cn(
                                 'inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full',
                                 user.is_active
@@ -291,82 +266,152 @@ export default function UsersPage() {
                                 <div className={cn('w-1.5 h-1.5 rounded-full', user.is_active ? 'bg-green-500' : 'bg-red-500')} />
                                 {user.is_active ? 'Active' : 'Suspended'}
                               </span>
-                            </td>
-
-                            {/* Joined */}
-                            <td className="px-4 py-4">
-                              <span className="text-xs text-neutral-500">
-                                {formatRelativeTime(new Date(user.created_at))}
-                              </span>
-                            </td>
-
-                            {/* Actions */}
-                            <td className="px-4 py-4">
-                              <div className="relative flex justify-end">
-                                <button
-                                  onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
-                                  className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors text-neutral-500"
+                              <Icon size={13} className="text-neutral-400" />
+                            </div>
+                            <p className="text-[11px] text-neutral-400 mt-1.5">
+                              Joined {formatRelativeTime(new Date(user.created_at))}
+                            </p>
+                          </div>
+                          {/* Actions menu */}
+                          <div className="relative shrink-0">
+                            <button
+                              onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)}
+                              className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors text-neutral-500"
+                            >
+                              <MoreHorizontal size={16} />
+                            </button>
+                            <AnimatePresence>
+                              {openMenuId === user.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                  className="absolute right-0 top-8 bg-white border border-neutral-100 shadow-lg rounded-xl py-1.5 z-10 min-w-[160px]"
                                 >
-                                  <MoreHorizontal size={16} />
-                                </button>
-                                <AnimatePresence>
-                                  {openMenuId === user.id && (
-                                    <motion.div
-                                      initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                                      exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                                      className="absolute right-0 top-8 bg-white border border-neutral-100 shadow-lg rounded-xl py-1.5 z-10 min-w-[160px]"
-                                    >
-                                      <button
-                                        className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5"
-                                        onClick={() => {
-                                          toast.info('Users can reset their password via the login page → "Forgot password" link.')
-                                          setOpenMenuId(null)
-                                        }}
-                                      >
-                                        <RefreshCw size={14} />
-                                        Reset Password
-                                      </button>
-                                      <button
-                                        className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5"
-                                        onClick={() => handleViewLoginHistory(user)}
-                                      >
-                                        <UserCog size={14} />
-                                        Login History
-                                      </button>
-                                      <button
-                                        className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-50 flex items-center gap-2.5"
-                                        onClick={() => suspendMutation.mutate(user)}
-                                      >
-                                        {user.is_active ? (
-                                          <><Ban size={14} className="text-orange-500" /><span className="text-orange-600">Suspend</span></>
-                                        ) : (
-                                          <><CheckCircle2 size={14} className="text-green-500" /><span className="text-green-600">Reactivate</span></>
-                                        )}
-                                      </button>
-                                      <div className="h-px bg-neutral-100 my-1" />
-                                      <button
-                                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5"
-                                        onClick={() => { setDeleteTarget(user); setOpenMenuId(null) }}
-                                      >
-                                        <Trash2 size={14} />
-                                        Delete User
-                                      </button>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-                              </div>
-                            </td>
-                          </motion.tr>
-                        )
-                      })
-                    )}
-                  </AnimatePresence>
-                </tbody>
-              </table>
+                                  <button className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5" onClick={() => { toast.info('Users can reset their password via the login page → "Forgot password" link.'); setOpenMenuId(null) }}>
+                                    <RefreshCw size={14} /> Reset Password
+                                  </button>
+                                  <button className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5" onClick={() => handleViewLoginHistory(user)}>
+                                    <UserCog size={14} /> Login History
+                                  </button>
+                                  <button className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-50 flex items-center gap-2.5" onClick={() => suspendMutation.mutate(user)}>
+                                    {user.is_active ? (<><Ban size={14} className="text-orange-500" /><span className="text-orange-600">Suspend</span></>) : (<><CheckCircle2 size={14} className="text-green-500" /><span className="text-green-600">Reactivate</span></>)}
+                                  </button>
+                                  <div className="h-px bg-neutral-100 my-1" />
+                                  <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5" onClick={() => { setDeleteTarget(user); setOpenMenuId(null) }}>
+                                    <Trash2 size={14} /> Delete User
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
               </div>
-            )}
-          </div>
+
+              {/* ── Desktop table (sm+) ───────────────────────────────────── */}
+              <div className="hidden sm:block bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[500px] text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-100 bg-neutral-50">
+                        <th className="text-left px-5 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">User</th>
+                        <th className="text-left px-4 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Role</th>
+                        <th className="text-left px-4 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Status</th>
+                        <th className="text-left px-4 py-3.5 text-xs font-semibold text-neutral-500 uppercase tracking-wide">Joined</th>
+                        <th className="px-4 py-3.5" />
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-50">
+                      <AnimatePresence>
+                        {filtered.map((user) => {
+                          const Icon = ROLE_ICONS[user.role as UserRole] ?? User
+                          return (
+                            <motion.tr
+                              key={user.id}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              className="hover:bg-neutral-50 transition-colors"
+                            >
+                              <td className="px-5 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-600 to-violet-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                    {getInitials(user.name ?? user.email)}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-neutral-900">{user.name ?? '—'}</p>
+                                    <p className="text-xs text-neutral-400">{user.email}</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="flex items-center gap-2">
+                                  <select
+                                    value={user.role}
+                                    onChange={(e) => roleMutation.mutate({ id: user.id, role: e.target.value as UserRole })}
+                                    className={cn('text-xs font-medium border rounded-full px-2.5 py-1 focus:outline-none cursor-pointer', ROLE_COLORS[user.role as UserRole] ?? ROLE_COLORS.customer)}
+                                  >
+                                    {ADD_USER_ROLES.map((r) => (
+                                      <option key={r.value} value={r.value}>{r.label}</option>
+                                    ))}
+                                  </select>
+                                  <Icon size={13} className="text-neutral-400" />
+                                </div>
+                              </td>
+                              <td className="px-4 py-4">
+                                <span className={cn('inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full', user.is_active ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200')}>
+                                  <div className={cn('w-1.5 h-1.5 rounded-full', user.is_active ? 'bg-green-500' : 'bg-red-500')} />
+                                  {user.is_active ? 'Active' : 'Suspended'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-4">
+                                <span className="text-xs text-neutral-500">{formatRelativeTime(new Date(user.created_at))}</span>
+                              </td>
+                              <td className="px-4 py-4">
+                                <div className="relative flex justify-end">
+                                  <button onClick={() => setOpenMenuId(openMenuId === user.id ? null : user.id)} className="p-1.5 rounded-lg hover:bg-neutral-100 transition-colors text-neutral-500">
+                                    <MoreHorizontal size={16} />
+                                  </button>
+                                  <AnimatePresence>
+                                    {openMenuId === user.id && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                        className="absolute right-0 top-8 bg-white border border-neutral-100 shadow-lg rounded-xl py-1.5 z-10 min-w-[160px]"
+                                      >
+                                        <button className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5" onClick={() => { toast.info('Users can reset their password via the login page → "Forgot password" link.'); setOpenMenuId(null) }}>
+                                          <RefreshCw size={14} /> Reset Password
+                                        </button>
+                                        <button className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2.5" onClick={() => handleViewLoginHistory(user)}>
+                                          <UserCog size={14} /> Login History
+                                        </button>
+                                        <button className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-50 flex items-center gap-2.5" onClick={() => suspendMutation.mutate(user)}>
+                                          {user.is_active ? (<><Ban size={14} className="text-orange-500" /><span className="text-orange-600">Suspend</span></>) : (<><CheckCircle2 size={14} className="text-green-500" /><span className="text-green-600">Reactivate</span></>)}
+                                        </button>
+                                        <div className="h-px bg-neutral-100 my-1" />
+                                        <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5" onClick={() => { setDeleteTarget(user); setOpenMenuId(null) }}>
+                                          <Trash2 size={14} /> Delete User
+                                        </button>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+                                </div>
+                              </td>
+                            </motion.tr>
+                          )
+                        })}
+                      </AnimatePresence>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </main>
 

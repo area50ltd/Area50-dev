@@ -34,7 +34,52 @@ export function TicketTable({ tickets, isLoading, onStatusChange }: TicketTableP
     setSelected(selected.size === tickets.length ? new Set() : new Set(tickets.map((t) => t.id)))
 
   return (
-    <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
+    <>
+      {/* ── Mobile card list (< sm) ───────────────────────────────────────── */}
+      <div className="sm:hidden space-y-2">
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-24 bg-neutral-100 rounded-xl animate-pulse" />
+          ))
+        ) : tickets.length === 0 ? (
+          <div className="bg-white rounded-xl border border-neutral-100 shadow-sm py-14 text-center text-neutral-400 text-sm">
+            No tickets found
+          </div>
+        ) : (
+          tickets.map((ticket) => (
+            <Link key={ticket.id} href={`/dashboard/tickets/${ticket.id}`}>
+              <div className="bg-white rounded-xl border border-neutral-100 shadow-sm p-4 active:bg-neutral-50 transition-colors">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <span className="font-mono text-xs text-neutral-400">#{ticket.id.slice(0, 8)}</span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <StatusBadge value={ticket.status ?? 'open'} />
+                    <PriorityBadge value={ticket.priority ?? 'normal'} />
+                  </div>
+                </div>
+                <p className="text-sm font-medium text-neutral-800 mb-1.5">
+                  {ticket.category ?? 'General inquiry'}
+                </p>
+                <div className="flex items-center gap-3 text-xs text-neutral-400">
+                  <div className="flex items-center gap-1">
+                    <ChannelIcon channel={ticket.channel} />
+                    <span className="capitalize">{ticket.channel?.replace('_', ' ') ?? 'web'}</span>
+                  </div>
+                  <span>·</span>
+                  <div className="flex items-center gap-1">
+                    {ticket.assigned_to === 'ai' ? <Bot size={12} className="text-violet-600" /> : <User size={12} className="text-blue-500" />}
+                    <span className="capitalize">{ticket.assigned_to ?? 'ai'}</span>
+                  </div>
+                  <span>·</span>
+                  <span>{formatRelativeTime(ticket.created_at)}</span>
+                </div>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {/* ── Desktop table (sm+) ───────────────────────────────────────────── */}
+      <div className="hidden sm:block bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
       {/* Bulk action bar */}
       {selected.size > 0 && (
         <div className="bg-neutral-900 text-white px-5 py-2.5 flex items-center gap-4 text-sm">
@@ -161,6 +206,7 @@ export function TicketTable({ tickets, isLoading, onStatusChange }: TicketTableP
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

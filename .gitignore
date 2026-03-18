@@ -37,7 +37,7 @@ yarn-error.log*
 next-env.d.ts
 
 # drizzle
-/drizzle/migrations/meta
+/drizzle/
 .github/secrets.local
 
 # skills (vibe-security and other npx-installed agent skills)
