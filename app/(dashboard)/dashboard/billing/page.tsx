@@ -509,8 +509,7 @@ export default function BillingPage() {
         {/* ── Credit cost reference ── */}
         <section>
           <h3 className="font-heading text-sm font-bold text-neutral-900 mb-3">Credit Cost Reference</h3>
-          <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className="bg-white rounded-xl border border-neutral-100 shadow-sm overflow-x-auto">
             <table className="w-full min-w-[480px] text-sm">
               <thead>
                 <tr className="border-b border-neutral-100 bg-neutral-50">
@@ -539,7 +538,6 @@ export default function BillingPage() {
                 ))}
               </tbody>
             </table>
-            </div>
           </div>
         </section>
 
