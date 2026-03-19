@@ -33,7 +33,7 @@ const navItems: { label: string; href: string; icon: React.ElementType; exact?: 
   { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart2 },
   { label: 'Voice & Phone', href: '/dashboard/settings/voice', icon: Phone },
   { label: 'Integrations', href: '/dashboard/integrations', icon: Zap },
-  { label: 'Widget', href: '/dashboard/widget', icon: LayoutTemplate },
+  { label: 'Chatbot Widget', href: '/dashboard/widget', icon: LayoutTemplate },
   { label: 'Users & Roles', href: '/dashboard/users', icon: UserCog },
   { label: 'Credits & Billing', href: '/dashboard/billing', icon: CreditCard },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings, exact: true },
