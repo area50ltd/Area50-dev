@@ -40,7 +40,14 @@ export async function POST(req: Request) {
 
     const result = await verifyTransaction(reference)
     if (!result.status || result.data?.status !== 'success') {
-      return NextResponse.json({ success: false, message: 'Payment not successful' })
+      // Mark transaction as failed so it doesn't block future attempts
+      await db.update(payment_transactions)
+        .set({ status: 'failed' })
+        .where(eq(payment_transactions.paystack_reference, reference))
+      return NextResponse.json({
+        success: false,
+        message: result.data?.gateway_response ?? 'Payment was not completed. You can try again.',
+      })
     }
 
     const credits = existing.credits_purchased ?? 0

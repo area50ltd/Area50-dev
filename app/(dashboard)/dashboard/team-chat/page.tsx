@@ -165,7 +165,7 @@ export default function TeamChatPage() {
 
       <main className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className={`bg-[#0A0A10] flex flex-col shrink-0 w-full md:w-56 ${activeId ? 'hidden md:flex' : 'flex'}`}>
+        <aside className={`bg-[#0A0A10] flex-col shrink-0 w-full md:w-56 ${activeId ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-3">
             <div className="relative">
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/40" />

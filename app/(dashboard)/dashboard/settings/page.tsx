@@ -385,6 +385,24 @@ export default function SettingsPage() {
     <div className="flex flex-col flex-1 min-h-0">
       <TopBar title="Settings" />
 
+      {/* ── Mobile: tab bar below TopBar ──────────────────────────────── */}
+      <div className="md:hidden sticky top-0 z-10 bg-white border-b border-neutral-200 flex gap-1 overflow-x-auto px-3 py-2 shadow-sm shrink-0">
+        {TABS.map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={cn(
+              'px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap shrink-0 transition-all',
+              t === 'Danger Zone'
+                ? tab === t ? 'bg-red-600 text-white' : 'text-red-500 bg-red-50'
+                : tab === t ? 'bg-neutral-900 text-white' : 'text-neutral-600 bg-neutral-100'
+            )}
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+
       <div className="flex-1 flex overflow-hidden">
         {/* ── Sidebar tab nav (desktop) ──────────────────────────────────── */}
         <aside className="hidden md:flex flex-col w-52 shrink-0 border-r border-neutral-200 bg-white p-3 gap-0.5 overflow-y-auto">
@@ -408,24 +426,8 @@ export default function SettingsPage() {
           ))}
         </aside>
 
-        {/* ── Mobile: sticky bottom tab bar ─────────────────────────────── */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-neutral-200 flex gap-1 overflow-x-auto px-3 py-2 shadow-lg">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={cn(
-                'px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap shrink-0 transition-all',
-                tab === t ? 'bg-neutral-900 text-white' : 'text-neutral-600 bg-neutral-100'
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-
         {/* ── Content area ──────────────────────────────────────────────── */}
-        <main className="flex-1 overflow-y-auto p-6 pb-20 md:pb-6">
+        <main className="flex-1 overflow-y-auto p-6">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 size={24} className="animate-spin text-neutral-400" />

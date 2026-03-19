@@ -16,6 +16,7 @@ import {
   CreditCard,
   Settings,
   Phone,
+  BarChart2,
   LogOut,
   X,
 } from 'lucide-react'
@@ -29,6 +30,7 @@ const navItems: { label: string; href: string; icon: React.ElementType; exact?: 
   { label: 'AI Knowledge Base', href: '/dashboard/knowledge', icon: BookOpen },
   { label: 'Human Agents', href: '/dashboard/agents', icon: Users },
   { label: 'Team Chat', href: '/dashboard/team-chat', icon: MessageSquare },
+  { label: 'Analytics', href: '/dashboard/analytics', icon: BarChart2 },
   { label: 'Voice & Phone', href: '/dashboard/settings/voice', icon: Phone },
   { label: 'Integrations', href: '/dashboard/integrations', icon: Zap },
   { label: 'Widget', href: '/dashboard/widget', icon: LayoutTemplate },

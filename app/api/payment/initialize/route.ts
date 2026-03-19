@@ -4,7 +4,7 @@ import { initializeTransaction } from '@/lib/paystack'
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { payment_transactions, credit_packs, plans, companies } from '@/lib/schema'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 
 const Schema = z.object({
   pack_id: z.string().uuid(),
@@ -56,6 +56,21 @@ export async function POST(req: Request) {
   }
 
   try {
+    // Expire any stale pending plan transactions for this company before creating a new one.
+    // Without this, Paystack may reject the new transaction as a duplicate if a prior
+    // session was abandoned and the old pending row still exists.
+    if (type === 'plan') {
+      await db.update(payment_transactions)
+        .set({ status: 'failed' })
+        .where(
+          and(
+            eq(payment_transactions.company_id, user.company_id),
+            eq(payment_transactions.status, 'pending'),
+            eq(payment_transactions.payment_type, 'plan'),
+          ),
+        )
+    }
+
     const result = await initializeTransaction({
       email: user.email,
       amount: amount_kobo,

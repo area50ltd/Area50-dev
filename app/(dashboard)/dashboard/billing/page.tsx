@@ -243,12 +243,13 @@ export default function BillingPage() {
       .then((result) => {
         if (result.success) {
           toast.success(`Payment verified! ${result.credits_added?.toLocaleString() ?? ''} credits added.`)
-          queryClient.invalidateQueries({ queryKey: ['billing'] })
-          queryClient.invalidateQueries({ queryKey: ['billing-transactions'] })
-          queryClient.invalidateQueries({ queryKey: ['billing-usage'] })
         } else {
-          toast.error(result.message ?? 'Payment could not be verified. Contact support if credits were deducted.')
+          toast.error(result.message ?? 'Payment was not completed. You can try again.')
         }
+        // Always refresh billing data after a payment callback — success or failure
+        queryClient.invalidateQueries({ queryKey: ['billing'] })
+        queryClient.invalidateQueries({ queryKey: ['billing-transactions'] })
+        queryClient.invalidateQueries({ queryKey: ['billing-usage'] })
       })
       .catch(() => toast.error('Verification request failed. Please contact support.'))
   // eslint-disable-next-line react-hooks/exhaustive-deps
