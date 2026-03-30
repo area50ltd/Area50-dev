@@ -487,11 +487,10 @@ export default function BillingPage() {
                         return (
                           <Button
                             size="sm"
-                            disabled={isLoading || !plan.paystack_plan_code}
+                            disabled={isLoading}
                             className="w-full rounded-lg text-xs"
                             variant={isUpgrade ? 'default' : 'secondary'}
                             onClick={() => handleTopUp(plan.id, 'plan', plan.name)}
-                            title={!plan.paystack_plan_code ? 'Plan not yet configured for subscription' : undefined}
                           >
                             {isLoading
                               ? <Loader2 size={13} className="animate-spin" />
